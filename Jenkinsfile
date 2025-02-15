@@ -12,7 +12,7 @@ node {
     }
 
     stage('Checkout') {
-        sh 'git clone git@github.com:cjmason8/expense-manager-frontend.git'
+        sh 'git clone git@github.com:cjmason8/expense-manager-frontend.git .'
     }
 
     stage('Update Version') {
