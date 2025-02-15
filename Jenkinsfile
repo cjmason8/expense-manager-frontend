@@ -7,7 +7,7 @@ def imageName = "expense-manager-frontend"
 node {
     stage('Delete Workspace') {
         sh 'rm -rf *'
-        sh 'rm -rf .dockerignore .editorconfig .eslintrc.cjs .gitattributes .npmrc .nvmrc .stylelintrc.json .vscode'
+        sh 'rm -rf .dockerignore .editorconfig .eslintrc.cjs .gitattributes .npmrc .nvmrc .stylelintrc.json .vscode .git .gitignore'
     }
 
     stage('Checkout') {
