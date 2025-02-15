@@ -1,11 +1,11 @@
-version: '3'
+version: "3"
 
 services:
-  vue-project:
-    container_name: vue-project_prod
+  expenseManagerFrontend-vue:
+    container_name: expense-manager-frontend
     build:
       context: .
       dockerfile: prod.Dockerfile
-    image: vue-app
+    image: cjmason8/expense-manager-frontend:${TAG_NAME}
     ports:
-      - 8080:80
+      - 8085:80
