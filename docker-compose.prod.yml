@@ -1,8 +1,7 @@
-version: '2'
+version: "2"
 
 services:
   expenseManagerFrontend-vue:
-    container_name: expense-manager-frontend
     build:
       context: .
       dockerfile: prod.Dockerfile
