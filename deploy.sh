@@ -20,7 +20,7 @@ echo "Force pulling..."
 rancher-compose --url ${RANCHER_URL} --access-key ${RANCHER_ACCESS_KEY} --secret-key ${RANCHER_SECRET_KEY} -e env.txt -p expenseManager -f ${BASE_DIR}/docker-compose.${ENV_NAME}.yml pull
 
 echo "Starting deployment..."
-rancher-compose --url ${RANCHER_URL} --access-key ${RANCHER_ACCESS_KEY} --secret-key ${RANCHER_SECRET_KEY} -r ${BASE_DIR}/rancher-compose.yml -e env.txt -p expenseManager -f ${BASE_DIR}/docker-compose.${ENV_NAME}.yml up --upgrade -d --pull --batch-size 1 --provider rancher
+rancher-compose --url ${RANCHER_URL} --access-key ${RANCHER_ACCESS_KEY} --secret-key ${RANCHER_SECRET_KEY} -r ${BASE_DIR}/rancher-compose.yml -e env.txt -p expenseManager -f ${BASE_DIR}/docker-compose.${ENV_NAME}.yml up --upgrade -d --pull --batch-size 1
 
 if [ $? -eq 0 ]; then
   echo "Deploy success! Confirming..."
