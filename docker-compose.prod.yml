@@ -1,10 +1,6 @@
 version: "2"
-
 services:
   expenseManagerFrontend-vue:
-    build:
-      context: .
-      dockerfile: prod.Dockerfile
     image: cjmason8/expense-manager-frontend:${TAG_NAME}
-    ports:
-      - 8085:80
+    volumes:
+      - /Users/chris/applogs:/applogs
