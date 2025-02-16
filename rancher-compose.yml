@@ -12,4 +12,3 @@ services:
       strategy: recreate
       request_line: GET "/health" "HTTP/1.0"
       reinitializing_timeout: 60000
-    provider: rancher
