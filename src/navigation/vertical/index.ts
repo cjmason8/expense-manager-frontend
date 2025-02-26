@@ -14,4 +14,14 @@ export default [
     to: { name: "donations" },
     icon: { icon: "ri-file-text-line" },
   },
+  {
+    title: "Recurring",
+    to: { name: "recurring" },
+    icon: { icon: "ri-file-text-line" },
+  },
+  {
+    title: "Rent",
+    to: { name: "rental-payments" },
+    icon: { icon: "ri-file-text-line" },
+  },
 ];

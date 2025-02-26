@@ -12,8 +12,34 @@ export const useExpensesStore = defineStore("expenses", () => {
     homeInfo.value = await response.json();
   };
 
+  const getRecurring = async (includeAll: boolean) => {
+    let url = "/api/recurring/active";
+    if (includeAll) {
+      url = "/api/recurring/all";
+    }
+    const response = await fetch(url);
+    homeInfo.value = await response.json();
+  };
+
+  const payExpense = async (id?: number) => {
+    if (id) {
+      let reqUrl = "/api/expenses/pay/" + id;
+      const response = await fetch(reqUrl);
+    }
+  };
+
+  const unPayExpense = async (id?: number) => {
+    if (id) {
+      let reqUrl = "/api/expenses/unpay/" + id;
+      const response = await fetch(reqUrl);
+    }
+  };
+
   return {
+    payExpense,
+    unPayExpense,
     homeInfo,
     getTransactionsForWeek,
+    getRecurring,
   };
 });

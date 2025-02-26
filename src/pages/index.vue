@@ -63,7 +63,10 @@
             class="text-no-wrap"
           >
             <template #item.paid="{ item }">
-              <VCheckbox v-model="item.paid" dense hide-details></VCheckbox>
+              <VCheckbox
+                v-model="item.paid"
+                @change="setPaid(item)"
+              ></VCheckbox>
             </template>
           </VDataTable>
         </VCard>
@@ -92,6 +95,7 @@
 
 <script setup lang="ts">
 import { useExpensesStore } from "@/stores/expensesStore";
+import { Expense } from "@/types/expense";
 import { format } from "date-fns";
 import DatePicker from "primevue/datepicker";
 import { VCardTitle } from "vuetify/components";
@@ -123,6 +127,14 @@ const nextWeek = () => {
 };
 const gotoWeek = () => {
   expenseStore.getTransactionsForWeek(format(selectedDate, "dd-MM-yyyy"));
+};
+
+const setPaid = (item: Expense) => {
+  if (item.paid) {
+    expenseStore.payExpense(item.id);
+  } else {
+    expenseStore.unPayExpense(item.id);
+  }
 };
 </script>
 
