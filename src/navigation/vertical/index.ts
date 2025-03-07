@@ -24,4 +24,9 @@ export default [
     to: { name: "rental-payments" },
     icon: { icon: "ri-file-text-line" },
   },
+  {
+    title: "Notifications",
+    to: { name: "notifications" },
+    icon: { icon: "ri-file-text-line" },
+  },
 ];

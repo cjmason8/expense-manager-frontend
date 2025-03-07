@@ -1,9 +1,10 @@
 import { RefData } from "@/types/refData";
 import { RentalPayment } from "@/types/rentalPayment";
+import { RentalPaymentYear } from "@/types/rentalPaymentYear";
 import axios from "axios";
 
 export const useRentalPaymentStore = defineStore("rentalPayment", () => {
-  const rentalPayments = ref<RentalPayment[]>([]);
+  const rentalPayments = ref<RentalPaymentYear>(new RentalPaymentYear());
   const types = ref<RefData[]>([]);
   const rentalPayment = ref();
 
@@ -77,20 +78,40 @@ export const useRentalPaymentStore = defineStore("rentalPayment", () => {
     rentalPayment.value = await response.json();
   };
 
-  const getRentalPayments = async (property: string, year?: string) => {
+  const getRentalPayments = async (year?: number) => {
     if (year != undefined && year != null) {
-      const response = await fetch(
-        "/rentalPayments/getByProperty/" + property + "/" + year
+      const response1 = await fetch(
+        "/api/rentalPayments/getByProperty/WODONGA/" + year
       );
-      rentalPayments.value = await response.json();
+      const tmp1 = await response1.json();
+      rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments;
+
+      const response2 = await fetch(
+        "/api/rentalPayments/getByProperty/STH_KINGSVILLE/" + year
+      );
+      const tmp2 = await response2.json();
+      rentalPayments.value.sthKingsvilleRentalPayments = tmp2.rentalPayments;
+      rentalPayments.value.nextYear = tmp2.nextYear;
+      rentalPayments.value.previousYear = tmp2.previousYear;
     } else {
-      const response = await fetch("/rentalPayments/getByProperty/" + property);
-      rentalPayments.value = await response.json();
+      const response1 = await fetch(
+        "/api/rentalPayments/getByProperty/WODONGA"
+      );
+      const tmp1 = await response1.json();
+      rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments;
+
+      const response2 = await fetch(
+        "/api/rentalPayments/getByProperty/STH_KINGSVILLE"
+      );
+      const tmp2 = await response2.json();
+      rentalPayments.value.sthKingsvilleRentalPayments = tmp2.rentalPayments;
+      rentalPayments.value.nextYear = tmp2.nextYear;
+      rentalPayments.value.previousYear = tmp2.previousYear;
     }
   };
 
   const getTypes = async (type: string) => {
-    const response = await fetch("/rentalPayments/type/" + type);
+    const response = await fetch("/api/rentalPayments/type/" + type);
     types.value = await response.json();
   };
 

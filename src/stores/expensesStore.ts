@@ -1,4 +1,6 @@
+import { Expense } from "@/types/expense";
 import { HomeInfo } from "@/types/homeInfo";
+import axios from "axios";
 
 export const useExpensesStore = defineStore("expenses", () => {
   const homeInfo = ref<HomeInfo>();
@@ -9,7 +11,9 @@ export const useExpensesStore = defineStore("expenses", () => {
       url += "/" + week;
     }
     const response = await fetch(url);
-    homeInfo.value = await response.json();
+    await response.json().then((res) => {
+      homeInfo.value = res;
+    });
   };
 
   const getRecurring = async (includeAll: boolean) => {
@@ -35,7 +39,68 @@ export const useExpensesStore = defineStore("expenses", () => {
     }
   };
 
+  const deleteExpense = async (expense: Expense) => {
+    try {
+      const config = {
+        headers: {},
+      };
+      const response = await axios.delete(
+        `/api/expenses/${expense.id}`,
+        config
+      );
+
+      console.log("Response:", response.data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const updateExpense = async (expense: Expense) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      };
+      console.log("request data:" + JSON.stringify(expense));
+      const response = await axios.put(
+        `/api/expenses/${expense.id}`,
+        JSON.stringify(expense),
+        config
+      );
+
+      console.log("Response:", response.data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const addExpense = async (expense: Expense) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      };
+      console.log(JSON.stringify(expense));
+      const response = await axios.post(
+        `/api/expenses`,
+        JSON.stringify(expense),
+        config
+      );
+
+      console.log("Response:", response.data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return {
+    addExpense,
+    updateExpense,
+    deleteExpense,
     payExpense,
     unPayExpense,
     homeInfo,

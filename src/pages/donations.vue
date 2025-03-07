@@ -79,7 +79,7 @@
           <VCol cols="12" sm="6">
             <VSelect
               v-model="causeId"
-              :items="refDataStore.refData"
+              :items="causes"
               item-title="description"
               item-value="id"
               placeholder="Select..."
@@ -208,12 +208,15 @@ let selectedDate = new Date();
 
 const addEditDialog = ref(false);
 const deleteDialog = ref(false);
+const causes = ref<RefData[]>([]);
 
 const donationsStore = useDonationsStore();
 donationsStore.getDonations();
 
 const refDataStore = useRefDataStore();
-refDataStore.getRefData("cause");
+refDataStore.getRefData("cause").then((res) => {
+  causes.value = res;
+});
 
 const documentStore = useDocumentStore();
 
@@ -288,7 +291,7 @@ const closeDelete = () => {
 
 const saveAddEdit = () => {
   selectedItem.value.dueDateString = format(selectedDate, "dd-MM-yyyy");
-  selectedItem.value.cause = refDataStore.refData.find(
+  selectedItem.value.cause = causes.value.find(
     (refData) => refData.id == causeId.value
   );
   if (dialogTitle.value?.indexOf("Edit") != -1) {

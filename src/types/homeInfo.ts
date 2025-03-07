@@ -3,7 +3,7 @@ import { Income } from "./income";
 
 export class HomeInfo {
   expenses: Expense[] = [];
-  unpaidExpenses: Expense[] = [];
+  unpaidExpenses?: Expense[] = [];
   incomes: Income[] = [];
   previousWeek: string = "";
   nextWeek: string = "";

@@ -3,15 +3,13 @@ import { RefData } from "./refData";
 
 export class Income {
   id?: number;
-  transactionType: RefData = new RefData();
-  amount: number = -1;
+  transactionType?: RefData;
+  amount?: number;
   dueDateString: string = "";
-  recurringType: RefData = new RefData();
-  startDateString: string = "";
-  endDateString: string = "";
+  recurringType?: RefData;
   notes: string = "";
-  documentDto: Document = new Document();
-  metaDataChunk: string = "";
+  documentDto?: Document;
+  metaDataChunk?: string = "";
 
   constructor() {}
 }

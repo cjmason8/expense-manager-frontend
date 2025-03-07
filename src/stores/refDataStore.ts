@@ -10,7 +10,7 @@ export const useRefDataStore = defineStore("refData", () => {
       url = `/api/refDatas/type/${type}`;
     }
     const response = await fetch(url);
-    refData.value = await response.json();
+    return await response.json();
   };
 
   const updateRefData = async (refData: RefData) => {
@@ -73,5 +73,11 @@ export const useRefDataStore = defineStore("refData", () => {
     }
   };
 
-  return { refData, getRefData, addRefData, updateRefData, deleteRefData };
+  return {
+    refData,
+    getRefData,
+    addRefData,
+    updateRefData,
+    deleteRefData,
+  };
 });

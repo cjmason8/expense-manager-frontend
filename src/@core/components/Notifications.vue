@@ -1,40 +1,40 @@
 <script lang="ts" setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import type { Notification } from '@layouts/types'
+import type { Notification } from "@/types/notification";
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 
 interface Props {
-  notifications: Notification[]
-  badgeProps?: object
-  location?: any
+  notifications: Notification[];
+  badgeProps?: object;
+  location?: any;
 }
 interface Emit {
-  (e: 'read', value: number[]): void
-  (e: 'unread', value: number[]): void
-  (e: 'remove', value: number): void
-  (e: 'click:notification', value: Notification): void
+  (e: "read", value: number[]): void;
+  (e: "unread", value: number[]): void;
+  (e: "remove", value: number): void;
+  (e: "click:notification", value: Notification): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  location: 'bottom end',
+  location: "bottom end",
   badgeProps: undefined,
-})
+});
 
-const emit = defineEmits<Emit>()
+const emit = defineEmits<Emit>();
 
 const isAllMarkRead = computed(() => {
-  return props.notifications.some(item => item.isSeen === false)
-})
+  return props.notifications.some((item) => item.read === false);
+});
 
 const markAllReadOrUnread = () => {
-  const allNotificationsIds = props.notifications.map(item => item.id)
+  const allNotificationsIds = props.notifications.map((item) => item.id);
 
-  if (!isAllMarkRead.value)
-    emit('unread', allNotificationsIds)
-  else
-    emit('read', allNotificationsIds)
-}
+  if (!isAllMarkRead.value) emit("unread", allNotificationsIds);
+  else emit("read", allNotificationsIds);
+};
 
-const totalUnreadNotifications = computed(() => props.notifications.filter(item => !item.isSeen).length)
+const totalUnreadNotifications = computed(
+  () => props.notifications.filter((item) => !item.read).length
+);
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
     <VBadge
       dot
       v-bind="props.badgeProps"
-      :model-value="props.notifications.some(n => !n.isSeen)"
+      :model-value="props.notifications.some((n) => !n.read)"
       color="error"
       bordered
       offset-x="1"
@@ -61,9 +61,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
       <VCard class="d-flex flex-column">
         <!-- 👉 Header -->
         <VCardItem class="notification-section">
-          <h5 class="text-h5 text-truncate">
-            Notifications
-          </h5>
+          <h5 class="text-h5 text-truncate">Notifications</h5>
 
           <template #append>
             <VChip
@@ -82,14 +80,11 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
             >
               <VIcon
                 color="high-emphasis"
-                :icon="!isAllMarkRead ? 'ri-mail-line' : 'ri-mail-open-line' "
+                :icon="!isAllMarkRead ? 'ri-mail-line' : 'ri-mail-open-line'"
               />
 
-              <VTooltip
-                activator="parent"
-                location="start"
-              >
-                {{ !isAllMarkRead ? 'Mark all as unread' : 'Mark all as read' }}
+              <VTooltip activator="parent" location="start">
+                {{ !isAllMarkRead ? "Mark all as unread" : "Mark all as read" }}
               </VTooltip>
             </IconBtn>
           </template>
@@ -100,7 +95,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
         <!-- 👉 Notifications list -->
         <PerfectScrollbar
           :options="{ wheelPropagation: false }"
-          style="max-block-size: 27rem;"
+          style="max-block-size: 27rem"
         >
           <VList class="py-0">
             <template
@@ -119,15 +114,14 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
                 <!-- Handles Avatar: Image, Icon, Text -->
                 <div class="d-flex align-start gap-3">
                   <div>
-                    <VAvatar
-                      :color="notification.color && !notification.img ? notification.color : undefined"
-                      :variant="notification.img ? undefined : 'tonal' "
-                    >
-                      <span v-if="notification.text">{{ avatarText(notification.text) }}</span>
-                      <VImg
+                    <VAvatar :color="notification.color" :variant="'tonal'">
+                      <span v-if="notification.text != ''">{{
+                        avatarText(notification.text)
+                      }}</span>
+                      <!--VImg
                         v-if="notification.img"
                         :src="notification.img"
-                      />
+                      /-->
                       <VIcon
                         v-if="notification.icon"
                         :icon="notification.icon"
@@ -136,20 +130,24 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
                   </div>
 
                   <div>
-                    <h6 class="text-h6 mb-1">
-                      {{ notification.title }}
-                    </h6>
+                    <h6 class="text-h6 mb-1">{{ notification.title }}</h6>
                     <p
                       class="text-body-2 mb-2"
-                      style="letter-spacing: 0.4px !important; line-height: 18px;"
+                      style="
+                        letter-spacing: 0.4px !important;
+                        line-height: 18px;
+                      "
                     >
-                      {{ notification.subtitle }}
+                      {{ notification.subTitle }}
                     </p>
                     <p
                       class="text-sm text-disabled mb-0"
-                      style="letter-spacing: 0.4px !important; line-height: 18px;"
+                      style="
+                        letter-spacing: 0.4px !important;
+                        line-height: 18px;
+                      "
                     >
-                      {{ notification.time }}
+                      {{ notification.createdDateString }}
                     </p>
                   </div>
 
@@ -157,14 +155,20 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
 
                   <div class="d-flex flex-column align-end gap-2">
                     <VIcon
-                      :color="!notification.isSeen ? 'primary' : '#a8aaae'"
-                      :class="`${notification.isSeen ? 'visible-in-hover' : ''} ms-1`"
+                      :color="!notification.read ? 'primary' : '#a8aaae'"
+                      :class="`${
+                        notification.read ? 'visible-in-hover' : ''
+                      } ms-1`"
                       size="10"
                       icon="ri-circle-fill"
-                      @click.stop="$emit(notification.isSeen ? 'unread' : 'read', [notification.id])"
+                      @click.stop="
+                        $emit(notification.read ? 'unread' : 'read', [
+                          notification.id,
+                        ])
+                      "
                     />
 
-                    <div style="block-size: 20px; inline-size: 20px;">
+                    <div style="block-size: 20px; inline-size: 20px">
                       <VIcon
                         size="20"
                         icon="ri-close-line"
@@ -181,7 +185,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
             <VListItem
               v-show="!props.notifications.length"
               class="text-center text-medium-emphasis"
-              style="block-size: 56px;"
+              style="block-size: 56px"
             >
               <VListItemTitle>No Notification Found!</VListItemTitle>
             </VListItem>
@@ -191,16 +195,8 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
         <VDivider />
 
         <!-- 👉 Footer -->
-        <VCardText
-          v-show="props.notifications.length"
-          class="pa-4"
-        >
-          <VBtn
-            block
-            size="small"
-          >
-            View All Notifications
-          </VBtn>
+        <VCardText v-show="props.notifications.length" class="pa-4">
+          <VBtn block size="small"> View All Notifications </VBtn>
         </VCardText>
       </VCard>
     </VMenu>

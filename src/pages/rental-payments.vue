@@ -1,12 +1,37 @@
 <template>
   <table style="border-spacing: 30px" max-width="700px">
     <tr>
+      <td style="float: right">
+        <table>
+          <tr>
+            <td width="50px">
+              <IconBtn size="small" @click="prevYear()">
+                <VIcon icon="ri-arrow-left-double-line" />
+              </IconBtn>
+            </td>
+            <td width="50px" @click="prevYear()">Prev</td>
+            <td width="50px" @click="nextYear()">Next</td>
+            <td width="50px">
+              <IconBtn size="small" @click="nextYear()">
+                <VIcon icon="ri-arrow-right-double-line" />
+              </IconBtn>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr></tr>
+    <tr>
       <td valign="top">
-        <VCard>
+        <VCard
+          v-if="
+            rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.length > 0
+          "
+        >
           <VCardTitle>Wodonga</VCardTitle>
           <VDataTable
             :headers="headers"
-            :items="wodongaRent"
+            :items="rentalPaymentsStore.rentalPayments?.wodongaRentalPayments"
             :items-per-page="20"
             class="text-no-wrap"
           >
@@ -37,18 +62,21 @@
         </VCard>
       </td>
       <td valign="top">
-        <VCard>
+        <VCard
+          v-if="
+            rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments
+              .length > 0
+          "
+        >
           <VCardTitle>South Kingsville</VCardTitle>
           <VDataTable
             :headers="headers"
-            :items="sthKingsvilleRent"
+            :items="
+              rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments
+            "
             :items-per-page="20"
             class="text-no-wrap"
           >
-            <template #item.id="{ item }">
-              <span class="text-h6">{{ item.id }}</span>
-            </template>
-
             <!-- Actions -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-1">
@@ -113,7 +141,7 @@
             <label for="selectedItem.other">Other</label>
           </VCol>
           <VCol cols="18" sm="9">
-            <VTextField v-model="selectedItem.other" />
+            <VTextField v-model="selectedItem.otherFee" />
           </VCol>
         </VRow>
         <VRow>
@@ -196,7 +224,7 @@
         Are you sure you want to delete
         <strong
           >{{ selectedItem.property }}'s payment starting
-          {{ selectedItem.statementFrom }}</strong
+          {{ selectedItem.statementFromString }}</strong
         >?
       </VCardText>
       <VCardActions>
@@ -208,14 +236,13 @@
 </template>
 
 <script setup lang="ts">
-import { useRentalPaymentStore } from "@/stores/rentalpaymentsStore";
 import { useDocumentStore } from "@/stores/documentStore";
+import { useRentalPaymentStore } from "@/stores/rentalpaymentsStore";
 import { RentalPayment } from "@/types/rentalPayment";
-import { VCardTitle } from "vuetify/components";
 import { format } from "date-fns";
+import DatePicker from "primevue/datepicker";
+import { VCardTitle } from "vuetify/components";
 
-let wodongaRent = ref<RentalPayment[]>([]);
-const sthKingsvilleRent = ref<RentalPayment[]>([]);
 const defaultItem = ref<RentalPayment>({
   totalRent: -1,
   adminFee: -1,
@@ -236,16 +263,19 @@ const selectedItem = ref<RentalPayment>(defaultItem.value);
 const editedIndex = ref(-1);
 const documentStore = useDocumentStore();
 const rentalPaymentsStore = useRentalPaymentStore();
-rentalPaymentsStore.getRentalPayments("WODONGA");
-wodongaRent.value = rentalPaymentsStore.rentalPayments;
-rentalPaymentsStore.getRentalPayments("SOUTH KINGSVILLE");
-sthKingsvilleRent.value = rentalPaymentsStore.rentalPayments;
+rentalPaymentsStore.getRentalPayments();
+
+console.log(rentalPaymentsStore.rentalPayments?.previousYear);
 
 const editItem = (item: RentalPayment, isWodonga: boolean) => {
   if (isWodonga) {
-    editedIndex.value = wodongaRent.value.indexOf(item);
+    editedIndex.value =
+      rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.indexOf(item);
   } else {
-    editedIndex.value = sthKingsvilleRent.value.indexOf(item);
+    editedIndex.value =
+      rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments.indexOf(
+        item
+      );
   }
 
   selectedItem.value = { ...item };
@@ -254,9 +284,13 @@ const editItem = (item: RentalPayment, isWodonga: boolean) => {
 
 const deleteItem = (item: RentalPayment, isWodonga: boolean) => {
   if (isWodonga) {
-    editedIndex.value = wodongaRent.value.indexOf(item);
+    editedIndex.value =
+      rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.indexOf(item);
   } else {
-    editedIndex.value = sthKingsvilleRent.value.indexOf(item);
+    editedIndex.value =
+      rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments.indexOf(
+        item
+      );
   }
 
   selectedItem.value = { ...item };
@@ -283,10 +317,17 @@ const saveEdit = (isWodonga: boolean) => {
   selectedItem.value.statementToString = format(statementToDate, "dd-MM-yyyy");
   if (editedIndex.value > -1) {
     if (isWodonga) {
-      Object.assign(wodongaRent.value[editedIndex.value], selectedItem.value);
+      Object.assign(
+        rentalPaymentsStore.rentalPayments?.wodongaRentalPayments[
+          editedIndex.value
+        ],
+        selectedItem.value
+      );
     } else {
       Object.assign(
-        sthKingsvilleRent.value[editedIndex.value],
+        rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments[
+          editedIndex.value
+        ],
         selectedItem.value
       );
     }
@@ -299,9 +340,15 @@ const saveEdit = (isWodonga: boolean) => {
 
 const deleteItemConfirm = (isWodonga: boolean) => {
   if (isWodonga) {
-    wodongaRent.value.splice(editedIndex.value, 1);
+    rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.splice(
+      editedIndex.value,
+      1
+    );
   } else {
-    sthKingsvilleRent.value.splice(editedIndex.value, 1);
+    rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments.splice(
+      editedIndex.value,
+      1
+    );
   }
 
   rentalPaymentsStore.deleteRentalPayment(selectedItem.value);
@@ -309,12 +356,12 @@ const deleteItemConfirm = (isWodonga: boolean) => {
 };
 
 const headers = [
-  { title: "MANAGEMENT FEE", key: "transactionType.description" },
-  { title: "ADMIN FEE", key: "amount" },
-  { title: "OTHER", key: "notes" },
-  { title: "STATEMENT FROM", key: "recurringType.description" },
-  { title: "STATEMENT TO", key: "startDateString" },
-  { title: "TOTAL RENT", key: "endDateString" },
+  { title: "MANAGEMENT FEE", key: "managementFee" },
+  { title: "ADMIN FEE", key: "adminFee" },
+  { title: "OTHER", key: "otherFee" },
+  { title: "STATEMENT FROM", key: "statementFromString" },
+  { title: "STATEMENT TO", key: "statementToString" },
+  { title: "TOTAL RENT", key: "totalRent" },
   { title: "ACTIONS", key: "actions" },
 ];
 
@@ -355,6 +402,17 @@ const uploadFile = async () => {
 watch(file, (newFile) => {
   if (!newFile) imageUrl.value = null;
 });
+
+const prevYear = () => {
+  rentalPaymentsStore.getRentalPayments(
+    rentalPaymentsStore.rentalPayments?.previousYear
+  );
+};
+const nextYear = () => {
+  rentalPaymentsStore.getRentalPayments(
+    rentalPaymentsStore.rentalPayments?.nextYear
+  );
+};
 </script>
 
 <style>
