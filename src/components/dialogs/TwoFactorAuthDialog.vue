@@ -4,6 +4,7 @@ import type { CustomInputContent } from '@core/types'
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
 }
+
 interface Props {
   isDialogVisible: boolean
   smsCode?: string

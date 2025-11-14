@@ -42,7 +42,11 @@ const suggestionGroups: SuggestionGroup[] = [
     content: [
       { icon: 'ri-calendar-line', title: 'Calendar', url: { name: 'apps-calendar' } },
       { icon: 'ri-lock-unlock-line', title: 'Roles & Permissions', url: { name: 'apps-roles' } },
-      { icon: 'ri-settings-4-line', title: 'Account Settings', url: { name: 'pages-account-settings-tab', params: { tab: 'account' } } },
+      {
+        icon: 'ri-settings-4-line',
+        title: 'Account Settings',
+        url: { name: 'pages-account-settings-tab', params: { tab: 'account' } },
+      },
       { icon: 'ri-file-copy-line', title: 'Dialog Examples', url: { name: 'pages-dialog-examples' } },
     ],
   },

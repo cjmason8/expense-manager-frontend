@@ -2,6 +2,7 @@
 import { useDropZone, useFileDialog, useObjectUrl } from '@vueuse/core'
 
 const dropZoneRef = ref<HTMLDivElement>()
+
 interface FileData {
   file: File
   url: string
@@ -12,24 +13,25 @@ const { open, onChange } = useFileDialog({ accept: 'image/*' })
 
 function onDrop(DroppedFiles: File[] | null) {
   DroppedFiles?.forEach(file => {
-    if (file.type.slice(0, 6) !== 'image/') {
-      // eslint-disable-next-line no-alert
-      alert('Only image files are allowed')
+      if (file.type.slice(0, 6) !== 'image/') {
+        // eslint-disable-next-line no-alert
+        alert('Only image files are allowed')
 
-      return
-    }
+        return
+      }
 
-    fileData.value.push({
-      file,
-      url: useObjectUrl(file).value ?? '',
-    })
-  },
+      fileData.value.push({
+        file,
+        url: useObjectUrl(file).value ?? '',
+      })
+    },
   )
 }
 
 onChange((selectedFiles: any) => {
-  if (!selectedFiles)
+  if (!selectedFiles) {
     return
+  }
 
   for (const file of selectedFiles) {
     fileData.value.push({

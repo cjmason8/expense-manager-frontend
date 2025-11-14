@@ -17,8 +17,10 @@ interface Props {
   rolePermissions?: Roles
   isDialogVisible: boolean
 }
+
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'update:rolePermissions', value: Roles): void
 }
 
@@ -98,8 +100,9 @@ const checkedCount = computed(() => {
 
   permissions.value.forEach(permission => {
     Object.entries(permission).forEach(([key, value]) => {
-      if (key !== 'name' && value)
+      if (key !== 'name' && value) {
         counter++
+      }
     })
   })
 

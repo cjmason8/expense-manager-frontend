@@ -10,6 +10,7 @@ interface Props {
 
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'confirm', value: boolean): void
 }
 

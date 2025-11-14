@@ -30,9 +30,9 @@ const isPositive = computed(() => Math.sign(props.change) === 1)
         />
       </VAvatar>
 
-      <VSpacer />
+      <VSpacer/>
 
-      <MoreBtn class="me-n3 mt-n1" />
+      <MoreBtn class="me-n3 mt-n1"/>
     </VCardText>
 
     <VCardText>

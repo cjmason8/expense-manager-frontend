@@ -3,12 +3,15 @@ import themeselectionQr from '@images/pages/themeselection-qr.png'
 
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'submit', value: string): void
 }
+
 interface Props {
   authCode?: string
   isDialogVisible: boolean
 }
+
 const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 
@@ -50,7 +53,8 @@ const resetAuthCode = () => {
         </h5>
 
         <p class="mb-6">
-          Using an authenticator app like Google Authenticator, Microsoft Authenticator, Authy, or 1Password, scan the QR code. It will generate a 6 digit code for you to enter below.
+          Using an authenticator app like Google Authenticator, Microsoft Authenticator, Authy, or 1Password, scan the
+          QR code. It will generate a 6 digit code for you to enter below.
         </p>
 
         <div class="my-6">

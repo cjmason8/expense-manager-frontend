@@ -11,12 +11,15 @@ interface BillingAddress {
   state: string
   zipCode: number | null
 }
+
 interface Props {
   billingAddress?: BillingAddress
   isDialogVisible: boolean
 }
+
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'submit', value: BillingAddress): void
 }
 

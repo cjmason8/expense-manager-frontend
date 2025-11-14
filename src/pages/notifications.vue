@@ -16,7 +16,7 @@
           <tr>
             <td style="min-width: 35px">
               <IconBtn size="small" @click="editItem(item)">
-                <VIcon icon="ri-pencil-line" />
+                <VIcon icon="ri-pencil-line"/>
               </IconBtn>
             </td>
           </tr>
@@ -27,19 +27,19 @@
 </template>
 
 <script setup lang="ts">
-import { useNotificationsStore } from "@/stores/notificationsStore";
-import { useRefDataStore } from "@/stores/refDataStore";
+import { useNotificationsStore } from "@/stores/notificationsStore"
+import { useRefDataStore } from "@/stores/refDataStore"
 //import { Expense } from "@/types/expense";
-import { Notification } from "@/types/notification";
-import { ref } from "vue";
+import { Notification } from "@/types/notification"
+import { ref } from "vue"
 
-const editDialog = ref(false);
+const editDialog = ref(false)
 
-const notificationsStore = useNotificationsStore();
-notificationsStore.getNotifications();
+const notificationsStore = useNotificationsStore()
+notificationsStore.getNotifications()
 
-const refDataStore = useRefDataStore();
-refDataStore.getRefData("expenseType");
+const refDataStore = useRefDataStore()
+refDataStore.getRefData("expenseType")
 
 // let transactionTypeId = ref<number>();
 
@@ -55,15 +55,15 @@ const headers = [
   { title: "AMOUNT", key: "expense.amount" },
   { title: "MARK READ", key: "read" },
   { title: "ACTIONS", key: "actions" },
-];
+]
 
 const markRead = (item: Notification) => {
   if (item.read) {
-    notificationsStore.markRead(item.id);
+    notificationsStore.markRead(item.id)
   } else {
-    notificationsStore.markUnRead(item.id);
+    notificationsStore.markUnRead(item.id)
   }
-};
+}
 
 const editItem = (item: Notification) => {
   // editedIndex.value = donations.value.indexOf(item);
@@ -72,7 +72,7 @@ const editItem = (item: Notification) => {
   // causeId.value = selectedItem.value.cause?.id;
   // addEditDialog.value = true;
   // dialogTitle.value = "Edit Donation";
-};
+}
 
 // const closeAddEdit = () => {
 //   addEditDialog.value = false;
@@ -109,9 +109,11 @@ const editItem = (item: Notification) => {
 .p-datepicker {
   z-index: 1050 !important; /* Adjust the value as necessary */
 }
+
 .v-dialog {
   z-index: 1000 !important; /* Adjust the value if necessary */
 }
+
 .file-v-card {
   width: 300px;
 }

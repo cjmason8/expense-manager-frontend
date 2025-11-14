@@ -22,7 +22,7 @@ watch(
 
 <template>
   <IconBtn>
-    <VIcon :icon="props.themes.find(t => t.name === configStore.theme)?.icon" />
+    <VIcon :icon="props.themes.find(t => t.name === configStore.theme)?.icon"/>
 
     <VTooltip
       activator="parent"

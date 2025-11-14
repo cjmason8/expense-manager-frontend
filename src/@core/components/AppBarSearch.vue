@@ -4,6 +4,7 @@ import { VList, VListItem } from 'vuetify/components/VList'
 
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'search', value: string): void
 }
 
@@ -20,8 +21,9 @@ const emit = defineEmits<Emit>()
 const { ctrl_k, meta_k } = useMagicKeys({
   passive: false,
   onEventFired(e) {
-    if (e.ctrlKey && e.key === 'k' && e.type === 'keydown')
+    if (e.ctrlKey && e.key === 'k' && e.type === 'keydown') {
       e.preventDefault()
+    }
   },
 })
 
@@ -49,8 +51,7 @@ const getFocusOnSearchList = (e: KeyboardEvent) => {
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     refSearchList.value?.focus('next')
-  }
-  else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp') {
     e.preventDefault()
     refSearchList.value?.focus('prev')
   }
@@ -64,7 +65,9 @@ const dialogModelValueUpdate = (val: boolean) => {
 // 👉 clear search query when redirect to another page
 watch(
   () => props.isDialogVisible,
-  () => { searchQueryLocal.value = '' },
+  () => {
+    searchQueryLocal.value = ''
+  },
 )
 </script>
 
@@ -122,7 +125,7 @@ watch(
                 color="medium-emphasis"
                 @click="clearSearchAndCloseDialog"
               >
-                <VIcon icon="ri-close-line" />
+                <VIcon icon="ri-close-line"/>
               </IconBtn>
             </div>
           </template>
@@ -130,7 +133,7 @@ watch(
       </VCardText>
 
       <!-- 👉 Divider -->
-      <VDivider />
+      <VDivider/>
 
       <!-- 👉 Perfect Scrollbar -->
       <PerfectScrollbar
@@ -165,7 +168,7 @@ watch(
           v-show="!!props.searchResults && !searchQueryLocal && $slots.suggestions"
           class="h-100"
         >
-          <slot name="suggestions" />
+          <slot name="suggestions"/>
         </div>
 
         <!-- 👉 No Data found -->
@@ -175,7 +178,9 @@ watch(
         >
           <slot name="noData">
             <VCardText class="h-100">
-              <div class="app-bar-search-suggestions d-flex flex-column align-center justify-center text-high-emphasis pa-12">
+              <div
+                class="app-bar-search-suggestions d-flex flex-column align-center justify-center text-high-emphasis pa-12"
+              >
                 <VIcon
                   size="64"
                   icon="ri-file-forbid-line"
@@ -185,7 +190,7 @@ watch(
                   <span>"{{ searchQueryLocal }}"</span>
                 </div>
 
-                <slot name="noDataSuggestion" />
+                <slot name="noDataSuggestion"/>
               </div>
             </VCardText>
           </slot>

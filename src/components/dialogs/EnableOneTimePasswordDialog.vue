@@ -1,12 +1,15 @@
 <script setup lang="ts">
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'submit', value: string): void
 }
+
 interface Props {
   mobileNumber?: string
   isDialogVisible: boolean
 }
+
 const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 
@@ -46,7 +49,7 @@ const resetPhoneNumber = () => {
           </h5>
 
           <div>
-            Enter your mobile phone number with country code and  we will send you a verification code.
+            Enter your mobile phone number with country code and we will send you a verification code.
           </div>
         </div>
         <VForm @submit.prevent="() => {}">

@@ -22,7 +22,7 @@ const router = useRouter()
 
 <template>
   <IconBtn>
-    <VIcon :icon="props.togglerIcon" />
+    <VIcon :icon="props.togglerIcon"/>
 
     <VMenu
       activator="parent"
@@ -55,7 +55,7 @@ const router = useRouter()
           </template>
         </VCardItem>
 
-        <VDivider />
+        <VDivider/>
 
         <PerfectScrollbar :options="{ wheelPropagation: false }">
           <VRow class="ma-0 mt-n1">

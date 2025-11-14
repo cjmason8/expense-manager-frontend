@@ -10,23 +10,23 @@
     min-inline-size: 100%;
   }
 
-  .auth-footer-tree{
+  .auth-footer-tree {
     position: absolute !important;
     inset-block-end: 70px;
     inset-inline-start: 70px;
   }
 
-  .auth-footer-start-tree, .auth-footer-end-tree{
+  .auth-footer-start-tree, .auth-footer-end-tree {
     position: absolute !important;
     z-index: 1 !important;
   }
 
-  .auth-footer-start-tree{
+  .auth-footer-start-tree {
     inset-block-end: 3.75rem;
     inset-inline-start: 3.75rem;
   }
 
-  .auth-footer-end-tree{
+  .auth-footer-end-tree {
     inset-block-end: 4.625rem;
     inset-inline-end: 5rem;
   }
@@ -52,7 +52,7 @@
   inset-inline-start: 2.3rem;
 }
 
-.auth-title{
+.auth-title {
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.273px;

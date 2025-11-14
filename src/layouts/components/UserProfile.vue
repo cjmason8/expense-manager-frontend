@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import avatar1 from "@images/avatars/avatar-1.png";
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import avatar1 from '@images/avatars/avatar-1.png'
 
 const userProfileList = [
-  { type: "divider" },
+  { type: 'divider' },
   {
-    type: "navItem",
-    icon: "ri-user-line",
-    title: "Profile",
-    value: "profile",
+    type: 'navItem',
+    icon: 'ri-user-line',
+    title: 'Profile',
+    value: 'profile',
   },
   {
-    type: "navItem",
-    icon: "ri-settings-4-line",
-    title: "Settings",
-    value: "settings",
+    type: 'navItem',
+    icon: 'ri-settings-4-line',
+    title: 'Settings',
+    value: 'settings',
   },
   {
-    type: "navItem",
-    icon: "ri-file-text-line",
-    title: "Billing Plan",
-    value: "billing",
-    badgeProps: { color: "error", content: "4" },
+    type: 'navItem',
+    icon: 'ri-file-text-line',
+    title: 'Billing Plan',
+    value: 'billing',
+    badgeProps: { color: 'error', content: '4' },
   },
-  { type: "divider" },
+  { type: 'divider' },
   {
-    type: "navItem",
-    icon: "ri-money-dollar-circle-line",
-    title: "Pricing",
-    value: "pricing",
+    type: 'navItem',
+    icon: 'ri-money-dollar-circle-line',
+    title: 'Pricing',
+    value: 'pricing',
   },
   {
-    type: "navItem",
-    icon: "ri-question-line",
-    title: "FAQ",
-    value: "faq",
+    type: 'navItem',
+    icon: 'ri-question-line',
+    title: 'FAQ',
+    value: 'faq',
   },
-  { type: "divider" },
-];
+  { type: 'divider' },
+]
 </script>
 
 <template>
@@ -49,11 +49,19 @@ const userProfileList = [
     offset-y="3"
     color="success"
   >
-    <VAvatar class="cursor-pointer" size="38">
+    <VAvatar
+      class="cursor-pointer"
+      size="38"
+    >
       <VImg :src="avatar1" />
 
       <!-- SECTION Menu -->
-      <VMenu activator="parent" width="230" location="bottom end" offset="15px">
+      <VMenu
+        activator="parent"
+        width="230"
+        location="bottom end"
+        offset="15px"
+      >
         <VList>
           <!-- 👉 User Avatar & Name -->
           <VListItem>
@@ -66,34 +74,57 @@ const userProfileList = [
                   offset-y="3"
                   color="success"
                 >
-                  <VAvatar color="primary" variant="tonal">
+                  <VAvatar
+                    color="primary"
+                    variant="tonal"
+                  >
                     <VImg :src="avatar1" />
                   </VAvatar>
                 </VBadge>
               </VListItemAction>
             </template>
 
-            <h6 class="text-sm font-weight-medium">John Doe</h6>
+            <h6 class="text-sm font-weight-medium">
+              John Doe
+            </h6>
             <VListItemSubtitle class="text-capitalize text-disabled">
               Admin
             </VListItemSubtitle>
           </VListItem>
 
           <PerfectScrollbar :options="{ wheelPropagation: false }">
-            <template v-for="item in userProfileList" :key="item.title">
-              <VListItem v-if="item.type === 'navItem'" :value="item.value">
+            <template
+              v-for="item in userProfileList"
+              :key="item.title"
+            >
+              <VListItem
+                v-if="item.type === 'navItem'"
+                :value="item.value"
+              >
                 <template #prepend>
-                  <VIcon :icon="item.icon" size="22" />
+                  <VIcon
+                    :icon="item.icon"
+                    size="22"
+                  />
                 </template>
 
                 <VListItemTitle>{{ item.title }}</VListItemTitle>
 
-                <template v-if="item.badgeProps" #append>
-                  <VBadge inline v-bind="item.badgeProps" />
+                <template
+                  v-if="item.badgeProps"
+                  #append
+                >
+                  <VBadge
+                    inline
+                    v-bind="item.badgeProps"
+                  />
                 </template>
               </VListItem>
 
-              <VDivider v-else class="my-1" />
+              <VDivider
+                v-else
+                class="my-1"
+              />
             </template>
 
             <VListItem>

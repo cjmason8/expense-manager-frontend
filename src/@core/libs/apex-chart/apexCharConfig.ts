@@ -284,13 +284,14 @@ export const getRadialBarChartConfig = (themeColors: ThemeInstance['themes']['va
             formatter(w: { globals: { seriesTotals: any[]; series: string | any[] } }) {
               const totalValue
                 = w.globals.seriesTotals.reduce((a: number, b: number) => {
-                  return a + b
-                }, 0) / w.globals.series.length
+                return a + b
+              }, 0) / w.globals.series.length
 
-              if (totalValue % 1 === 0)
+              if (totalValue % 1 === 0) {
                 return `${totalValue}%`
-              else
+              } else {
                 return `${totalValue.toFixed(2)}%`
+              }
             },
           },
         },

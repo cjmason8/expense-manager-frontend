@@ -20,7 +20,7 @@ const updatePage = (value: number) => {
 
 <template>
   <div>
-    <VDivider />
+    <VDivider/>
 
     <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 px-6 py-3">
       <p class="text-disabled mb-0">

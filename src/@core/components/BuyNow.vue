@@ -13,7 +13,7 @@ const buyNowUrl = (typeof window !== 'undefined' && 'isMarketplace' in window &&
     target="_blank"
   >
     Buy Now
-    <span class="button-inner" />
+    <span class="button-inner"/>
   </a>
 </template>
 

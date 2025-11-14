@@ -46,8 +46,8 @@ $header: ".layout-navbar";
     }
   }
 
-  // 👉 Floating navbar
-  @else if  variables.$vertical-nav-navbar-style == "floating" {
+    // 👉 Floating navbar
+  @else if variables.$vertical-nav-navbar-style == "floating" {
     // ℹ️ Regardless of navbar is contained or not => Apply overlay to .layout-navbar
     .layout-navbar {
       &.navbar-blur {

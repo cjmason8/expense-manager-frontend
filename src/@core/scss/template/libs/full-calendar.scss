@@ -18,7 +18,7 @@ body .fc {
   .fc-timegrid-divider {
     padding: 0;
   }
-  
+
   th.fc-col-header-cell {
     border-inline-end-color: transparent;
   }
@@ -28,7 +28,7 @@ body .fc {
     opacity: 1;
   }
 
-  .fc-daygrid-event{
+  .fc-daygrid-event {
     border-radius: 999px;
   }
 
@@ -85,18 +85,18 @@ body .fc {
 
     &:hover,
     &:focus {
-      border: 1px solid rgb(var(--v-theme-secondary)) !important; 
+      border: 1px solid rgb(var(--v-theme-secondary)) !important;
       background-color: rgba(var(--v-theme-secondary), var(--v-activated-opacity)) !important;
     }
 
-    .fc-icon{
+    .fc-icon {
       position: relative;
       inset-block-start: -1px;
     }
   }
 
   .fc-prev-button {
-    .fc-icon{
+    .fc-icon {
       position: relative;
       inset-inline-start: -2px;
     }
@@ -170,7 +170,7 @@ body .fc {
           color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
         }
 
-        
+
         &:focus {
           box-shadow: none !important;
         }
@@ -335,13 +335,13 @@ body .fc {
   .fc-timegrid-col-events {
     // margin: 0 !important;
 
-    .fc-event{
+    .fc-event {
       padding-block: 8px !important;
     }
   }
 
 
-  .fc-timeGridWeek-view .fc-timegrid-slot-minor{
+  .fc-timeGridWeek-view .fc-timegrid-slot-minor {
     border-block-start-style: none;
   }
 

@@ -7,8 +7,10 @@ interface Details {
   isPrimary: boolean
   type: string
 }
+
 interface Emit {
   (e: 'submit', value: Details): void
+
   (e: 'update:isDialogVisible', value: boolean): void
 }
 
@@ -62,7 +64,7 @@ const formSubmit = () => {
             {{ props.cardDetails.name ? 'Edit Card' : 'Add New Card' }}
           </h4>
           <div class="text-body-1">
-            {{ props.cardDetails.name ? 'Edit' : 'Add' }}  your saved card details
+            {{ props.cardDetails.name ? 'Edit' : 'Add' }} your saved card details
           </div>
         </div>
 

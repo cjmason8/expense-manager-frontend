@@ -46,9 +46,13 @@ const emit = defineEmits<Emit>()
 
 interface Emit {
   (e: 'click:control', val: MouseEvent): true
+
   (e: 'mousedown:control', val: MouseEvent): true
+
   (e: 'update:focused', val: MouseEvent): true
+
   (e: 'update:modelValue', val: string): void
+
   (e: 'click:clear', el: MouseEvent): void
 }
 
@@ -89,8 +93,9 @@ const vuetifyThemesName = Object.keys(vuetifyTheme.themes.value)
 // Themes class added to flat-picker component for light and dark support
 const updateThemeClassInCalendar = () => {
   // ℹ️ Flatpickr don't render it's instance in mobile and device simulator
-  if (!refFlatPicker.value.fp.calendarContainer)
+  if (!refFlatPicker.value.fp.calendarContainer) {
     return
+  }
 
   vuetifyThemesName.forEach(t => {
     refFlatPicker.value.fp.calendarContainer.classList.remove(`v-theme--${t}`)
@@ -109,13 +114,13 @@ const emitModelValue = (val: string) => {
 }
 
 watch(() => props, () => {
-  fieldProps.value = filterFieldProps((props))
-  inputProps.value = VInput.filterProps(props)
-},
-{
-  deep: true,
-  immediate: true,
-})
+    fieldProps.value = filterFieldProps((props))
+    inputProps.value = VInput.filterProps(props)
+  },
+  {
+    deep: true,
+    immediate: true,
+  })
 </script>
 
 <template>

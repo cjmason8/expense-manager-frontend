@@ -3,8 +3,10 @@ interface Props {
   isDialogVisible: boolean
   permissionName?: string
 }
+
 interface Emit {
   (e: 'update:isDialogVisible', value: boolean): void
+
   (e: 'update:permissionName', value: string): void
 }
 
@@ -53,7 +55,7 @@ watch(() => props, () => {
           </h4>
 
           <p class="text-body-1">
-            {{ props.permissionName ? 'Edit' : 'Add' }}  permission as per your requirements.
+            {{ props.permissionName ? 'Edit' : 'Add' }} permission as per your requirements.
           </p>
         </div>
 
@@ -65,7 +67,8 @@ watch(() => props, () => {
             variant="tonal"
             class="mb-6"
           >
-            By {{ props.permissionName ? 'Edit' : 'Add' }} the permission name, you might break the system permissions functionality.
+            By {{ props.permissionName ? 'Edit' : 'Add' }} the permission name, you might break the system permissions
+            functionality.
           </VAlert>
 
           <!-- 👉 Role name -->

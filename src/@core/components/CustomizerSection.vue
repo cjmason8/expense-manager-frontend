@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <VDivider v-if="props.divider" />
+  <VDivider v-if="props.divider"/>
 
   <div class="customizer-section">
     <div>
@@ -24,6 +24,6 @@ const props = withDefaults(defineProps<Props>(), {
       </VChip>
     </div>
 
-    <slot />
+    <slot/>
   </div>
 </template>

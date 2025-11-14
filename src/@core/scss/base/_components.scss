@@ -66,8 +66,8 @@
   }
 
   &.custom-checkbox,
-  &.custom-radio{
-    .v-input__control{
+  &.custom-radio {
+    .v-input__control {
       grid-area: none;
     }
   }
@@ -169,6 +169,7 @@
     .v-slide-group__content {
       gap: 0.25rem;
     }
+
     .v-tab--selected.text-#{$color-name} {
       background-color: rgb(var(--v-theme-#{$color-name}));
       color: rgb(var(--v-theme-on-#{$color-name})) !important;

@@ -15,7 +15,7 @@ const { locale } = useI18n({ useScope: 'global' })
 
 <template>
   <IconBtn>
-    <VIcon icon="ri-translate-2" />
+    <VIcon icon="ri-translate-2"/>
 
     <!-- Menu -->
     <VMenu

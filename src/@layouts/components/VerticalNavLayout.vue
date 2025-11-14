@@ -45,7 +45,11 @@ watch(windowWidth, () => {
 const verticalNavAttrs = computed(() => {
   const vNavAttrs = toRef(props, 'verticalNavAttrs')
 
-  const { wrapper: verticalNavWrapper, wrapperProps: verticalNavWrapperProps, ...additionalVerticalNavAttrs } = vNavAttrs.value
+  const {
+    wrapper: verticalNavWrapper,
+    wrapperProps: verticalNavWrapperProps,
+    ...additionalVerticalNavAttrs
+  } = vNavAttrs.value
 
   return {
     verticalNavWrapper,
@@ -146,7 +150,7 @@ const verticalNavAttrs = computed(() => {
             @include mixins.boxed-content;
           }
 
-          // else
+            // else
           @else {
             .navbar-content-container {
               @include mixins.boxed-content;

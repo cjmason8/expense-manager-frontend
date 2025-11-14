@@ -39,7 +39,7 @@ const isPasswordVisible = ref(false)
 <template>
   <a href="javascript:void(0)">
     <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo" />
+      <VNodeRenderer :nodes="themeConfig.app.logo"/>
       <h1 class="auth-title">
         {{ themeConfig.app.title }}
       </h1>
@@ -48,7 +48,7 @@ const isPasswordVisible = ref(false)
 
   <a href="javascript:void(0)">
     <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo" />
+      <VNodeRenderer :nodes="themeConfig.app.logo"/>
       <h1 class="auth-title">
         {{ themeConfig.app.title }}
       </h1>
@@ -160,20 +160,20 @@ const isPasswordVisible = ref(false)
                 class="text-center text-base"
               >
                 <span>New on our platform?</span> <a
-                  class="text-primary d-inline-block"
-                  href="javascript:void(0)"
-                >
-                  Create an account
-                </a>
+                class="text-primary d-inline-block"
+                href="javascript:void(0)"
+              >
+                Create an account
+              </a>
               </VCol>
 
               <VCol
                 cols="12"
                 class="d-flex align-center"
               >
-                <VDivider />
+                <VDivider/>
                 <span class="mx-2 text-high-emphasis">or</span>
-                <VDivider />
+                <VDivider/>
               </VCol>
 
               <!-- auth providers -->
@@ -181,7 +181,7 @@ const isPasswordVisible = ref(false)
                 cols="12"
                 class="text-center"
               >
-                <AuthProvider />
+                <AuthProvider/>
               </VCol>
             </VRow>
           </VForm>

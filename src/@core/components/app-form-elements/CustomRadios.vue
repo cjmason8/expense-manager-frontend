@@ -15,8 +15,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 
 const updateSelectedOption = (value: string | null) => {
-  if (value !== null)
+  if (value !== null) {
     emit('update:selectedRadio', value)
+  }
 }
 </script>
 
@@ -37,7 +38,7 @@ const updateSelectedOption = (value: string | null) => {
           :class="props.selectedRadio === item.value ? 'active' : ''"
         >
           <div>
-            <VRadio :value="item.value" />
+            <VRadio :value="item.value"/>
           </div>
           <slot :item="item">
             <div class="flex-grow-1">
@@ -45,7 +46,7 @@ const updateSelectedOption = (value: string | null) => {
                 <h6 class="cr-title text-base">
                   {{ item.title }}
                 </h6>
-                <VSpacer />
+                <VSpacer/>
                 <span
                   v-if="item.subtitle"
                   class="text-disabled text-sm"

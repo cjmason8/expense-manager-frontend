@@ -26,8 +26,8 @@ $header: ".layout-navbar";
       border-block-start: none !important;
     }
   }
-  // stylelint-disable-next-line @stylistic/indentation
- @else {
+    // stylelint-disable-next-line @stylistic/indentation
+  @else {
     @include mixins.bordered-skin(".layout-nav-type-vertical.window-scrolled.layout-navbar-sticky #{$header}", "border-bottom");
   }
 

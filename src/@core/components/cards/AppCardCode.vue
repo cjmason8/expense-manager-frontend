@@ -55,13 +55,13 @@ const codeSnippet = highlighter.codeToHtml(props.code[preferredCodeLanguage.valu
         </IconBtn>
       </template>
     </VCardItem>
-    <slot v-if="noPadding" />
+    <slot v-if="noPadding"/>
     <VCardText v-else>
-      <slot />
+      <slot/>
     </VCardText>
     <VExpandTransition>
       <div v-show="isCodeShown">
-        <VDivider />
+        <VDivider/>
 
         <VCardText class="d-flex gap-y-3 flex-column">
           <div class="d-flex justify-end">
@@ -72,11 +72,11 @@ const codeSnippet = highlighter.codeToHtml(props.code[preferredCodeLanguage.valu
             >
               <VBtn value="ts">
                 <!-- eslint-disable-next-line regex/invalid -->
-                <VIcon icon="mdi-language-typescript" />
+                <VIcon icon="mdi-language-typescript"/>
               </VBtn>
               <VBtn value="js">
                 <!-- eslint-disable-next-line regex/invalid -->
-                <VIcon icon="mdi-language-javascript" />
+                <VIcon icon="mdi-language-javascript"/>
               </VBtn>
             </VBtnToggle>
           </div>
@@ -87,7 +87,7 @@ const codeSnippet = highlighter.codeToHtml(props.code[preferredCodeLanguage.valu
               :options="{ wheelPropagation: false }"
             >
               <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-html="codeSnippet" />
+              <div v-html="codeSnippet"/>
             </PerfectScrollbar>
             <IconBtn
               class="position-absolute app-card-code-copy-icon"

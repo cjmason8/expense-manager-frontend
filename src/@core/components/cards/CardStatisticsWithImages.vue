@@ -43,7 +43,7 @@ const isPositive = computed(() => Math.sign(props.change) === 1)
         </VChip>
       </VCardText>
 
-      <VSpacer />
+      <VSpacer/>
 
       <div class="illustrator-img">
         <VImg
@@ -63,7 +63,7 @@ const isPositive = computed(() => Math.sign(props.change) === 1)
   inset-inline-end: 5%;
 }
 
-@media (max-width: 1200px)  and (min-width: 960px) {
+@media (max-width: 1200px) and (min-width: 960px) {
   .illustrator-img {
     inset-block-end: 0;
     inset-inline-end: 0;

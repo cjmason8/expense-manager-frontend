@@ -13,9 +13,9 @@ defineEmits<{
     <h5 class="text-h5">
       {{ props.title }}
     </h5>
-    <VSpacer />
+    <VSpacer/>
 
-    <slot name="beforeClose" />
+    <slot name="beforeClose"/>
 
     <IconBtn
       class="text-medium-emphasis"

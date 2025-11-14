@@ -1,10 +1,11 @@
-import { RentalPayment } from "./rentalPayment";
+import { RentalPayment } from "./rentalPayment"
 
 export class RentalPaymentYear {
-  wodongaRentalPayments: RentalPayment[] = [];
-  sthKingsvilleRentalPayments: RentalPayment[] = [];
-  previousYear?: number;
-  nextYear?: number;
+  wodongaRentalPayments: RentalPayment[] = []
+  sthKingsvilleRentalPayments: RentalPayment[] = []
+  previousYear?: number
+  nextYear?: number
 
-  constructor() {}
+  constructor() {
+  }
 }

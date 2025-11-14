@@ -11,9 +11,13 @@ interface Props {
 
 interface Emit {
   (e: 'collapsed', isContentCollapsed: boolean): void
+
   (e: 'refresh', stopLoading: () => void): void
+
   (e: 'trash'): void
+
   (e: 'initialLoad'): void
+
   (e: 'update:loading', loading: boolean): void
 }
 
@@ -88,7 +92,7 @@ const triggeredRemove = () => {
           <template #append>
             <!-- 👉 Before actions slot -->
             <div>
-              <slot name="before-actions" />
+              <slot name="before-actions"/>
 
               <!-- SECTION Actions buttons -->
 
@@ -127,7 +131,7 @@ const triggeredRemove = () => {
                 />
               </IconBtn>
             </div>
-          <!-- !SECTION -->
+            <!-- !SECTION -->
           </template>
         </VCardItem>
 
@@ -137,7 +141,7 @@ const triggeredRemove = () => {
             v-show="!isContentCollapsed"
             class="v-card-content"
           >
-            <slot />
+            <slot/>
           </div>
         </VExpandTransition>
 
@@ -149,7 +153,7 @@ const triggeredRemove = () => {
           scroll-strategy="none"
           class="align-center justify-center"
         >
-          <VProgressCircular indeterminate />
+          <VProgressCircular indeterminate/>
         </VOverlay>
       </VCard>
     </div>
@@ -158,7 +162,7 @@ const triggeredRemove = () => {
 
 <style lang="scss">
 .v-card-item {
-  +.v-card-content {
+  + .v-card-content {
     .v-card-text:first-child {
       padding-block-start: 0;
     }

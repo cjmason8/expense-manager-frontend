@@ -24,6 +24,7 @@ interface Props {
 
 interface Emit {
   (e: 'submit', value: UserData): void
+
   (e: 'update:isDialogVisible', val: boolean): void
 }
 

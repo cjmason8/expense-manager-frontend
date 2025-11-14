@@ -31,9 +31,9 @@
 
   @if $start-at {
     @return string.slice(
-      #{$var},
-      0,
-      $start-at
+        #{$var},
+        0,
+        $start-at
     );
   } @else {
     @return $var;

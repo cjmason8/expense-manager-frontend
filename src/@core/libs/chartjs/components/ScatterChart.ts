@@ -1,5 +1,14 @@
 import type { PluginOptionsByType } from 'chart.js'
-import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, PointElement, Title, Tooltip } from 'chart.js'
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+} from 'chart.js'
 import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
 import { Scatter } from 'vue-chartjs'

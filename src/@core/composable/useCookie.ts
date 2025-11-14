@@ -8,7 +8,9 @@ type _CookieOptions = Omit<CookieSerializeOptions & CookieParseOptions, 'decode'
 
 export interface CookieOptions<T = any> extends _CookieOptions {
   decode?(value: string): T
+
   encode?(value: T): string
+
   default?: () => T | Ref<T>
   watch?: boolean | 'shallow'
 }
@@ -36,8 +38,9 @@ export const useCookie = <T = string | null | undefined>(name: string, _opts?: C
 }
 
 function serializeCookie(name: string, value: any, opts: CookieSerializeOptions = {}) {
-  if (value === null || value === undefined)
+  if (value === null || value === undefined) {
     return serialize(name, value, { ...opts, maxAge: -1 })
+  }
 
   return serialize(name, value, { ...opts, maxAge: 60 * 60 * 24 * 30 })
 }

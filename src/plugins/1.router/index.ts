@@ -1,9 +1,11 @@
 import { setupLayouts } from 'virtual:generated-layouts'
-import type { App } from 'vue'
+import type { App as AppVue } from 'vue'
 
 import type { RouteRecordRaw } from 'vue-router/auto'
 
 import { createRouter, createWebHistory } from 'vue-router/auto'
+import index from '@/pages/index.vue'
+import Default from '@/layouts/default.vue'
 
 function recursiveLayouts(route: RouteRecordRaw): RouteRecordRaw {
   if (route.children) {
@@ -26,11 +28,22 @@ const router = createRouter({
   },
   extendRoutes: pages => [
     ...[...pages].map(route => recursiveLayouts(route)),
+    {
+      path: '/',
+      component: Default,
+      children: [
+        {
+          path: 'home/:date',
+          name: 'gotoWeek',
+          component: index,
+        },
+      ],
+    },
   ],
 })
 
 export { router }
 
-export default function (app: App) {
+export default function (app: AppVue) {
   app.use(router)
 }
