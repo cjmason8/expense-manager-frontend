@@ -2,5 +2,12 @@ version: "2"
 services:
   expenseManagerFrontend-vue:
     image: cjmason8/expense-manager-frontend:${TAG_NAME}
+    ports:
+      # Host :8085 → nginx :80 inside container (see nginx.conf header comments)
+      - "8085:80"
+    # Lets nginx reach Spring on the host at :8083 when upstream uses host.docker.internal
+    # (switch nginx.conf upstream to host.docker.internal:8083 if 172.17.0.1 does not work)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /Users/chris/applogs:/applogs

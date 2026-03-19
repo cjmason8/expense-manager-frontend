@@ -7,7 +7,7 @@ export const useDocumentStore = defineStore('document', () => {
 
     formData.append('uploadFile', file)
 
-    let url = `/api/documents/upload?type=${type}`
+    let url = `/documents/upload?type=${type}`
     if (path)
       url += `&path=${path}`
 
@@ -33,7 +33,7 @@ export const useDocumentStore = defineStore('document', () => {
       }
 
       const response = await axios.post(
-        '/api/documents/directory',
+        '/documents/directory',
         JSON.stringify(directory),
         config,
       )
@@ -57,7 +57,7 @@ export const useDocumentStore = defineStore('document', () => {
       }
 
       const response = await axios.put(
-        '/api/documents/directory',
+        '/documents/directory',
         JSON.stringify(directory),
         config,
       )
@@ -81,7 +81,7 @@ export const useDocumentStore = defineStore('document', () => {
       }
 
       const response = await axios.delete(
-        `/api/documents/${document.id}`,
+        `/documents/${document.id}`,
         config,
       )
 
@@ -104,7 +104,7 @@ export const useDocumentStore = defineStore('document', () => {
       }
 
       const response = await axios.get(
-        `/api/documents/${document.id}/archive`,
+        `/documents/${document.id}/archive`,
         config,
       )
 
@@ -118,7 +118,7 @@ export const useDocumentStore = defineStore('document', () => {
   const getDocuments = async (folderPath: string, includeArchived: boolean) => {
     try {
       const response = await axios.post(
-        '/api/documents/list',
+        '/documents/list',
         { folderPath, includeArchived },
         {
           headers: {
@@ -138,7 +138,7 @@ export const useDocumentStore = defineStore('document', () => {
   const getFileById = async (id: number, fileName: string) => {
     const mediaType = getMediaType(fileName)
 
-    const response = await axios.get(`/api/documents/get/${id}`, {
+    const response = await axios.get(`/documents/get/${id}`, {
       responseType: 'arraybuffer',
       headers: { 'Content-Type': mediaType, 'Accept': mediaType },
     })
@@ -158,7 +158,7 @@ export const useDocumentStore = defineStore('document', () => {
       console.log(`request data:${JSON.stringify(document)}`)
 
       const response = await axios.put(
-        `/api/documents/${document.id}`,
+        `/documents/${document.id}`,
         JSON.stringify(document),
         config,
       )
@@ -184,7 +184,7 @@ export const useDocumentStore = defineStore('document', () => {
       console.log(JSON.stringify(document))
 
       const response = await axios.post(
-        '/api/documents',
+        '/documents',
         JSON.stringify(document),
         config,
       )

@@ -5,9 +5,9 @@ export const useRefDataStore = defineStore('refData', () => {
   const refData = ref<RefData[]>([])
 
   const getRefData = async (type?: string) => {
-    let url = '/api/refDatas'
+    let url = '/refDatas'
     if (type)
-      url = `/api/refDatas/type/${type}`
+      url = `/refDatas/type/${type}`
 
     const response = await fetch(url)
 
@@ -26,7 +26,7 @@ export const useRefDataStore = defineStore('refData', () => {
       console.log(`request data:${JSON.stringify(refData)}`)
 
       const response = await axios.put(
-        `/api/refDatas/${newRefData.id}`,
+        `/refDatas/${newRefData.id}`,
         JSON.stringify(newRefData),
         config,
       )
@@ -50,7 +50,7 @@ export const useRefDataStore = defineStore('refData', () => {
       console.log(JSON.stringify(newRefData))
 
       const response = await axios.post(
-        '/api/refDatas',
+        '/refDatas',
         JSON.stringify(newRefData),
         config,
       )
@@ -71,7 +71,7 @@ export const useRefDataStore = defineStore('refData', () => {
       }
 
       const response = await axios.delete(
-        `/api/refDatas/${refDataToDelete.id}`,
+        `/refDatas/${refDataToDelete.id}`,
         config,
       )
 

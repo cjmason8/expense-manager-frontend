@@ -20,7 +20,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       console.log(JSON.stringify(rentalpayment))
 
       const response = await axios.post(
-        '/api/rentalPayments',
+        '/rentalPayments',
         JSON.stringify(rentalpayment),
         config,
       )
@@ -46,7 +46,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       console.log(JSON.stringify(rentalpayment))
 
       const response = await axios.put(
-        `/api/rentalPayments/${rentalpayment.id}`,
+        `/rentalPayments/${rentalpayment.id}`,
         JSON.stringify(rentalpayment),
         config,
       )
@@ -67,7 +67,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       }
 
       const response = await axios.delete(
-        `/api/rentalPayments/${rentalPayment.id}`,
+        `/rentalPayments/${rentalPayment.id}`,
         config,
       )
 
@@ -79,7 +79,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   }
 
   const getRentalPayment = async (id: number) => {
-    const url = `/api/rentalPayments/${id}`
+    const url = `/rentalPayments/${id}`
 
     const response = await fetch(url)
 
@@ -89,7 +89,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   const getRentalPayments = async (year?: number) => {
     if (year != undefined && year != null) {
       const response1 = await fetch(
-        `/api/rentalPayments/getByProperty/WODONGA/${year}`,
+        `/rentalPayments/getByProperty/WODONGA/${year}`,
       )
 
       const tmp1 = await response1.json()
@@ -97,7 +97,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments
 
       const response2 = await fetch(
-        `/api/rentalPayments/getByProperty/STH_KINGSVILLE/${year}`,
+        `/rentalPayments/getByProperty/STH_KINGSVILLE/${year}`,
       )
 
       const tmp2 = await response2.json()
@@ -108,7 +108,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
     }
     else {
       const response1 = await fetch(
-        '/api/rentalPayments/getByProperty/WODONGA',
+        '/rentalPayments/getByProperty/WODONGA',
       )
 
       const tmp1 = await response1.json()
@@ -116,7 +116,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments
 
       const response2 = await fetch(
-        '/api/rentalPayments/getByProperty/STH_KINGSVILLE',
+        '/rentalPayments/getByProperty/STH_KINGSVILLE',
       )
 
       const tmp2 = await response2.json()
@@ -128,7 +128,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   }
 
   const getTypes = async (type: string) => {
-    const response = await fetch(`/api/rentalPayments/type/${type}`)
+    const response = await fetch(`/rentalPayments/type/${type}`)
 
     types.value = await response.json()
   }

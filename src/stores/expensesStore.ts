@@ -22,7 +22,7 @@ export const useExpensesStore = defineStore('expenses', () => {
   const homeInfo = ref<HomeInfo>()
 
   const getTransactionsForWeek = async (week?: string) => {
-    let url = '/api/week'
+    let url = '/week'
     if (week)
       url += `/${week}`
 
@@ -34,9 +34,9 @@ export const useExpensesStore = defineStore('expenses', () => {
   }
 
   const getRecurring = async (includeAll: boolean) => {
-    let url = '/api/recurring/active'
+    let url = '/recurring/active'
     if (includeAll)
-      url = '/api/recurring/all'
+      url = '/recurring/all'
 
     const response = await fetch(url)
 
@@ -45,7 +45,7 @@ export const useExpensesStore = defineStore('expenses', () => {
 
   const payExpense = async (id?: number) => {
     if (id) {
-      const reqUrl = `/api/expenses/pay/${id}`
+      const reqUrl = `/expenses/pay/${id}`
 
       await fetch(reqUrl)
     }
@@ -53,7 +53,7 @@ export const useExpensesStore = defineStore('expenses', () => {
 
   const unPayExpense = async (id?: number) => {
     if (id) {
-      const reqUrl = `/api/expenses/unpay/${id}`
+      const reqUrl = `/expenses/unpay/${id}`
 
       await fetch(reqUrl)
     }
@@ -66,7 +66,7 @@ export const useExpensesStore = defineStore('expenses', () => {
       }
 
       const response = await axios.delete(
-        `/api/expenses/${expense.id}`,
+        `/expenses/${expense.id}`,
         config,
       )
 
@@ -89,7 +89,7 @@ export const useExpensesStore = defineStore('expenses', () => {
       console.log(`request data:${JSON.stringify(expense)}`)
 
       const response = await axios.put(
-        `/api/expenses/${expense.id}`,
+        `/expenses/${expense.id}`,
         JSON.stringify(expense),
         config,
       )
@@ -113,7 +113,7 @@ export const useExpensesStore = defineStore('expenses', () => {
       console.log(JSON.stringify(expense))
 
       const response = await axios.post(
-        '/api/expenses',
+        '/expenses',
         JSON.stringify(expense),
         config,
       )
@@ -127,7 +127,7 @@ export const useExpensesStore = defineStore('expenses', () => {
 
   const searchExpenses = async (searchParams: ExpenseSearchParams) => {
     const response = await axios.post<ExpenseSearchResult>(
-      '/api/search',
+      '/search',
       searchParams,
       {
         headers: {

@@ -103,12 +103,17 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8083', // Proxy API requests
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+      // Local dev: forward backend routes (no /api prefix — matches production nginx style)
+      '/week': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/recurring': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/expenses': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/search': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/documents': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/rentalPayments': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/refDatas': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/notifications': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/incomes': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      '/donations': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
     },
   },
 })

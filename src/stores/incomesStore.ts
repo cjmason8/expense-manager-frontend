@@ -8,7 +8,7 @@ export const useIncomesStore = defineStore('incomes', () => {
         headers: {},
       }
 
-      const response = await axios.delete(`/api/incomes/${income.id}`, config)
+      const response = await axios.delete(`/incomes/${income.id}`, config)
 
       console.log('Response:', response.data)
     }
@@ -29,7 +29,7 @@ export const useIncomesStore = defineStore('incomes', () => {
       console.log(`request data:${JSON.stringify(income)}`)
 
       const response = await axios.put(
-        `/api/expenses/${income.id}`,
+        `/incomes/${income.id}`,
         JSON.stringify(income),
         config,
       )
@@ -53,7 +53,7 @@ export const useIncomesStore = defineStore('incomes', () => {
       console.log(JSON.stringify(income))
 
       const response = await axios.post(
-        '/api/incomes',
+        '/incomes',
         JSON.stringify(income),
         config,
       )

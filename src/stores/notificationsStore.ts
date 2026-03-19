@@ -4,7 +4,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = ref<Notification[]>([])
 
   const getNotifications = async () => {
-    const response = await fetch('/api/notifications')
+    const response = await fetch('/notifications')
 
     notifications.value = await response.json()
     notifications.value.forEach(notification => {
@@ -34,7 +34,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const markRead = async (id?: number) => {
     if (id) {
-      const response = await fetch(`/api/notifications/markRead/${id}`)
+      const response = await fetch(`/notifications/markRead/${id}`)
 
       await response.json()
     }
@@ -42,7 +42,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const markRemoved = async (id?: number) => {
     if (id) {
-      const response = await fetch(`/api/notifications/markRemoved/${id}`)
+      const response = await fetch(`/notifications/markRemoved/${id}`)
 
       await response.json()
     }
@@ -50,7 +50,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const markUnRead = async (id?: number) => {
     if (id) {
-      const response = await fetch(`/api/notifications/markUnRead/${id}`)
+      const response = await fetch(`/notifications/markUnRead/${id}`)
 
       await response.json()
     }

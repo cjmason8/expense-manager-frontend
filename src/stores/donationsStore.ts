@@ -3,7 +3,7 @@ import type { Donation } from '@/types/donation'
 
 export const useDonationsStore = defineStore('donations', () => {
   const getDonations = async () => {
-    const response = await fetch('/api/donations')
+    const response = await fetch('/donations')
 
     return await response.json()
   }
@@ -20,7 +20,7 @@ export const useDonationsStore = defineStore('donations', () => {
       console.log(`request data:${JSON.stringify(donation)}`)
 
       const response = await axios.put(
-        `/api/donations/${donation.id}`,
+        `/donations/${donation.id}`,
         JSON.stringify(donation),
         config,
       )
@@ -44,7 +44,7 @@ export const useDonationsStore = defineStore('donations', () => {
       console.log(JSON.stringify(donation))
 
       const response = await axios.post(
-        '/api/donations',
+        '/donations',
         JSON.stringify(donation),
         config,
       )
@@ -63,7 +63,7 @@ export const useDonationsStore = defineStore('donations', () => {
       }
 
       const response = await axios.delete(
-        `/api/donations/${donation.id}`,
+        `/donations/${donation.id}`,
         config,
       )
 
