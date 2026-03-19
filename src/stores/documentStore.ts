@@ -23,6 +23,54 @@ export const useDocumentStore = defineStore('document', () => {
     }
   }
 
+  const createDirectory = async (directory: Document) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+
+      const response = await axios.post(
+        '/api/documents/directory',
+        JSON.stringify(directory),
+        config,
+      )
+
+      console.log('Response:', response.data)
+
+      return response.data
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const updateDirectory = async (directory: Document) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+
+      const response = await axios.put(
+        '/api/documents/directory',
+        JSON.stringify(directory),
+        config,
+      )
+
+      console.log('Response:', response.data)
+
+      return response.data
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   const deleteDocument = async (document: Document) => {
     try {
       const config = {
@@ -170,5 +218,7 @@ export const useDocumentStore = defineStore('document', () => {
     archiveFolder,
     updateDocument,
     addDocument,
+    createDirectory,
+    updateDirectory,
   }
 })

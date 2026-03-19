@@ -1,7 +1,9 @@
 import { ofetch } from 'ofetch'
 
+import { resolveApiBaseUrl } from '@/utils/resolveApiBaseUrl'
+
 export const $api = ofetch.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: resolveApiBaseUrl(),
   async onRequest({ options }) {
     const accessToken = useCookie('accessToken').value
     if (accessToken) {

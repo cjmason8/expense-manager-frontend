@@ -30,6 +30,11 @@ export default [
     icon: { icon: 'ri-file-text-line' },
   },
   {
+    title: 'Search',
+    to: { name: 'search' },
+    icon: { icon: 'ri-search-line' },
+  },
+  {
     title: 'Notifications',
     to: { name: 'notifications' },
     icon: { icon: 'ri-file-text-line' },

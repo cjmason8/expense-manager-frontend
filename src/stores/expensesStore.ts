@@ -1,6 +1,22 @@
 import axios from 'axios'
 import type { Expense } from '@/types/expense'
 import type { HomeInfo } from '@/types/homeInfo'
+import type { Document } from '@/types/document'
+import type { RefData } from '@/types/refData'
+
+interface ExpenseSearchParams {
+  transactionType?: RefData
+  keyWords?: string
+  startDateString?: string
+  endDateString?: string
+  metaDataChunk?: string
+}
+
+interface ExpenseSearchResult {
+  expenses: Expense[]
+  documents: Document[]
+  expenseGraphDto?: unknown
+}
 
 export const useExpensesStore = defineStore('expenses', () => {
   const homeInfo = ref<HomeInfo>()
@@ -30,14 +46,16 @@ export const useExpensesStore = defineStore('expenses', () => {
   const payExpense = async (id?: number) => {
     if (id) {
       const reqUrl = `/api/expenses/pay/${id}`
-      const response = await fetch(reqUrl)
+
+      await fetch(reqUrl)
     }
   }
 
   const unPayExpense = async (id?: number) => {
     if (id) {
       const reqUrl = `/api/expenses/unpay/${id}`
-      const response = await fetch(reqUrl)
+
+      await fetch(reqUrl)
     }
   }
 
@@ -107,6 +125,21 @@ export const useExpensesStore = defineStore('expenses', () => {
     }
   }
 
+  const searchExpenses = async (searchParams: ExpenseSearchParams) => {
+    const response = await axios.post<ExpenseSearchResult>(
+      '/api/search',
+      searchParams,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      },
+    )
+
+    return response.data
+  }
+
   return {
     addExpense,
     updateExpense,
@@ -116,5 +149,6 @@ export const useExpensesStore = defineStore('expenses', () => {
     homeInfo,
     getTransactionsForWeek,
     getRecurring,
+    searchExpenses,
   }
 })

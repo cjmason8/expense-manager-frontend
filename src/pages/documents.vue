@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 // eslint-disable-next-line no-restricted-imports
-import { VCardTitle } from 'vuetify/components'
+import { VCardText, VCardTitle } from 'vuetify/components'
 import { Document } from '@/types/document'
 import { useDocumentStore } from '@/stores/documentStore'
 
@@ -11,6 +11,8 @@ const route = useRoute()
 
 const uploadDocument = ref(false)
 const createDirectory = ref(false)
+const archiveButtonDescription = ref('Show Archived')
+const folderDialogTitle = ref('Add Folder')
 
 const defaultItem = ref<Document>({
   id: -1,
@@ -20,68 +22,112 @@ const defaultItem = ref<Document>({
   folderPath: '',
 })
 
+const defaultFolderItem = ref<Document>({
+  id: -1,
+  fileName: '',
+  originalFileName: '',
+  isFolder: false,
+  folderPath: '',
+})
+
 const selectedItem = ref<Document>(defaultItem.value)
-
-let showArchive: boolean = false
-let includeAll: boolean = false
-let currentFolderPath: string = ''
-const displayedFolderPath = ref('/')
-
-const openFolder = (folderPath: string) => {
-  if (folderPath.endsWith('IPs'))
-    showArchive = true
-  else
-    showArchive = false
-
-  documents.value = []
-  documentStore.getDocuments(folderPath, false).then(res => {
-    documents.value = res
-    currentFolderPath = folderPath
-    displayedFolderPath.value = getDirectoryPath()
-  })
-}
-
-const documents = ref<Document[]>([])
-let directory: Document = new Document()
+const selectedFolderItem = ref<Document>(defaultFolderItem.value)
 let directoryAction: string = 'Create'
 
-const documentStore = useDocumentStore()
+const showArchive = ref(false)
+const currentFolderPath = ref('')
+const displayedFolderPath = ref('/')
 
-if (route.query.existingFolder) {
-  openFolder(currentFolderPath)
-}
-else {
-  showArchive = true
-  documentStore
-    .getDocuments('/docs/expenseManager/filofax', false)
-    .then(res => {
-      documents.value = res
-      currentFolderPath = '/docs/expenseManager/filofax'
-    })
-}
+const documentStore = useDocumentStore()
+const documents = ref<Document[]>([])
+
+const file = ref<File | null>(null)
+const imageUrl = ref<string | null>(null)
+const uploading = ref<boolean>(false)
 
 const headers = [
   { title: '', key: 'fileName' },
   { title: '', key: 'actions' },
 ]
 
-const openParentFolder = () => {
-  openFolder(
-    currentFolderPath.substring(0, currentFolderPath.lastIndexOf('/')),
-  )
+const closeAddEditFolder = () => {
+  createDirectory.value = false
+  selectedFolderItem.value = { ...defaultFolderItem.value }
 }
 
-const refreshList = (includeAllParam: boolean) => {
-  includeAll = includeAllParam
-  documentStore.getDocuments(currentFolderPath, includeAll).then(res => {
+const actionDirectory = () => {
+  if (directoryAction === 'Create') {
+    selectedFolderItem.value.folderPath = currentFolderPath.value
+    selectedFolderItem.value.isFolder = true
+    documentStore.createDirectory(selectedFolderItem.value).then(res => {
+      documentStore.getDocuments(res.folderPath, false).then(res2 => {
+        documents.value = res2
+        selectedFolderItem.value = defaultFolderItem.value
+        currentFolderPath.value = res.folderPath
+        displayedFolderPath.value = getDirectoryPath()
+      })
+    })
+  }
+  else {
+    selectedFolderItem.value.folderPath = currentFolderPath.value
+    documentStore.updateDirectory(selectedFolderItem.value).then(res => {
+      documentStore.getDocuments(res.folderPath, false).then(res2 => {
+        documents.value = res2
+        selectedFolderItem.value = defaultFolderItem.value
+        currentFolderPath.value = res.folderPath
+        directoryAction = 'Create'
+        displayedFolderPath.value = getDirectoryPath()
+      })
+    })
+  }
+  closeAddEditFolder()
+}
+
+const openFolder = (folderPath: string) => {
+  console.log(folderPath)
+  if (folderPath.endsWith('IPs') || folderPath === '/docs/expenseManager/filofax')
+    showArchive.value = true
+  else
+    showArchive.value = false
+
+  documents.value = []
+  documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived').then(res => {
     documents.value = res
+    currentFolderPath.value = folderPath
+    displayedFolderPath.value = getDirectoryPath()
   })
 }
 
-const file = ref<File | null>(null)
-const imageUrl = ref<string | null>(null)
-const uploading = ref<boolean>(false)
-const fileType = ''
+const openParentFolder = () => {
+  openFolder(
+    currentFolderPath.value.substring(0, currentFolderPath.value.lastIndexOf('/')),
+  )
+}
+
+const toggleArchived = () => {
+  let includeArchived = false
+  if (archiveButtonDescription.value === 'Show Archived') {
+    includeArchived = true
+    archiveButtonDescription.value = 'Hide Archived'
+  }
+  else {
+    archiveButtonDescription.value = 'Show Archived'
+  }
+
+  documentStore.getDocuments(currentFolderPath.value, includeArchived).then(res => {
+    documents.value = res
+    displayedFolderPath.value = getDirectoryPath()
+  })
+}
+
+const addFolder = () => {
+  createDirectory.value = true
+  folderDialogTitle.value = 'Add Folder'
+}
+
+const openUploadFile = () => {
+  uploadDocument.value = true
+}
 
 // Handle file selection and preview
 const handleFileChange = () => {
@@ -111,9 +157,9 @@ const uploadFile = async () => {
 
   uploading.value = true
   documentStore
-    .uploadFile(file.value, 'documents', currentFolderPath)
+    .uploadFile(file.value, 'documents', currentFolderPath.value)
     .then(res => {
-      selectedItem.value = res
+      selectedItem.value.fileName = res.fileName
       selectedItem.value.originalFileName = selectedItem.value.fileName
     })
   uploading.value = false
@@ -125,8 +171,8 @@ watch(file, newFile => {
     imageUrl.value = null
 })
 
-const viewDocumentation = (document: Document) => {
-  documentStore.getFileById(document.id, document.fileName).then(res => {
+const viewDocumentation = (viewDocument: Document) => {
+  documentStore.getFileById(viewDocument.id, viewDocument.fileName).then(res => {
     const fileURL = URL.createObjectURL(res)
 
     window.open(fileURL)
@@ -135,21 +181,19 @@ const viewDocumentation = (document: Document) => {
 
 const editDocument = (document: Document) => {
   if (document.isFolder) {
-    directory.id = document.id
-    directory.fileName = document.fileName
-    directory.originalFileName = document.fileName
-    directory.isFolder = document.isFolder
-    directory.folderPath = document.folderPath
-    directory.metaDataChunk = document.metaDataChunk
+    selectedFolderItem.value = document
     directoryAction = 'Update'
+
+    createDirectory.value = true
+    folderDialogTitle.value = 'Edit Folder'
   }
   else {
-    document.id = document.id
-    document.fileName = document.fileName
-    document.originalFileName = document.fileName
-    document.isFolder = document.isFolder
-    document.folderPath = document.folderPath
-    document.metaDataChunk = document.metaDataChunk
+    selectedItem.value.id = document.id
+    selectedItem.value.fileName = document.fileName
+    selectedItem.value.originalFileName = document.fileName
+    selectedItem.value.isFolder = document.isFolder
+    selectedItem.value.folderPath = document.folderPath
+    selectedItem.value.metaDataChunk = document.metaDataChunk
   }
 }
 
@@ -168,8 +212,8 @@ const deleteDocument = (document: Document) => {
     documentStore.deleteDocument(document).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
-        directory = new Document()
-        currentFolderPath = res.folderPath
+        selectedItem.value = new Document()
+        currentFolderPath.value = res.folderPath
       })
     })
   }
@@ -181,18 +225,19 @@ const archiveFolder = (document: Document) => {
 
   if (confirm(msg)) {
     documentStore.archiveFolder(document).then(res => {
-      documentStore.getDocuments(currentFolderPath, false).then(res2 => {
+      documentStore.getDocuments(currentFolderPath.value, false).then(res2 => {
         documents.value = res2
-        directory = new Document()
+
+        // directory = new Document()
       })
     })
   }
 }
 
 function getDirectoryPath(): string {
-  return !currentFolderPath || currentFolderPath === '/docs/expenseManager/filofax'
+  return !currentFolderPath.value || currentFolderPath.value === '/docs/expenseManager/filofax'
     ? '/'
-    : currentFolderPath.replace('/docs/expenseManager/filofax/', '/')
+    : currentFolderPath.value.replace('/docs/expenseManager/filofax/', '/')
 }
 
 const move = () => {
@@ -218,14 +263,26 @@ const closeUploadDocument = () => {
   uploadDocument.value = false
   selectedItem.value = { ...defaultItem.value }
 }
+
+onMounted(() => {
+  if (route.query.existingFolder) {
+    openFolder(currentFolderPath.value)
+  }
+  else {
+    showArchive.value = true
+    documentStore
+      .getDocuments('/docs/expenseManager/filofax', archiveButtonDescription.value === 'Hide Archived')
+      .then(res => {
+        documents.value = res
+        currentFolderPath.value = '/docs/expenseManager/filofax'
+      })
+  }
+})
 </script>
 
 <template>
   <VContainer>
-    <VRow
-      class="align-center"
-      dense
-    >
+    <VRow class="align-center">
       <!-- Card takes the space -->
       <VCol
         cols="8"
@@ -261,6 +318,40 @@ const closeUploadDocument = () => {
           @click="openParentFolder"
         >
           Back
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="8"
+        sm="auto"
+      >
+        <VBtn
+          v-if="showArchive"
+          color="primary"
+          @click="toggleArchived"
+        >
+          {{ archiveButtonDescription }}
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="8"
+        sm="auto"
+      >
+        <VBtn
+          color="primary"
+          @click="addFolder"
+        >
+          Add Folder
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="8"
+        sm="auto"
+      >
+        <VBtn
+          color="primary"
+          @click="openUploadFile"
+        >
+          Upload File
         </VBtn>
       </VCol>
     </VRow>
@@ -329,7 +420,10 @@ const closeUploadDocument = () => {
   </VContainer>
 
   <!-- 👉 Add/Edit Dialog  -->
-  <VDialog v-model="uploadDocument">
+  <VDialog
+    v-model="uploadDocument"
+    max-width="900px"
+  >
     <VCard title="Upload Document">
       <VCardText>
         <VRow>
@@ -434,6 +528,67 @@ const closeUploadDocument = () => {
       </VCardText>
     </VCard>
   </VDialog>
+
+  <!-- 👉 Add/Edit Folder Dialog  -->
+  <VDialog
+    v-model="createDirectory"
+    max-width="900px"
+  >
+    <VCard :title="folderDialogTitle">
+      <VCardText>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedFolderItem.fileName">Name</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextField v-model="selectedFolderItem.fileName" />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedFolderItem.metaDataChunk">Metadata</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextarea
+              v-model="selectedFolderItem.metaDataChunk"
+              rows="2"
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VCardText>
+        <div class="self-align-end d-flex gap-4 justify-end">
+          <VBtn
+            color="error"
+            variant="outlined"
+            @click="closeAddEditFolder"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="success"
+            variant="elevated"
+            @click="actionDirectory"
+          >
+            Save
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>
 
 <style>
@@ -447,5 +602,11 @@ const closeUploadDocument = () => {
 
 .file-v-card {
   width: 300px;
+}
+
+.v-checkbox {
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  flex: 1 1 auto; /* allow the label to grow */
 }
 </style>

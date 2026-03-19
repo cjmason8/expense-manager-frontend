@@ -33,3 +33,12 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## HTTPS production (avoid mixed content)
+
+If the site is served over **HTTPS**, do **not** set `VITE_API_BASE_URL` to an `http://` URL (the browser will block it).
+
+- **Recommended:** leave `VITE_API_BASE_URL` unset so the app calls same-origin **`/api`**, and configure your web server to **reverse-proxy** `/api` to your backend (e.g. `http://161.97.133.187:8085`).
+- **Alternative:** put the API behind **HTTPS** and set `VITE_API_BASE_URL=https://your-api-host`.
+
+See `.env.example`. The app also falls back to `/api` at runtime if it detects HTTPS + an `http://` API URL in the build.

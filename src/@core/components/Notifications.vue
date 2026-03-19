@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   badgeProps: undefined,
 })
 
-const onMenuOpen = ref(true)
+const menuOpen = ref(false)
 const router = useRouter()
 
 const emit = defineEmits<Emit>()
@@ -47,11 +47,16 @@ const handleClick = (notification: Notification) => {
   emit("click:notification", notification)
 }
 
-const handleAvatarClick = (notification: Notification) => {
-  if (notification.expense != null) {
-    onMenuOpen.value = false
-    router.push(`/home/${notification.expense.dueDateString}`)
-  }
+const handleAvatarClick = async (notification: Notification) => {
+  if (!notification.expense)
+    return
+
+  emit('remove', notification.id)
+
+  // VMenu uses modelValue (v-model), not v-model:open
+  menuOpen.value = false
+  await nextTick()
+  await router.push(`/home/${notification.expense.dueDateString}`)
 }
 
 const totalUnreadNotifications = computed(
@@ -74,11 +79,11 @@ const totalUnreadNotifications = computed(
     </VBadge>
 
     <VMenu
+      v-model="menuOpen"
       activator="parent"
       width="380"
       :location="props.location"
       offset="15px"
-      v-model:open="onMenuOpen"
       :close-on-content-click="false"
     >
       <VCard class="d-flex flex-column">
