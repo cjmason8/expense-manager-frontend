@@ -84,27 +84,30 @@ const verticalNavAttrs = computed(() => {
       </VerticalNav>
     </component>
     <div class="layout-content-wrapper">
-      <header
-        class="layout-navbar"
-        :class="[{ 'navbar-blur': configStore.isNavbarBlurEnabled }]"
-      >
-        <div class="navbar-content-container">
-          <slot
-            name="navbar"
-            :toggle-vertical-overlay-nav-active="toggleIsOverlayNavActive"
-          />
-        </div>
-      </header>
-      <main class="layout-page-content">
-        <div class="page-content-container">
-          <slot />
-        </div>
-      </main>
-      <footer class="layout-footer">
-        <div class="footer-content-container">
-          <slot name="footer" />
-        </div>
-      </footer>
+      <!-- One shared width for toolbar + page + footer (avoids header spanning past page when CSS boxed rules don’t match) -->
+      <div class="layout-content-capped">
+        <header
+          class="layout-navbar"
+          :class="[{ 'navbar-blur': configStore.isNavbarBlurEnabled }]"
+        >
+          <div class="navbar-content-container">
+            <slot
+              name="navbar"
+              :toggle-vertical-overlay-nav-active="toggleIsOverlayNavActive"
+            />
+          </div>
+        </header>
+        <main class="layout-page-content">
+          <div class="page-content-container">
+            <slot />
+          </div>
+        </main>
+        <footer class="layout-footer">
+          <div class="footer-content-container">
+            <slot name="footer" />
+          </div>
+        </footer>
+      </div>
     </div>
     <div
       class="layout-overlay"
@@ -146,6 +149,35 @@ const verticalNavAttrs = computed(() => {
     @media screen and (min-width: 1280px) {
       padding-inline-start: variables.$layout-vertical-nav-width;
     }
+  }
+
+  // Shared column: navbar + main + footer use the same max width (toolbar right edge = content right edge)
+  .layout-content-capped {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-inline-size: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    box-sizing: border-box;
+  }
+
+  &.layout-content-width-boxed .layout-content-capped {
+    max-inline-size: variables.$layout-boxed-content-width;
+  }
+
+  &.search-layout-full-width.layout-content-width-boxed .layout-content-capped {
+    max-inline-size: none;
+  }
+
+  // Undo per-section max-width from `boxed-content` mixins — the cap wrapper owns the limit
+  .layout-content-capped .layout-navbar,
+  .layout-content-capped .layout-page-content,
+  .layout-content-capped .layout-footer {
+    max-inline-size: none !important;
+    margin-inline: 0 !important;
+    inline-size: 100%;
+    box-sizing: border-box;
   }
 
   .layout-navbar {
