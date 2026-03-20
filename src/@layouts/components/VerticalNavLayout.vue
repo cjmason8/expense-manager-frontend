@@ -122,11 +122,23 @@ const verticalNavAttrs = computed(() => {
 .layout-wrapper.layout-nav-type-vertical {
   // TODO(v2): Check why we need height in vertical nav & min-height in horizontal nav
   block-size: 100%;
+  // Fixed vertical nav is out of flow — use flex so only `.layout-content-wrapper` consumes width
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+
+  .vertical-nav-wrapper {
+    flex: 0 0 0;
+    inline-size: 0;
+    min-inline-size: 0;
+    overflow: visible;
+  }
 
   .layout-content-wrapper {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
-    flex-grow: 1;
+    min-inline-size: 0;
     min-block-size: 100dvh;
     transition: padding-inline-start 0.2s ease-in-out;
     will-change: padding-inline-start;
@@ -138,23 +150,39 @@ const verticalNavAttrs = computed(() => {
 
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: none;
+    margin-inline: 0;
 
     .navbar-content-container {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      inline-size: 100%;
+      min-inline-size: 0;
       block-size: variables.$layout-vertical-nav-navbar-height;
     }
+  }
 
-    @at-root {
-      .layout-wrapper.layout-nav-type-vertical {
-        .layout-navbar {
-          @if variables.$layout-vertical-nav-navbar-is-contained {
+  .layout-page-content {
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: none;
+    margin-inline: 0;
+  }
+
+  @at-root {
+    .layout-wrapper.layout-nav-type-vertical {
+      .layout-navbar {
+        @if variables.$layout-vertical-nav-navbar-is-contained {
+          @include mixins.boxed-content(true);
+        }
+
+        // else
+        @else {
+          .navbar-content-container {
             @include mixins.boxed-content(true);
-          }
-
-            // else
-          @else {
-            .navbar-content-container {
-              @include mixins.boxed-content(true);
-            }
           }
         }
       }

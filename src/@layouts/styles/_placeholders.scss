@@ -8,9 +8,8 @@
   }
 
   inline-size: 100%;
-  // Align to sidebar edge — `margin-inline: auto` centered the column and left a large empty strip
-  margin-inline-start: 0;
-  margin-inline-end: auto;
+  // Fill the content column edge-to-edge (sidebar offset is on `.layout-content-wrapper`)
+  margin-inline: 0;
   max-inline-size: variables.$layout-boxed-content-width;
 }
 
