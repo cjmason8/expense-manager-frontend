@@ -907,7 +907,8 @@ onMounted(async () => {
 <style lang="scss">
 // When app uses boxed content width, main area is capped (~1440px) leaving empty space on wide screens.
 // This page opts into full viewport width for the main column only (documents/expense split unchanged).
-.layout-wrapper.search-layout-full-width.layout-content-width-boxed .layout-page-content {
+.layout-wrapper.search-layout-full-width.layout-content-width-boxed .layout-page-content,
+.layout-wrapper.search-layout-full-width.layout-content-width-boxed .layout-navbar {
   max-inline-size: none;
   inline-size: 100%;
 }

@@ -151,9 +151,7 @@ const verticalNavAttrs = computed(() => {
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
     box-sizing: border-box;
-    inline-size: 100%;
-    max-inline-size: none;
-    margin-inline: 0;
+    // Width cap comes from `boxed-content` + `%boxed-content` (same as `.layout-page-content`)
 
     .navbar-content-container {
       box-sizing: border-box;
@@ -171,13 +169,6 @@ const verticalNavAttrs = computed(() => {
         max-inline-size: 100%;
       }
     }
-  }
-
-  .layout-page-content {
-    box-sizing: border-box;
-    inline-size: 100%;
-    max-inline-size: none;
-    margin-inline: 0;
   }
 
   @at-root {

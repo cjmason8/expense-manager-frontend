@@ -17,9 +17,9 @@ $layout-vertical-nav-layout-navbar-z-index: 11 !default;
 $layout-horizontal-nav-layout-navbar-z-index: 11 !default;
 
 // 👉 Main content
-// Use full width of the column beside the vertical nav (no max-width “letterbox”)
-$layout-boxed-content-width: 100% !default;
-// No horizontal gutter between sidebar and main content (navbar uses same variable)
+// Shared cap for navbar + main so header actions align with page content (not the full column past narrow pages)
+$layout-boxed-content-width: 1440px !default;
+// Optional horizontal inset inside that cap (navbar + page use the same boxed-content rules)
 $layout-boxed-content-padding-inline: 0 !default;
 
 //  👉Footer
