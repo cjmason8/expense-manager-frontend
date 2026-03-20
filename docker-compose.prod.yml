@@ -3,7 +3,9 @@ services:
   expenseManagerFrontend-vue:
     image: cjmason8/expense-manager-frontend:${TAG_NAME}
     ports:
-      # Host :8085 → nginx :80 inside container (see nginx.conf header comments)
+      # Host :80 → nginx :80 — required for http://cjmason8.com/ (no port in URL)
+      - "80:80"
+      # Optional: keep during migration if bookmarks/scripts still use :8085
       - "8085:80"
     # Lets nginx reach Spring on the host at :8083 when upstream uses host.docker.internal
     # (switch nginx.conf upstream to host.docker.internal:8083 if 172.17.0.1 does not work)
