@@ -162,6 +162,14 @@ const verticalNavAttrs = computed(() => {
       inline-size: 100%;
       min-inline-size: 0;
       block-size: variables.$layout-vertical-nav-navbar-height;
+
+      // One slot root (e.g. `.d-flex`); default flex item shrink-to-content — breaks `VSpacer` / right alignment
+      > * {
+        flex: 1 1 auto;
+        min-inline-size: 0;
+        inline-size: 100%;
+        max-inline-size: 100%;
+      }
     }
   }
 
