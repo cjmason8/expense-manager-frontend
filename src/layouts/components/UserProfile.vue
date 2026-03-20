@@ -1,6 +1,27 @@
 <script setup lang="ts">
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import avatar1 from '@images/avatars/avatar-1.png'
+import { useAuthStore } from '@/stores/authStore'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const displayName = computed(() => {
+  const u = authStore.user?.trim()
+  if (!u)
+    return 'User'
+  return u.charAt(0).toUpperCase() + u.slice(1)
+})
+
+const roleLabel = computed(() => {
+  const r = authStore.roles?.trim()
+  return r || '—'
+})
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 const userProfileList = [
   { type: 'divider' },
@@ -85,10 +106,10 @@ const userProfileList = [
             </template>
 
             <h6 class="text-sm font-weight-medium">
-              John Doe
+              {{ displayName }}
             </h6>
             <VListItemSubtitle class="text-capitalize text-disabled">
-              Admin
+              {{ roleLabel }}
             </VListItemSubtitle>
           </VListItem>
 
@@ -132,7 +153,7 @@ const userProfileList = [
                 block
                 color="error"
                 append-icon="ri-logout-box-r-line"
-                to="/login"
+                @click="handleLogout"
               >
                 Logout
               </VBtn>

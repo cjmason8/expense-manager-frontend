@@ -6,6 +6,7 @@ import type { RouteRecordRaw } from 'vue-router/auto'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import index from '@/pages/index.vue'
 import Default from '@/layouts/default.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 function recursiveLayouts(route: RouteRecordRaw): RouteRecordRaw {
   if (route.children) {
@@ -40,6 +41,41 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach(async to => {
+  const isPublic = to.matched.some(record => Boolean(record.meta.public))
+  if (isPublic)
+    return true
+
+  const auth = useAuthStore()
+  auth.hydrateFromStorage()
+
+  if (!auth.token) {
+    return {
+      path: '/login',
+      query:
+        to.fullPath && to.fullPath !== '/' && !to.fullPath.startsWith('/login')
+          ? { redirect: to.fullPath }
+          : {},
+    }
+  }
+
+  if (!auth.sessionValidated) {
+    const ok = await auth.validateSession()
+    if (!ok) {
+      auth.logout()
+      return {
+        path: '/login',
+        query:
+          to.fullPath && to.fullPath !== '/'
+            ? { redirect: to.fullPath }
+            : {},
+      }
+    }
+  }
+
+  return true
 })
 
 export { router }

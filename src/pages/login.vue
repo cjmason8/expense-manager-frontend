@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -10,13 +9,15 @@ import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustratio
 import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png'
 import authV2MaskDark from '@images/pages/mask-v2-dark.png'
 import authV2MaskLight from '@images/pages/mask-v2-light.png'
+import { useAuthStore } from '@/stores/authStore'
 
 const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationLight,
   authV2LoginIllustrationDark,
   authV2LoginIllustrationBorderedLight,
   authV2LoginIllustrationBorderedDark,
-  true)
+  true,
+)
 
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
@@ -27,28 +28,51 @@ definePage({
   },
 })
 
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
 const form = ref({
-  email: '',
+  userName: '',
   password: '',
-  remember: false,
 })
 
 const isPasswordVisible = ref(false)
+const loading = ref(false)
+
+onMounted(() => {
+  authStore.clearSessionForLoginPage()
+})
+
+async function loginUser() {
+  if (!form.value.userName || !form.value.password)
+    return
+  loading.value = true
+  try {
+    const ok = await authStore.login({
+      userName: form.value.userName,
+      password: form.value.password,
+    })
+    if (!ok)
+      return
+
+    const raw = route.query.redirect
+    const redirect = typeof raw === 'string' ? raw : null
+    if (redirect && redirect.startsWith('/'))
+      await router.push(redirect)
+    else
+      await router.push({ name: 'root' })
+  }
+  finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <a href="javascript:void(0)">
     <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo"/>
-      <h1 class="auth-title">
-        {{ themeConfig.app.title }}
-      </h1>
-    </div>
-  </a>
-
-  <a href="javascript:void(0)">
-    <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo"/>
+      <VNodeRenderer :nodes="themeConfig.app.logo" />
       <h1 class="auth-title">
         {{ themeConfig.app.title }}
       </h1>
@@ -102,86 +126,55 @@ const isPasswordVisible = ref(false)
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize">{{ themeConfig.app.title }}!</span> 👋🏻
+            Sign in to <span class="text-capitalize">{{ themeConfig.app.title }}</span>
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            Enter your user name and password
           </p>
         </VCardText>
         <VCardText>
-          <VForm @submit.prevent="() => {}">
+          <VAlert
+            v-if="authStore.loginError"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ authStore.loginError }}
+          </VAlert>
+
+          <VForm @submit.prevent="loginUser">
             <VRow>
-              <!-- email -->
               <VCol cols="12">
                 <VTextField
-                  v-model="form.email"
+                  v-model="form.userName"
                   autofocus
-                  label="Email"
-                  type="email"
-                  placeholder="johndoe@email.com"
+                  label="User name"
+                  autocomplete="username"
+                  :disabled="loading"
                 />
               </VCol>
 
-              <!-- password -->
               <VCol cols="12">
                 <VTextField
                   v-model="form.password"
                   label="Password"
-                  placeholder="············"
+                  autocomplete="current-password"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
+                  :disabled="loading"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+              </VCol>
 
-                <div class="d-flex align-center flex-wrap justify-space-between my-5 gap-2">
-                  <VCheckbox
-                    v-model="form.remember"
-                    label="Remember me"
-                  />
-                  <a
-                    class="text-primary"
-                    href="javascript:void(0)"
-                  >
-                    Forgot Password?
-                  </a>
-                </div>
-
+              <VCol cols="12">
                 <VBtn
                   block
                   type="submit"
+                  :loading="loading"
+                  :disabled="!form.userName || !form.password"
                 >
                   Login
                 </VBtn>
-              </VCol>
-
-              <!-- create account -->
-              <VCol
-                cols="12"
-                class="text-center text-base"
-              >
-                <span>New on our platform?</span> <a
-                class="text-primary d-inline-block"
-                href="javascript:void(0)"
-              >
-                Create an account
-              </a>
-              </VCol>
-
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider/>
-                <span class="mx-2 text-high-emphasis">or</span>
-                <VDivider/>
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider/>
               </VCol>
             </VRow>
           </VForm>

@@ -17,7 +17,10 @@ $layout-vertical-nav-layout-navbar-z-index: 11 !default;
 $layout-horizontal-nav-layout-navbar-z-index: 11 !default;
 
 // 👉 Main content
-$layout-boxed-content-width: 1440px !default;
+// Use full width of the column beside the vertical nav (no max-width “letterbox”)
+$layout-boxed-content-width: 100% !default;
+// No horizontal gutter between sidebar and main content (navbar uses same variable)
+$layout-boxed-content-padding-inline: 0 !default;
 
 //  👉Footer
 $layout-vertical-nav-footer-height: 56px !default;

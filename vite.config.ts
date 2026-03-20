@@ -104,6 +104,17 @@ export default defineConfig({
   server: {
     proxy: {
       // Local dev: forward backend routes (no /api prefix — matches production nginx style)
+      // POST → Spring; GET/HEAD must hit the SPA (refresh /login), not Spring's GET /login JSON error
+      '/login': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+        secure: false,
+        bypass(req) {
+          if (req.method === 'GET' || req.method === 'HEAD')
+            return '/index.html'
+        },
+      },
+      '/users': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
       '/week': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
       '/recurring': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
       '/expenses': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
