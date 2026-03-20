@@ -61,17 +61,16 @@ router.beforeEach(async to => {
     }
   }
 
-  if (!auth.sessionValidated) {
-    const ok = await auth.validateSession()
-    if (!ok) {
-      auth.logout()
-      return {
-        path: '/login',
-        query:
-          to.fullPath && to.fullPath !== '/'
-            ? { redirect: to.fullPath }
-            : {},
-      }
+  // Re-validate on every navigation (Angular AuthenticateComponent / authenticate() per view)
+  const ok = await auth.validateSession()
+  if (!ok) {
+    auth.logout()
+    return {
+      path: '/login',
+      query:
+        to.fullPath && to.fullPath !== '/' && !to.fullPath.startsWith('/login')
+          ? { redirect: to.fullPath }
+          : {},
     }
   }
 
