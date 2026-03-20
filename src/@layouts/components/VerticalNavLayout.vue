@@ -180,6 +180,12 @@ const verticalNavAttrs = computed(() => {
     box-sizing: border-box;
   }
 
+  // Tighter space under the top bar (`_default-layout.scss` uses padding-block: 1.5rem on `.layout-page-content`)
+  .layout-content-capped .layout-page-content {
+    padding-block-start: 0.5rem;
+    padding-block-end: 1rem;
+  }
+
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
     box-sizing: border-box;
