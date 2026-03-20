@@ -147,13 +147,13 @@ const verticalNavAttrs = computed(() => {
       .layout-wrapper.layout-nav-type-vertical {
         .layout-navbar {
           @if variables.$layout-vertical-nav-navbar-is-contained {
-            @include mixins.boxed-content;
+            @include mixins.boxed-content(true);
           }
 
             // else
           @else {
             .navbar-content-container {
-              @include mixins.boxed-content;
+              @include mixins.boxed-content(true);
             }
           }
         }
