@@ -227,7 +227,7 @@ watch(file, newFile => {
           <VDataTable
             :headers="incomeHeaders"
             :items="expenseStore.homeInfo?.incomes"
-            :items-per-page="20"
+            :items-per-page="15"
             class="text-no-wrap"
           >
             <template #item.id="{ item }">
@@ -268,7 +268,7 @@ watch(file, newFile => {
           <VDataTable
             :headers="headers"
             :items="expenseStore.homeInfo?.expenses"
-            :items-per-page="10"
+            :items-per-page="15"
             class="text-no-wrap"
             density="compact"
           >

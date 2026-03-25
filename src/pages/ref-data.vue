@@ -182,7 +182,7 @@ onMounted(() => {
   <VDataTable
     :headers="headers"
     :items="refData"
-    :items-per-page="10"
+    :items-per-page="15"
     class="text-no-wrap"
   >
     <template #item.id="{ item }">

@@ -589,7 +589,7 @@ onMounted(async () => {
           <VDataTable
             :headers="documentHeaders"
             :items="documents"
-            :items-per-page="10"
+            :items-per-page="15"
             class="text-no-wrap"
           >
             <template #item.actions="{ item }">
@@ -628,7 +628,7 @@ onMounted(async () => {
           <VDataTable
             :headers="expenseHeaders"
             :items="expenses"
-            :items-per-page="10"
+            :items-per-page="15"
           >
             <template #item.paid="{ item }">
               <VIcon :icon="item.paid ? 'ri-checkbox-line' : 'ri-checkbox-blank-line'" />

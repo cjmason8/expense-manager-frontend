@@ -241,7 +241,7 @@ const viewDocumentation = (donation: Donation) => {
   <VDataTable
     :headers="headers"
     :items="donations"
-    :items-per-page="10"
+    :items-per-page="15"
     class="text-no-wrap"
   >
     <template #item.id="{ item }">

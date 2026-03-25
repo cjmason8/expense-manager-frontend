@@ -2,7 +2,7 @@
   <VDataTable
     :headers="headers"
     :items="notificationsStore.notifications"
-    :items-per-page="10"
+    :items-per-page="15"
     class="text-no-wrap"
   >
     <template #item.read="{ item }">

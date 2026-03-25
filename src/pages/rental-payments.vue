@@ -249,7 +249,7 @@ const nextYear = () => {
           <VDataTable
             :headers="headers"
             :items="rentalPaymentsStore.rentalPayments?.wodongaRentalPayments"
-            :items-per-page="20"
+            :items-per-page="15"
             class="text-no-wrap"
           >
             <template #item.id="{ item }">
@@ -297,7 +297,7 @@ const nextYear = () => {
             :items="
               rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments
             "
-            :items-per-page="20"
+            :items-per-page="15"
             class="text-no-wrap"
           >
             <!-- Actions -->
