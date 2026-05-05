@@ -5,6 +5,7 @@ import { VCardTitle, VCheckbox } from 'vuetify/components'
 import { useDocumentStore } from '@/stores/documentStore'
 import { useExpensesStore } from '@/stores/expensesStore'
 import { useRefDataStore } from '@/stores/refDataStore'
+import type { Document } from '@/types/document'
 import type { Expense } from '@/types/expense'
 import type { Income } from '@/types/income'
 import type { RefData } from '@/types/refData'
@@ -84,6 +85,14 @@ const includeAllFilter = () => {
   console.log(includeAll)
 }
 
+const resetUploadState = () => {
+  file.value = null
+  imageUrl.value = null
+  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+}
+
 const closeEdit = () => {
   editDialog.value = false
   editedExpenseIndex.value = -1
@@ -91,6 +100,7 @@ const closeEdit = () => {
   startDate = null
   endDate = null
   recurring.value = false
+  resetUploadState()
 }
 
 const closeDelete = () => {
@@ -100,6 +110,7 @@ const closeDelete = () => {
 }
 
 const editExpensesItem = (item: Expense) => {
+  resetUploadState()
   if (expenseStore.homeInfo)
     editedExpenseIndex.value = expenseStore.homeInfo.expenses.indexOf(item) as number
 
@@ -110,6 +121,7 @@ const editExpensesItem = (item: Expense) => {
   recurring.value = startDate != null
   endDate = parseDate(selectedExpenseItem.value.endDateString)
   editDialog.value = true
+  void populateFileInputFromDocumentDto(item.documentDto)
 }
 
 const deleteExpensesItem = (item: Expense) => {
@@ -156,9 +168,13 @@ const deleteExpensesItemConfirm = () => {
 const file = ref<File | null>(null)
 const imageUrl = ref<string | null>(null)
 const uploading = ref<boolean>(false)
+const uploadStatusMessage = ref('')
+const uploadStatusError = ref(false)
 
 // Handle file selection and preview
 const handleFileChange = () => {
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
   if (!file.value) {
     imageUrl.value = null
 
@@ -180,14 +196,33 @@ const handleFileChange = () => {
 
 // Upload file to API
 const uploadFile = async () => {
-  if (!file.value)
+  if (!file.value || uploading.value)
     return
 
   uploading.value = true
-  documentStore.uploadFile(file.value).then(res => {
-    selectedExpenseItem.value.documentDto = res
-  })
-  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+  try {
+    const res = await documentStore.uploadFile(file.value)
+    if (res) {
+      selectedExpenseItem.value.documentDto = res
+      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
+      uploadStatusError.value = false
+      file.value = null
+      imageUrl.value = null
+    }
+    else {
+      uploadStatusMessage.value = 'Upload failed. Please try again.'
+      uploadStatusError.value = true
+    }
+  }
+  catch {
+    uploadStatusMessage.value = 'Upload failed. Please try again.'
+    uploadStatusError.value = true
+  }
+  finally {
+    uploading.value = false
+  }
 }
 
 // Watch for file changes to reset preview
@@ -195,6 +230,24 @@ watch(file, newFile => {
   if (!newFile)
     imageUrl.value = null
 })
+
+async function populateFileInputFromDocumentDto(doc?: Document) {
+  if (!doc?.id || doc.id <= 0)
+    return
+  const name = doc.fileName || doc.originalFileName
+  if (!name)
+    return
+  try {
+    const blob = await documentStore.getFileById(doc.id, name)
+
+    file.value = new File([blob], name, { type: blob.type })
+    handleFileChange()
+  }
+  catch {
+    file.value = null
+    imageUrl.value = null
+  }
+}
 </script>
 
 <template>
@@ -481,8 +534,18 @@ watch(file, newFile => {
                   class="mt-2"
                 />
 
+                <VAlert
+                  v-if="uploadStatusMessage"
+                  :type="uploadStatusError ? 'error' : 'success'"
+                  density="compact"
+                  variant="tonal"
+                  class="mt-2"
+                >
+                  {{ uploadStatusMessage }}
+                </VAlert>
+
                 <VBtn
-                  :disabled="!file"
+                  :disabled="!file || uploading"
                   color="primary"
                   class="mt-2"
                   @click="uploadFile"

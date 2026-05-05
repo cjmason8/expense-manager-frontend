@@ -15,9 +15,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 
 const updateSelectedOption = (value: string | null) => {
-  if (value !== null) {
+  if (value !== null)
     emit('update:selectedRadio', value)
-  }
 }
 </script>
 
@@ -55,7 +54,7 @@ const updateSelectedOption = (value: string | null) => {
           </slot>
 
           <div>
-            <VRadio :value="item.value"/>
+            <VRadio :value="item.value" />
           </div>
         </VLabel>
       </VCol>

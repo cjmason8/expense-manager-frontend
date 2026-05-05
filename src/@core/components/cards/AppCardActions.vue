@@ -92,7 +92,7 @@ const triggeredRemove = () => {
           <template #append>
             <!-- 👉 Before actions slot -->
             <div>
-              <slot name="before-actions"/>
+              <slot name="before-actions" />
 
               <!-- SECTION Actions buttons -->
 
@@ -141,7 +141,7 @@ const triggeredRemove = () => {
             v-show="!isContentCollapsed"
             class="v-card-content"
           >
-            <slot/>
+            <slot />
           </div>
         </VExpandTransition>
 
@@ -153,7 +153,7 @@ const triggeredRemove = () => {
           scroll-strategy="none"
           class="align-center justify-center"
         >
-          <VProgressCircular indeterminate/>
+          <VProgressCircular indeterminate />
         </VOverlay>
       </VCard>
     </div>

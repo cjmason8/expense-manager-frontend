@@ -34,9 +34,8 @@ const editor = useEditor({
     Underline,
   ],
   onUpdate() {
-    if (!editor.value) {
+    if (!editor.value)
       return
-    }
 
     emit('update:modelValue', editor.value.getHTML())
   },
@@ -45,9 +44,8 @@ const editor = useEditor({
 watch(() => props.modelValue, () => {
   const isSame = editor.value?.getHTML() === props.modelValue
 
-  if (isSame) {
+  if (isSame)
     return
-  }
 
   editor.value?.commands.setContent(props.modelValue)
 })
@@ -133,7 +131,7 @@ watch(() => props.modelValue, () => {
       />
     </div>
 
-    <VDivider v-if="props.isDivider"/>
+    <VDivider v-if="props.isDivider" />
 
     <EditorContent
       ref="editorRef"

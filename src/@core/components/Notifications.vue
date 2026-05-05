@@ -1,50 +1,48 @@
 <script lang="ts" setup>
-import type { Notification } from "@/types/notification"
-import { useRouter } from "vue-router"
-import { PerfectScrollbar } from "vue3-perfect-scrollbar"
+import { useRouter } from 'vue-router'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import type { Notification } from '@/types/notification'
 
 interface Props {
-  notifications: Notification[];
-  badgeProps?: object;
-  location?: any;
+  notifications: Notification[]
+  badgeProps?: object
+  location?: any
 }
 
 interface Emit {
-  (e: "read", value: number[]): void;
+  (e: 'read', value: number[]): void
 
-  (e: "unread", value: number[]): void;
+  (e: 'unread', value: number[]): void
 
-  (e: "remove", value: number): void;
+  (e: 'remove', value: number): void
 
-  (e: "click:notification", value: Notification): void;
+  (e: 'click:notification', value: Notification): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  location: "bottom end",
+  location: 'bottom end',
   badgeProps: undefined,
 })
 
+const emit = defineEmits<Emit>()
 const menuOpen = ref(false)
 const router = useRouter()
 
-const emit = defineEmits<Emit>()
-
 const isAllMarkRead = computed(() => {
-  return props.notifications.some((item) => item.read === false)
+  return props.notifications.some(item => item.read === false)
 })
 
 const markAllReadOrUnread = () => {
-  const allNotificationsIds = props.notifications.map((item) => item.id)
+  const allNotificationsIds = props.notifications.map(item => item.id)
 
-  if (!isAllMarkRead.value) {
-    emit("unread", allNotificationsIds)
-  } else {
-    emit("read", allNotificationsIds)
-  }
+  if (!isAllMarkRead.value)
+    emit('unread', allNotificationsIds)
+  else
+    emit('read', allNotificationsIds)
 }
 
 const handleClick = (notification: Notification) => {
-  emit("click:notification", notification)
+  emit('click:notification', notification)
 }
 
 const handleAvatarClick = async (notification: Notification) => {
@@ -60,7 +58,7 @@ const handleAvatarClick = async (notification: Notification) => {
 }
 
 const totalUnreadNotifications = computed(
-  () => props.notifications.filter((item) => !item.read).length,
+  () => props.notifications.filter(item => !item.read).length,
 )
 </script>
 
@@ -75,7 +73,7 @@ const totalUnreadNotifications = computed(
       offset-x="1"
       offset-y="1"
     >
-      <VIcon icon="ri-notification-2-line"/>
+      <VIcon icon="ri-notification-2-line" />
     </VBadge>
 
     <VMenu
@@ -89,7 +87,9 @@ const totalUnreadNotifications = computed(
       <VCard class="d-flex flex-column">
         <!-- 👉 Header -->
         <VCardItem class="notification-section">
-          <h5 class="text-h5 text-truncate">Notifications</h5>
+          <h5 class="text-h5 text-truncate">
+            Notifications
+          </h5>
 
           <template #append>
             <VChip
@@ -111,14 +111,17 @@ const totalUnreadNotifications = computed(
                 :icon="!isAllMarkRead ? 'ri-mail-line' : 'ri-mail-open-line'"
               />
 
-              <VTooltip activator="parent" location="start">
+              <VTooltip
+                activator="parent"
+                location="start"
+              >
                 {{ !isAllMarkRead ? "Mark all as unread" : "Mark all as read" }}
               </VTooltip>
             </IconBtn>
           </template>
         </VCardItem>
 
-        <VDivider/>
+        <VDivider />
 
         <!-- 👉 Notifications list -->
         <PerfectScrollbar
@@ -130,7 +133,7 @@ const totalUnreadNotifications = computed(
               v-for="(notification, index) in props.notifications"
               :key="notification.title"
             >
-              <VDivider v-if="index > 0"/>
+              <VDivider v-if="index > 0" />
               <VListItem
                 link
                 lines="one"
@@ -144,16 +147,18 @@ const totalUnreadNotifications = computed(
                   <div>
                     <VAvatar
                       :color="notification.color"
-                      :variant="'tonal'"
+                      variant="tonal"
                       @click.stop="handleAvatarClick(notification)"
                     >
                       <span v-if="notification.text != ''">{{
-                          avatarText(notification.text)
-                        }}</span>
-                      <!--VImg
+                        avatarText(notification.text)
+                      }}</span>
+                      <!--
+                        VImg
                         v-if="notification.img"
                         :src="notification.img"
-                      /-->
+                        /
+                      -->
                       <VIcon
                         v-if="notification.icon"
                         :icon="notification.icon"
@@ -162,7 +167,9 @@ const totalUnreadNotifications = computed(
                   </div>
 
                   <div>
-                    <h6 class="text-h6 mb-1">{{ notification.title }}</h6>
+                    <h6 class="text-h6 mb-1">
+                      {{ notification.title }}
+                    </h6>
                     <p
                       class="text-body-2 mb-2"
                       style="
@@ -183,7 +190,7 @@ const totalUnreadNotifications = computed(
                     </p>
                   </div>
 
-                  <VSpacer/>
+                  <VSpacer />
 
                   <div class="d-flex flex-column align-end gap-2">
                     <VIcon
@@ -224,11 +231,19 @@ const totalUnreadNotifications = computed(
           </VList>
         </PerfectScrollbar>
 
-        <VDivider/>
+        <VDivider />
 
         <!-- 👉 Footer -->
-        <VCardText v-show="props.notifications.length" class="pa-4">
-          <VBtn block size="small"> View All Notifications</VBtn>
+        <VCardText
+          v-show="props.notifications.length"
+          class="pa-4"
+        >
+          <VBtn
+            block
+            size="small"
+          >
+            View All Notifications
+          </VBtn>
         </VCardText>
       </VCard>
     </VMenu>

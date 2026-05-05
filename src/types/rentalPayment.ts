@@ -1,4 +1,4 @@
-import { Document } from "./document"
+import type { Document } from './document'
 
 export class RentalPayment {
   id?: number
@@ -6,9 +6,9 @@ export class RentalPayment {
   adminFee: number = -1
   managementFee: number = -1
   otherFee: number = -1
-  statementFromString: string = ""
-  statementToString: string = ""
-  property: string = ""
+  statementFromString: string = ''
+  statementToString: string = ''
+  property: string = ''
   documentDto?: Document
 
   constructor() {

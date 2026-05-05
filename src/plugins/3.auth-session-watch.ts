@@ -20,6 +20,7 @@ export default function (_app: App) {
 
   const revalidate = async () => {
     const auth = useAuthStore()
+
     auth.hydrateFromStorage()
     if (!auth.token)
       return

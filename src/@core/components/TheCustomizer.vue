@@ -40,9 +40,8 @@ watch(
   () => {
     const cookiePrimaryColor = cookieRef(`${vuetifyTheme.name.value}ThemePrimaryColor`, null).value
 
-    if (cookiePrimaryColor && !colors.some(color => color.main === cookiePrimaryColor)) {
+    if (cookiePrimaryColor && !colors.some(color => color.main === cookiePrimaryColor))
       customPrimaryColor.value = cookiePrimaryColor
-    }
   },
   { immediate: true },
 )
@@ -124,7 +123,8 @@ watch(currentLayout, () => {
   if (currentLayout.value === 'collapsed') {
     configStore.isVerticalNavCollapsed = true
     configStore.appContentLayoutNav = AppContentLayoutNav.Vertical
-  } else {
+  }
+  else {
     configStore.isVerticalNavCollapsed = false
     configStore.appContentLayoutNav = currentLayout.value
   }
@@ -175,11 +175,10 @@ const direction = computed(() => {
 })
 
 watch(currentDir, () => {
-  if (currentDir.value === 'rtl') {
+  if (currentDir.value === 'rtl')
     configStore.isAppRTL = true
-  } else {
+  else
     configStore.isAppRTL = false
-  }
 })
 
 // check if any value set in cookie
@@ -268,7 +267,7 @@ const resetCustomizer = async () => {
       style="z-index: 1001;"
       @click="isNavDrawerOpen = true"
     >
-      <VIcon icon="ri-settings-3-line"/>
+      <VIcon icon="ri-settings-3-line" />
     </VBtn>
 
     <VNavigationDrawer
@@ -329,7 +328,7 @@ const resetCustomizer = async () => {
         </div>
       </div>
 
-      <VDivider/>
+      <VDivider />
 
       <PerfectScrollbar
         tag="ul"

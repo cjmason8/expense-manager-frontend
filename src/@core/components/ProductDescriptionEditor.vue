@@ -29,9 +29,8 @@ const editor = useEditor({
     Underline,
   ],
   onUpdate() {
-    if (!editor.value) {
+    if (!editor.value)
       return
-    }
 
     emit('update:modelValue', editor.value.getHTML())
   },
@@ -40,9 +39,8 @@ const editor = useEditor({
 watch(() => props.modelValue, () => {
   const isSame = editor.value?.getHTML() === props.modelValue
 
-  if (isSame) {
+  if (isSame)
     return
-  }
 
   editor.value?.commands.setContent(props.modelValue)
 })
@@ -91,7 +89,7 @@ watch(() => props.modelValue, () => {
         :color="editor.isActive('underline') ? 'primary' : 'default'"
         @click="editor.commands.toggleUnderline()"
       >
-        <VIcon icon="ri-underline"/>
+        <VIcon icon="ri-underline" />
       </VBtn>
 
       <VBtn
@@ -165,7 +163,7 @@ watch(() => props.modelValue, () => {
       </VBtn>
     </div>
 
-    <VDivider class="my-4"/>
+    <VDivider class="my-4" />
 
     <EditorContent
       ref="editorRef"

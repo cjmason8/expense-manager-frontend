@@ -10,11 +10,13 @@ const displayName = computed(() => {
   const u = authStore.user?.trim()
   if (!u)
     return 'User'
+
   return u.charAt(0).toUpperCase() + u.slice(1)
 })
 
 const roleLabel = computed(() => {
   const r = authStore.roles?.trim()
+
   return r || '—'
 })
 

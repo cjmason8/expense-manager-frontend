@@ -59,9 +59,8 @@ watchEffect(() => {
     props.currentStep !== undefined
     && props.currentStep < props.items.length
     && props.currentStep >= 0
-  ) {
+  )
     currentStep.value = props.currentStep
-  }
 
   emit('update:currentStep', currentStep.value)
 })
@@ -98,7 +97,7 @@ watchEffect(() => {
             >
               <div class="stepper-icon">
                 <template v-if="typeof item.icon === 'object'">
-                  <Component :is="item.icon"/>
+                  <Component :is="item.icon" />
                 </template>
 
                 <VIcon

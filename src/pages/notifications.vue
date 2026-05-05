@@ -1,68 +1,42 @@
-<template>
-  <VDataTable
-    :headers="headers"
-    :items="notificationsStore.notifications"
-    :items-per-page="15"
-    class="text-no-wrap"
-  >
-    <template #item.read="{ item }">
-      <VCheckbox v-model="item.read" @change="markRead(item)"></VCheckbox>
-    </template>
-
-    <!-- Actions -->
-    <template #item.actions="{ item }">
-      <div class="d-flex gap-1">
-        <table>
-          <tr>
-            <td style="min-width: 35px">
-              <IconBtn size="small" @click="editItem(item)">
-                <VIcon icon="ri-pencil-line"/>
-              </IconBtn>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </template>
-  </VDataTable>
-</template>
-
 <script setup lang="ts">
-import { useNotificationsStore } from "@/stores/notificationsStore"
-import { useRefDataStore } from "@/stores/refDataStore"
-//import { Expense } from "@/types/expense";
-import { Notification } from "@/types/notification"
-import { ref } from "vue"
+import { ref } from 'vue'
+import { useNotificationsStore } from '@/stores/notificationsStore'
+import { useRefDataStore } from '@/stores/refDataStore'
+
+// import { Expense } from "@/types/expense";
+import type { Notification } from '@/types/notification'
 
 const editDialog = ref(false)
 
 const notificationsStore = useNotificationsStore()
+
 notificationsStore.getNotifications()
 
 const refDataStore = useRefDataStore()
-refDataStore.getRefData("expenseType")
+
+refDataStore.getRefData('expenseType')
 
 // let transactionTypeId = ref<number>();
 
 // const defaultItem = ref<Expense>();
 
-//const selectedItem = ref<Expense>(defaultItem.value);
+// const selectedItem = ref<Expense>(defaultItem.value);
 
 const headers = [
-  { title: "EXPENSE", key: "expense.transactionType.description" },
-  { title: "MESSAGE", key: "message" },
-  { title: "DUE DATE", key: "expense.dueDateString" },
-  { title: "CREATED", key: "createdDateString" },
-  { title: "AMOUNT", key: "expense.amount" },
-  { title: "MARK READ", key: "read" },
-  { title: "ACTIONS", key: "actions" },
+  { title: 'EXPENSE', key: 'expense.transactionType.description' },
+  { title: 'MESSAGE', key: 'message' },
+  { title: 'DUE DATE', key: 'expense.dueDateString' },
+  { title: 'CREATED', key: 'createdDateString' },
+  { title: 'AMOUNT', key: 'expense.amount' },
+  { title: 'MARK READ', key: 'read' },
+  { title: 'ACTIONS', key: 'actions' },
 ]
 
 const markRead = (item: Notification) => {
-  if (item.read) {
+  if (item.read)
     notificationsStore.markRead(item.id)
-  } else {
+  else
     notificationsStore.markUnRead(item.id)
-  }
 }
 
 const editItem = (item: Notification) => {
@@ -104,6 +78,40 @@ const editItem = (item: Notification) => {
 //   closeAddEdit();
 // };
 </script>
+
+<template>
+  <VDataTable
+    :headers="headers"
+    :items="notificationsStore.notifications"
+    :items-per-page="15"
+    class="text-no-wrap"
+  >
+    <template #item.read="{ item }">
+      <VCheckbox
+        v-model="item.read"
+        @change="markRead(item)"
+      />
+    </template>
+
+    <!-- Actions -->
+    <template #item.actions="{ item }">
+      <div class="d-flex gap-1">
+        <table>
+          <tr>
+            <td style="min-width: 35px">
+              <IconBtn
+                size="small"
+                @click="editItem(item)"
+              >
+                <VIcon icon="ri-pencil-line" />
+              </IconBtn>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </template>
+  </VDataTable>
+</template>
 
 <style>
 .p-datepicker {

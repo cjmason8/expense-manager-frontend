@@ -43,7 +43,7 @@ const isPositive = computed(() => Math.sign(props.change) === 1)
         </VChip>
       </VCardText>
 
-      <VSpacer/>
+      <VSpacer />
 
       <div class="illustrator-img">
         <VImg

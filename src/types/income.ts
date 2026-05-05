@@ -1,15 +1,15 @@
-import { Document } from "./document"
-import { RefData } from "./refData"
+import type { Document } from './document'
+import type { RefData } from './refData'
 
 export class Income {
   id?: number
   transactionType?: RefData
   amount?: number
-  dueDateString: string = ""
+  dueDateString: string = ''
   recurringType?: RefData
-  notes: string = ""
+  notes: string = ''
   documentDto?: Document
-  metaDataChunk?: string = ""
+  metaDataChunk?: string = ''
 
   constructor() {
   }

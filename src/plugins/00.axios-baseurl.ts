@@ -19,7 +19,7 @@ export default function (_: App) {
 
   axios.interceptors.response.use(
     r => r,
-    async (error) => {
+    async error => {
       if (!axios.isAxiosError(error) || error.response == null)
         return Promise.reject(error)
 
@@ -33,6 +33,7 @@ export default function (_: App) {
       if (status === 401) {
         try {
           const auth = useAuthStore()
+
           auth.logout()
           if (!routeIsPublic())
             await router.replace({ path: '/login', query: { redirect: router.currentRoute.value.fullPath } })

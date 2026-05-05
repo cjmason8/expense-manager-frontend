@@ -1,17 +1,17 @@
-import { Document } from "./document"
-import { RefData } from "./refData"
+import { Document } from './document'
+import type { RefData } from './refData'
 
 export class Expense {
   id?: number
   transactionType?: RefData
   amount?: number
-  dueDateString: string = ""
+  dueDateString: string = ''
   recurringType?: RefData
-  startDateString: string = ""
-  endDateString: string = ""
-  notes: string = ""
+  startDateString: string = ''
+  endDateString: string = ''
+  notes: string = ''
   documentDto?: Document = new Document()
-  metaDataChunk?: string = ""
+  metaDataChunk?: string = ''
   paid: boolean = false
 
   constructor() {

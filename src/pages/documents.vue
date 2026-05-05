@@ -44,6 +44,8 @@ const documents = ref<Document[]>([])
 const file = ref<File | null>(null)
 const imageUrl = ref<string | null>(null)
 const uploading = ref<boolean>(false)
+const uploadStatusMessage = ref('')
+const uploadStatusError = ref(false)
 
 const headers = [
   { title: '', key: 'fileName' },
@@ -126,11 +128,15 @@ const addFolder = () => {
 }
 
 const openUploadFile = () => {
+  selectedItem.value = { ...defaultItem.value, folderPath: currentFolderPath.value }
+  resetUploadState()
   uploadDocument.value = true
 }
 
 // Handle file selection and preview
 const handleFileChange = () => {
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
   if (!file.value) {
     imageUrl.value = null
 
@@ -152,23 +158,56 @@ const handleFileChange = () => {
 
 // Upload file to API
 const uploadFile = async () => {
-  if (!file.value)
+  if (!file.value || uploading.value)
     return
 
   uploading.value = true
-  documentStore
-    .uploadFile(file.value, 'documents', currentFolderPath.value)
-    .then(res => {
-      selectedItem.value.fileName = res.fileName
-      selectedItem.value.originalFileName = selectedItem.value.fileName
-    })
-  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+  try {
+    const res = await documentStore.uploadFile(
+      file.value,
+      'documents',
+      currentFolderPath.value,
+    )
+
+    if (res) {
+      selectedItem.value = {
+        ...selectedItem.value,
+        ...res,
+        folderPath: currentFolderPath.value,
+        originalFileName: res.originalFileName || res.fileName,
+      }
+      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
+      uploadStatusError.value = false
+      file.value = null
+      imageUrl.value = null
+    }
+    else {
+      uploadStatusMessage.value = 'Upload failed. Please try again.'
+      uploadStatusError.value = true
+    }
+  }
+  catch {
+    uploadStatusMessage.value = 'Upload failed. Please try again.'
+    uploadStatusError.value = true
+  }
+  finally {
+    uploading.value = false
+  }
 }
 
 // Watch for file changes to reset preview
 watch(file, newFile => {
   if (!newFile)
     imageUrl.value = null
+})
+
+watch(uploadDocument, isOpen => {
+  if (!isOpen) {
+    selectedItem.value = { ...defaultItem.value }
+    resetUploadState()
+  }
 })
 
 const viewDocumentation = (viewDocument: Document) => {
@@ -194,6 +233,8 @@ const editDocument = (document: Document) => {
     selectedItem.value.isFolder = document.isFolder
     selectedItem.value.folderPath = document.folderPath
     selectedItem.value.metaDataChunk = document.metaDataChunk
+    resetUploadState()
+    uploadDocument.value = true
   }
 }
 
@@ -244,24 +285,38 @@ const move = () => {
   router.push('/documents/move')
 }
 
-const saveUploadDocument = () => {
-  let result
+const saveUploadDocument = async () => {
+  selectedItem.value.folderPath = currentFolderPath.value
 
-  if (selectedItem.value.id)
-    result = documentStore.updateDocument(selectedItem.value)
-  else
-    result = documentStore.addDocument(selectedItem.value)
+  const isExistingDocument = selectedItem.value.id > 0
 
-  result.then(data => {
-    documentStore.getDocuments(data.filePath, false).then(data2 => {
-      documents.value = data2
-    })
-  })
+  const result = isExistingDocument
+    ? await documentStore.updateDocument(selectedItem.value)
+    : await documentStore.addDocument(selectedItem.value)
+
+  if (!result)
+    return
+
+  const folderPath = result.folderPath || currentFolderPath.value
+  const refreshedDocuments = await documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived')
+  if (refreshedDocuments)
+    documents.value = refreshedDocuments
+
+  closeUploadDocument()
 }
 
-const closeUploadDocument = () => {
+function resetUploadState() {
+  file.value = null
+  imageUrl.value = null
+  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+}
+
+function closeUploadDocument() {
   uploadDocument.value = false
   selectedItem.value = { ...defaultItem.value }
+  resetUploadState()
 }
 
 onMounted(() => {
@@ -456,8 +511,18 @@ onMounted(() => {
                   class="mt-2"
                 />
 
+                <VAlert
+                  v-if="uploadStatusMessage"
+                  :type="uploadStatusError ? 'error' : 'success'"
+                  density="compact"
+                  variant="tonal"
+                  class="mt-2"
+                >
+                  {{ uploadStatusMessage }}
+                </VAlert>
+
                 <VBtn
-                  :disabled="!file"
+                  :disabled="!file || uploading"
                   color="primary"
                   class="mt-2"
                   @click="uploadFile"

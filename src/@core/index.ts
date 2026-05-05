@@ -2,7 +2,7 @@ import type { UserThemeConfig } from './types'
 import type { LayoutConfig } from '@layouts/types'
 
 export const defineThemeConfig = (userConfig: UserThemeConfig): {
-  themeConfig: UserThemeConfig;
+  themeConfig: UserThemeConfig
   layoutConfig: LayoutConfig
 } => {
   return {

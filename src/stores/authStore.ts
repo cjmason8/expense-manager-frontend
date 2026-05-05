@@ -21,6 +21,7 @@ function parseLoginBody(data: unknown): LoginResponse {
       return { error: data }
     }
   }
+
   return data as LoginResponse
 }
 
@@ -28,6 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref('')
   const roles = ref('')
   const user = ref('')
+
   /** True after successful login or successful GET /users/{token}/authenticate */
   const sessionValidated = ref(false)
   const hydrated = ref(false)
@@ -43,6 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
       roles: roles.value,
       user: user.value,
     }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   }
 
@@ -88,24 +91,29 @@ export const useAuthStore = defineStore('auth', () => {
   async function validateSession(): Promise<boolean> {
     if (!token.value) {
       sessionValidated.value = false
+
       return false
     }
     try {
       const { data } = await axios.get<AuthenticateResponse>(
         `/users/${encodeURIComponent(token.value)}/authenticate`,
       )
+
       if (data.status === 'failed') {
         sessionValidated.value = false
+
         return false
       }
       if (data.user)
         user.value = data.user
       sessionValidated.value = true
       persist()
+
       return true
     }
     catch {
       sessionValidated.value = false
+
       return false
     }
   }
@@ -125,13 +133,15 @@ export const useAuthStore = defineStore('auth', () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            'Accept': 'application/json',
           },
         },
       )
+
       const res = parseLoginBody(data)
       if (res.error) {
         loginError.value = typeof res.error === 'string' ? res.error : 'Login failed'
+
         return false
       }
       if (res.loginStatus !== 'success' || !res.token) {
@@ -142,8 +152,10 @@ export const useAuthStore = defineStore('auth', () => {
             : typeof data === 'object'
               ? JSON.stringify(data).slice(0, 200)
               : String(data).slice(0, 200)
+
         loginError.value
           = `Login response was not successful (HTTP ${status}). Expected JSON with loginStatus "success" and token. Got: ${preview}`
+
         return false
       }
       token.value = res.token
@@ -151,6 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = res.user ?? ''
       sessionValidated.value = true
       persist()
+
       return true
     }
     catch (e: unknown) {
@@ -160,6 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (typeof body === 'string') {
           try {
             const j = JSON.parse(body) as { error?: string }
+
             loginError.value = j.error ?? body
           }
           catch {
@@ -175,9 +189,11 @@ export const useAuthStore = defineStore('auth', () => {
         else {
           loginError.value = e.message || 'Network error — is the API running and the Vite proxy correct?'
         }
+
         return false
       }
       loginError.value = 'Login failed'
+
       return false
     }
   }

@@ -39,7 +39,7 @@ export interface GridColumn {
 
 // Data table
 export interface SortItem {
-  key: string;
+  key: string
   order?: boolean | 'asc' | 'desc'
 }
 

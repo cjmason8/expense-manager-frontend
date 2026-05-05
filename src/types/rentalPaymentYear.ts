@@ -1,4 +1,4 @@
-import { RentalPayment } from "./rentalPayment"
+import type { RentalPayment } from './rentalPayment'
 
 export class RentalPaymentYear {
   wodongaRentalPayments: RentalPayment[] = []

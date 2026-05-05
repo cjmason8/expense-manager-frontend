@@ -85,12 +85,21 @@ const deleteItem = (item: Donation) => {
   deleteDialog.value = true
 }
 
+const resetUploadState = () => {
+  file.value = null
+  imageUrl.value = null
+  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+}
+
 const closeAddEdit = () => {
   addEditDialog.value = false
   editedIndex.value = -1
   selectedItem.value = { ...defaultItem.value }
   selectedDate = new Date()
   causeId.value = -1
+  resetUploadState()
 }
 
 const closeDelete = () => {
@@ -132,9 +141,13 @@ const deleteItemConfirm = () => {
 const file = ref<File | null>(null)
 const imageUrl = ref<string | null>(null)
 const uploading = ref<boolean>(false)
+const uploadStatusMessage = ref('')
+const uploadStatusError = ref(false)
 
 // Handle file selection and preview
 const handleFileChange = () => {
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
   if (!file.value) {
     imageUrl.value = null
 
@@ -156,14 +169,33 @@ const handleFileChange = () => {
 
 // Upload file to API
 const uploadFile = async () => {
-  if (!file.value)
+  if (!file.value || uploading.value)
     return
 
   uploading.value = true
-  documentStore.uploadFile(file.value, 'donations').then(res => {
-    selectedItem.value.documentDto = res
-  })
-  uploading.value = false
+  uploadStatusMessage.value = ''
+  uploadStatusError.value = false
+  try {
+    const res = await documentStore.uploadFile(file.value, 'donations')
+    if (res) {
+      selectedItem.value.documentDto = res
+      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
+      uploadStatusError.value = false
+      file.value = null
+      imageUrl.value = null
+    }
+    else {
+      uploadStatusMessage.value = 'Upload failed. Please try again.'
+      uploadStatusError.value = true
+    }
+  }
+  catch {
+    uploadStatusMessage.value = 'Upload failed. Please try again.'
+    uploadStatusError.value = true
+  }
+  finally {
+    uploading.value = false
+  }
 }
 
 // Watch for file changes to reset preview
@@ -403,8 +435,18 @@ const viewDocumentation = (donation: Donation) => {
                   class="mt-2"
                 />
 
+                <VAlert
+                  v-if="uploadStatusMessage"
+                  :type="uploadStatusError ? 'error' : 'success'"
+                  density="compact"
+                  variant="tonal"
+                  class="mt-2"
+                >
+                  {{ uploadStatusMessage }}
+                </VAlert>
+
                 <VBtn
-                  :disabled="!file"
+                  :disabled="!file || uploading"
                   color="primary"
                   class="mt-2"
                   @click="uploadFile"

@@ -49,6 +49,7 @@ router.beforeEach(async to => {
     return true
 
   const auth = useAuthStore()
+
   auth.hydrateFromStorage()
 
   if (!auth.token) {
@@ -65,6 +66,7 @@ router.beforeEach(async to => {
   const ok = await auth.validateSession()
   if (!ok) {
     auth.logout()
+
     return {
       path: '/login',
       query:
