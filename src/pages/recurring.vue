@@ -4,6 +4,7 @@ import DatePicker from 'primevue/datepicker'
 import { VCardTitle, VCheckbox } from 'vuetify/components'
 import { useDocumentStore } from '@/stores/documentStore'
 import { useExpensesStore } from '@/stores/expensesStore'
+import { useIncomesStore } from '@/stores/incomesStore'
 import { useRefDataStore } from '@/stores/refDataStore'
 import type { Document } from '@/types/document'
 import type { Expense } from '@/types/expense'
@@ -11,6 +12,7 @@ import type { Income } from '@/types/income'
 import type { RefData } from '@/types/refData'
 
 const expenseStore = useExpensesStore()
+const incomeStore = useIncomesStore()
 
 const includeAll = ref(false)
 
@@ -38,7 +40,9 @@ const incomeHeaders = [
 ]
 
 const editDialog = ref(false)
+const editIncomeDialog = ref(false)
 const deleteDialog = ref(false)
+const deleteIncomeDialog = ref(false)
 
 const defaultExpenseItem = ref<Expense>({
   dueDateString: '',
@@ -75,6 +79,7 @@ const editedExpenseIndex = ref(-1)
 const editedIncomeIndex = ref(-1)
 let startDate: Date | null = null
 let endDate: Date | null = null
+let dueDate: Date | null = null
 const transactionTypeId = ref<number>()
 const recurringTypeId = ref<number>()
 
@@ -103,16 +108,44 @@ const closeEdit = () => {
   resetUploadState()
 }
 
+const closeEditIncome = () => {
+  editIncomeDialog.value = false
+  editedIncomeIndex.value = -1
+  selectedIncomeItem.value = { ...defaultIncomeItem.value }
+  dueDate = null
+  resetUploadState()
+}
+
 const closeDelete = () => {
   deleteDialog.value = false
   editedExpenseIndex.value = -1
   selectedExpenseItem.value = { ...defaultExpenseItem.value }
 }
 
+const closeDeleteIncome = () => {
+  deleteIncomeDialog.value = false
+  editedIncomeIndex.value = -1
+  selectedIncomeItem.value = { ...defaultIncomeItem.value }
+}
+
+const findExpenseIndex = (list: Expense[] | undefined, id?: number) => {
+  if (!list || id == null)
+    return -1
+
+  return list.findIndex(expense => expense.id === id)
+}
+
+const findIncomeIndex = (list: Income[] | undefined, id?: number) => {
+  if (!list || id == null)
+    return -1
+
+  return list.findIndex(income => income.id === id)
+}
+
 const editExpensesItem = (item: Expense) => {
   resetUploadState()
   if (expenseStore.homeInfo)
-    editedExpenseIndex.value = expenseStore.homeInfo.expenses.indexOf(item) as number
+    editedExpenseIndex.value = findExpenseIndex(expenseStore.homeInfo.expenses, item.id)
 
   selectedExpenseItem.value = { ...item }
   transactionTypeId.value = selectedExpenseItem.value.transactionType?.id
@@ -126,34 +159,73 @@ const editExpensesItem = (item: Expense) => {
 
 const deleteExpensesItem = (item: Expense) => {
   if (expenseStore.homeInfo)
-    editedExpenseIndex.value = expenseStore.homeInfo?.expenses.indexOf(item) as number
+    editedExpenseIndex.value = findExpenseIndex(expenseStore.homeInfo.expenses, item.id)
 
   selectedExpenseItem.value = { ...item }
   deleteDialog.value = true
 }
 
-const deleteIncomesItem = (item: Income) => {
+const editIncomesItem = (item: Income) => {
+  resetUploadState()
   if (expenseStore.homeInfo)
-    editedIncomeIndex.value = expenseStore.homeInfo?.incomes.indexOf(item) as number
+    editedIncomeIndex.value = findIncomeIndex(expenseStore.homeInfo.incomes, item.id)
 
   selectedIncomeItem.value = { ...item }
-  deleteDialog.value = true
+  transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
+  dueDate = parseDate(selectedIncomeItem.value.dueDateString)
+  editIncomeDialog.value = true
+  void populateFileInputFromDocumentDto(item.documentDto)
 }
 
-const saveEdit = () => {
+const deleteIncomesItem = (item: Income) => {
+  if (expenseStore.homeInfo)
+    editedIncomeIndex.value = findIncomeIndex(expenseStore.homeInfo.incomes, item.id)
+
+  selectedIncomeItem.value = { ...item }
+  deleteIncomeDialog.value = true
+}
+
+const saveEditIncome = async () => {
+  if (dueDate != null)
+    selectedIncomeItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
+
+  selectedIncomeItem.value.transactionType = incomeTypes.value.find(
+    refData => refData.id === transactionTypeId.value,
+  )
+
+  await incomeStore.updateIncome(selectedIncomeItem.value)
+
+  const idx = findIncomeIndex(expenseStore.homeInfo?.incomes, selectedIncomeItem.value.id)
+  if (idx > -1 && expenseStore.homeInfo)
+    expenseStore.homeInfo.incomes.splice(idx, 1, { ...selectedIncomeItem.value })
+
+  await expenseStore.getRecurring(includeAll.value)
+  closeEditIncome()
+}
+
+const deleteIncomesItemConfirm = async () => {
+  const idx = findIncomeIndex(expenseStore.homeInfo?.incomes, selectedIncomeItem.value.id)
+  if (idx > -1)
+    expenseStore.homeInfo?.incomes.splice(idx, 1)
+
+  await incomeStore.deleteIncome(selectedIncomeItem.value)
+  await expenseStore.getRecurring(includeAll.value)
+  closeDeleteIncome()
+}
+
+const saveEdit = async () => {
   if (startDate != null)
-    selectedExpenseItem.value.dueDateString = format(startDate, 'dd-MM-yyyy')
+    selectedExpenseItem.value.startDateString = format(startDate, 'dd-MM-yyyy')
 
   if (endDate != null)
-    selectedExpenseItem.value.dueDateString = format(endDate, 'dd-MM-yyyy')
+    selectedExpenseItem.value.endDateString = format(endDate, 'dd-MM-yyyy')
 
   selectedExpenseItem.value.transactionType = expenseTypes.value.find(
     refData => refData.id === transactionTypeId.value,
   )
   if (editedExpenseIndex.value > -1 && expenseStore.homeInfo) {
-    console.log(selectedExpenseItem.value.amount)
     Object.assign(expenseStore.homeInfo.expenses[editedExpenseIndex.value], selectedExpenseItem.value)
-    expenseStore.updateExpense(selectedExpenseItem.value)
+    await expenseStore.updateExpense(selectedExpenseItem.value)
   }
 
   closeEdit()
@@ -205,7 +277,10 @@ const uploadFile = async () => {
   try {
     const res = await documentStore.uploadFile(file.value)
     if (res) {
-      selectedExpenseItem.value.documentDto = res
+      if (editIncomeDialog.value)
+        selectedIncomeItem.value.documentDto = res
+      else
+        selectedExpenseItem.value.documentDto = res
       uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
       uploadStatusError.value = false
       file.value = null
@@ -586,7 +661,178 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
     </VCard>
   </VDialog>
 
-  <!-- Delete Confirmation Dialog -->
+  <!-- 👉 Edit Income Dialog  -->
+  <VDialog
+    v-model="editIncomeDialog"
+    max-width="900px"
+  >
+    <VCard title="Edit Recurring Income">
+      <VCardText>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="transactionTypeId">Income Type</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <VSelect
+              v-model="transactionTypeId"
+              :items="incomeTypes"
+              item-title="description"
+              item-value="id"
+              placeholder="Select..."
+            />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.amount">Amount</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextField v-model="selectedIncomeItem.amount" />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedDate">Due Date</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <DatePicker
+              v-model="dueDate"
+              date-format="dd-mm-yy"
+            />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.notes">Notes</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextField v-model="selectedIncomeItem.notes" />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.metaDataChunk">Metadata</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextarea
+              v-model="selectedIncomeItem.metaDataChunk"
+              rows="2"
+            />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="file">File</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="6"
+          >
+            <VCard style="width: 650px">
+              <VCardTitle>Upload File</VCardTitle>
+              <VCardText>
+                <VFileInput
+                  v-model="file"
+                  style="width: 600px"
+                  label="Choose a file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
+                  show-size
+                  @change="handleFileChange"
+                />
+
+                <VProgressLinear
+                  v-if="uploading"
+                  indeterminate
+                  color="primary"
+                  class="mt-2"
+                />
+
+                <VAlert
+                  v-if="uploadStatusMessage"
+                  :type="uploadStatusError ? 'error' : 'success'"
+                  density="compact"
+                  variant="tonal"
+                  class="mt-2"
+                >
+                  {{ uploadStatusMessage }}
+                </VAlert>
+
+                <VBtn
+                  :disabled="!file || uploading"
+                  color="primary"
+                  class="mt-2"
+                  @click="uploadFile"
+                >
+                  Upload
+                </VBtn>
+
+                <VImg
+                  v-if="imageUrl"
+                  :src="imageUrl"
+                  class="mt-4"
+                  max-width="200"
+                />
+              </VCardText>
+            </VCard>
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VCardText>
+        <div class="self-align-end d-flex gap-4 justify-end">
+          <VBtn
+            color="error"
+            variant="outlined"
+            @click="closeEditIncome"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="success"
+            variant="elevated"
+            @click="saveEditIncome"
+          >
+            Save
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!-- Delete Expense Confirmation Dialog -->
   <VDialog
     v-model="deleteDialog"
     max-width="400px"
@@ -607,6 +853,34 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
         <VBtn
           color="red darken-1"
           @click="deleteExpensesItemConfirm"
+        >
+          Delete
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!-- Delete Income Confirmation Dialog -->
+  <VDialog
+    v-model="deleteIncomeDialog"
+    max-width="400px"
+  >
+    <VCard>
+      <VCardTitle>Confirm Deletion</VCardTitle>
+      <VCardText>
+        Are you sure you want to delete
+        <strong>{{ selectedIncomeItem.transactionType?.description }}</strong>?
+      </VCardText>
+      <VCardActions>
+        <VBtn
+          color="blue darken-1"
+          @click="closeDeleteIncome"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="red darken-1"
+          @click="deleteIncomesItemConfirm"
         >
           Delete
         </VBtn>

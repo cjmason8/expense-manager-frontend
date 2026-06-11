@@ -334,8 +334,15 @@ const runSearch = async () => {
   }
 }
 
+const findExpenseIndex = (id?: number) => {
+  if (id == null)
+    return -1
+
+  return expenses.value.findIndex(expense => expense.id === id)
+}
+
 const editExpense = (item: Expense) => {
-  editedIndex.value = expenses.value.indexOf(item)
+  editedIndex.value = findExpenseIndex(item.id)
   selectedItem.value = { ...item }
   selectedExpenseTypeId.value = item.transactionType?.id
   dueDate.value = parseDate(item.dueDateString)
@@ -360,14 +367,17 @@ const saveEditExpense = async () => {
     selectedItem.value.dueDateString = format(dueDate.value, 'dd-MM-yyyy')
 
   await expenseStore.updateExpense(selectedItem.value)
-  if (editedIndex.value > -1)
-    expenses.value[editedIndex.value] = { ...selectedItem.value }
 
+  const idx = findExpenseIndex(selectedItem.value.id)
+  if (idx > -1)
+    expenses.value.splice(idx, 1, { ...selectedItem.value })
+
+  chartUpdateKey.value += 1
   closeEditExpense()
 }
 
 const promptDeleteExpense = (item: Expense) => {
-  editedIndex.value = expenses.value.indexOf(item)
+  editedIndex.value = findExpenseIndex(item.id)
   selectedItem.value = { ...item }
   deleteDialog.value = true
 }
@@ -411,8 +421,15 @@ const viewDocumentation = (document: Document) => {
   })
 }
 
+const findDocumentIndex = (id?: number) => {
+  if (id == null)
+    return -1
+
+  return documents.value.findIndex(document => document.id === id)
+}
+
 const editDocument = (item: Document) => {
-  documentEditedIndex.value = documents.value.indexOf(item)
+  documentEditedIndex.value = findDocumentIndex(item.id)
   selectedDocument.value = { ...item }
   documentDialogTitle.value = item.isFolder ? 'Edit Folder' : 'Edit Document'
   addEditDocumentDialog.value = true
@@ -430,14 +447,15 @@ const saveEditDocument = async () => {
   else
     await documentStore.updateDocument(selectedDocument.value)
 
-  if (documentEditedIndex.value > -1)
-    documents.value[documentEditedIndex.value] = { ...selectedDocument.value }
+  const idx = findDocumentIndex(selectedDocument.value.id)
+  if (idx > -1)
+    documents.value.splice(idx, 1, { ...selectedDocument.value })
 
   closeEditDocument()
 }
 
 const promptDeleteDocument = (item: Document) => {
-  documentEditedIndex.value = documents.value.indexOf(item)
+  documentEditedIndex.value = findDocumentIndex(item.id)
   selectedDocument.value = { ...item }
   deleteDocumentDialog.value = true
 }

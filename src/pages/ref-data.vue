@@ -63,15 +63,22 @@ const clear = () => {
   filterTypeId.value = null
 }
 
+const findRefDataIndex = (id?: number) => {
+  if (id == null)
+    return -1
+
+  return refData.value.findIndex(refDataItem => refDataItem.id === id)
+}
+
 const editItem = (item: RefData) => {
-  editedIndex.value = refData.value.indexOf(item)
+  editedIndex.value = findRefDataIndex(item.id)
   selectedItem.value = { ...item }
   addEditDialog.value = true
   dialogTitle.value = 'Edit Ref Data'
 }
 
 const deleteItem = (item: RefData) => {
-  editedIndex.value = refData.value.indexOf(item)
+  editedIndex.value = findRefDataIndex(item.id)
   selectedItem.value = { ...item }
   deleteDialog.value = true
 }
@@ -89,25 +96,20 @@ const closeDelete = () => {
   selectedItem.value = { ...defaultItem.value }
 }
 
-const saveAddEdit = () => {
+const saveAddEdit = async () => {
   const result = types.find(type => type.id == selectedItem.value.type)
   if (result)
     selectedItem.value.typeDescription = result.value
 
-  if (dialogTitle.value?.indexOf('Edit') != -1) {
-    if (editedIndex.value > -1) {
-      Object.assign(refData.value[editedIndex.value], selectedItem.value)
-
-      refDataStore.updateRefData(selectedItem.value)
-    }
-    else {
-      refData.value.push(selectedItem.value)
-    }
+  if (dialogTitle.value?.indexOf('Edit') !== -1) {
+    await refDataStore.updateRefData(selectedItem.value)
+    const idx = findRefDataIndex(selectedItem.value.id)
+    if (idx > -1)
+      refData.value.splice(idx, 1, { ...selectedItem.value })
   }
   else {
-    refDataStore.addRefData(selectedItem.value).then(res => {
-      refData.value.push(res)
-    })
+    const res = await refDataStore.addRefData(selectedItem.value)
+    refData.value.push(res)
   }
 
   closeAddEdit()

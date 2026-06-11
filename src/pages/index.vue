@@ -136,19 +136,27 @@ const viewDocumentation = (documentDto: Document) => {
   }
 }
 
+const findExpenseIndex = (list: Expense[] | undefined, id?: number) => {
+  if (!list || id == null)
+    return -1
+
+  return list.findIndex(expense => expense.id === id)
+}
+
+const findIncomeIndex = (list: Income[] | undefined, id?: number) => {
+  if (!list || id == null)
+    return -1
+
+  return list.findIndex(income => income.id === id)
+}
+
 const editExpensesItem = (item: Expense, unPaid: boolean) => {
   resetUploadState()
   if (expenseStore.homeInfo) {
-    if (unPaid && expenseStore.homeInfo.unpaidExpenses) {
-      editedIndex.value = expenseStore.homeInfo.unpaidExpenses.indexOf(
-        item,
-      ) as number
-    }
-    else {
-      editedIndex.value = expenseStore.homeInfo.expenses.indexOf(
-        item,
-      ) as number
-    }
+    if (unPaid && expenseStore.homeInfo.unpaidExpenses)
+      editedIndex.value = findExpenseIndex(expenseStore.homeInfo.unpaidExpenses, item.id)
+    else
+      editedIndex.value = findExpenseIndex(expenseStore.homeInfo.expenses, item.id)
   }
   selectedItem.value = { ...item }
   transactionTypeId.value = selectedItem.value.transactionType?.id
@@ -166,29 +174,23 @@ const editExpensesItem = (item: Expense, unPaid: boolean) => {
 
 const deleteExpensesItem = (item: Expense, unPaid: boolean) => {
   if (expenseStore.homeInfo) {
-    if (unPaid && expenseStore.homeInfo.unpaidExpenses) {
-      editedIndex.value = expenseStore.homeInfo.unpaidExpenses.indexOf(
-        item,
-      ) as number
-    }
-    else {
-      editedIndex.value = expenseStore.homeInfo?.expenses.indexOf(
-        item,
-      ) as number
-    }
+    if (unPaid && expenseStore.homeInfo.unpaidExpenses)
+      editedIndex.value = findExpenseIndex(expenseStore.homeInfo.unpaidExpenses, item.id)
+    else
+      editedIndex.value = findExpenseIndex(expenseStore.homeInfo.expenses, item.id)
   }
   selectedItem.value = { ...item }
   deleteDialog.value = true
 }
 
 const deleteIncomesItem = (item: Income) => {
-  editedIndex.value = expenseStore.homeInfo?.incomes.indexOf(item) as number
+  editedIndex.value = findIncomeIndex(expenseStore.homeInfo?.incomes, item.id)
   selectedIncomeItem.value = { ...item }
   deleteIncomeDialog.value = true
 }
 
 const editIncomeItem = (item: Income) => {
-  editedIndex.value = expenseStore.homeInfo?.incomes.indexOf(item) as number
+  editedIndex.value = findIncomeIndex(expenseStore.homeInfo?.incomes, item.id)
   selectedIncomeItem.value = { ...item }
   transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
   dueDate = parseDate(selectedIncomeItem.value.dueDateString)
@@ -235,7 +237,7 @@ const closeDeleteIncome = () => {
   selectedIncomeItem.value = { ...defaultIncomeItem.value }
 }
 
-const saveAddEdit = () => {
+const saveAddEdit = async () => {
   if (dueDate != null)
     selectedItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
 
@@ -253,38 +255,43 @@ const saveAddEdit = () => {
       refData => refData.id === recurringTypeId.value,
     )
   }
-  if (dialogTitle.value?.indexOf('Edit') !== -1) {
-    if (editedIndex.value > -1)
-      expenseStore.updateExpense(selectedItem.value)
-  }
-  else {
-    console.log('Response3:', selectedItem.value)
-    expenseStore.addExpense(selectedItem.value)
-  }
-  if (dueDate)
-    expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
+  if (dialogTitle.value?.indexOf('Edit') !== -1)
+    await expenseStore.updateExpense(selectedItem.value)
+  else
+    await expenseStore.addExpense(selectedItem.value)
+
+  const week = expenseStore.homeInfo?.thisWeek
+  if (week)
+    await expenseStore.getTransactionsForWeek(week)
+  else if (dueDate)
+    await expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
   else if (startDate)
-    expenseStore.getTransactionsForWeek(format(startDate, 'dd-MM-yyyy'))
+    await expenseStore.getTransactionsForWeek(format(startDate, 'dd-MM-yyyy'))
+  else
+    await expenseStore.getTransactionsForWeek()
 
   closeAddEdit()
 }
 
-const saveAddEditIncome = () => {
+const saveAddEditIncome = async () => {
   if (dueDate != null)
     selectedIncomeItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
 
   selectedIncomeItem.value.transactionType = incomeTypes.value.find(
     refData => refData.id == transactionTypeId.value,
   )
-  if (dialogTitle.value?.indexOf('Edit') != -1) {
-    if (editedIndex.value > -1)
-      incomeStore.updateIncome(selectedIncomeItem.value)
-  }
-  else {
-    incomeStore.addIncome(selectedIncomeItem.value)
-  }
-  if (dueDate)
-    expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
+  if (dialogTitle.value?.indexOf('Edit') !== -1)
+    await incomeStore.updateIncome(selectedIncomeItem.value)
+  else
+    await incomeStore.addIncome(selectedIncomeItem.value)
+
+  const week = expenseStore.homeInfo?.thisWeek
+  if (week)
+    await expenseStore.getTransactionsForWeek(week)
+  else if (dueDate)
+    await expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
+  else
+    await expenseStore.getTransactionsForWeek()
 
   closeAddEditIncome()
 }

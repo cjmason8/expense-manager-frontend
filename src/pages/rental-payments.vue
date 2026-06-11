@@ -32,18 +32,28 @@ rentalPaymentsStore.getRentalPayments()
 
 console.log(rentalPaymentsStore.rentalPayments?.previousYear)
 
-const editItem = (item: RentalPayment) => {
-  if (item.property === 'WODONGA') {
-    editedIndex.value
-      = rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.indexOf(item)
-  }
-  else {
-    editedIndex.value
-      = rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments.indexOf(
-        item,
-      )
-  }
+const findRentalPaymentIndex = (property: string, id?: number) => {
+  if (id == null)
+    return -1
 
+  const list = property === 'WODONGA'
+    ? rentalPaymentsStore.rentalPayments?.wodongaRentalPayments
+    : rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments
+
+  if (!list)
+    return -1
+
+  return list.findIndex(payment => payment.id === id)
+}
+
+const getRentalPaymentList = (property: string) => {
+  return property === 'WODONGA'
+    ? rentalPaymentsStore.rentalPayments?.wodongaRentalPayments
+    : rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments
+}
+
+const editItem = (item: RentalPayment) => {
+  editedIndex.value = findRentalPaymentIndex(item.property, item.id)
   selectedItem.value = { ...item }
   statementFromDate = parseDate(selectedItem.value.statementFromString)
   statementToDate = parseDate(selectedItem.value.statementToString)
@@ -51,16 +61,7 @@ const editItem = (item: RentalPayment) => {
 }
 
 const deleteItem = (item: RentalPayment) => {
-  if (item.property === 'WODONGA') {
-    editedIndex.value
-      = rentalPaymentsStore.rentalPayments?.wodongaRentalPayments.indexOf(item)
-  }
-  else {
-    editedIndex.value
-      = rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments.indexOf(
-        item,
-      )
-  }
+  editedIndex.value = findRentalPaymentIndex(item.property, item.id)
 
   selectedItem.value = { ...item }
   deleteDialog.value = true
@@ -87,7 +88,7 @@ const closeDelete = () => {
   selectedItem.value = { ...defaultItem.value }
 }
 
-const saveEdit = () => {
+const saveEdit = async () => {
   if (statementFromDate != null) {
     selectedItem.value.statementFromString = format(
       statementFromDate,
@@ -97,26 +98,12 @@ const saveEdit = () => {
   if (statementToDate != null)
     selectedItem.value.statementToString = format(statementToDate, 'dd-MM-yyyy')
 
-  if (editedIndex.value > -1) {
-    if (selectedItem.value.property === 'WODONGA') {
-      Object.assign(
-        rentalPaymentsStore.rentalPayments?.wodongaRentalPayments[
-          editedIndex.value
-        ],
-        selectedItem.value,
-      )
-    }
-    else {
-      Object.assign(
-        rentalPaymentsStore.rentalPayments?.sthKingsvilleRentalPayments[
-          editedIndex.value
-        ],
-        selectedItem.value,
-      )
-    }
+  await rentalPaymentsStore.updateRentalPayment(selectedItem.value)
 
-    rentalPaymentsStore.updateRentalPayment(selectedItem.value)
-  }
+  const idx = findRentalPaymentIndex(selectedItem.value.property, selectedItem.value.id)
+  const list = getRentalPaymentList(selectedItem.value.property)
+  if (idx > -1 && list)
+    list.splice(idx, 1, { ...selectedItem.value })
 
   closeEdit()
 }

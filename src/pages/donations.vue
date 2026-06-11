@@ -70,8 +70,15 @@ const clear = () => {
   filterCauseId.value = null
 }
 
+const findDonationIndex = (id?: number) => {
+  if (id == null)
+    return -1
+
+  return donations.value.findIndex(donation => donation.id === id)
+}
+
 const editItem = (item: Donation) => {
-  editedIndex.value = donations.value.indexOf(item)
+  editedIndex.value = findDonationIndex(item.id)
   selectedItem.value = { ...item }
   selectedDate = parseDate(selectedItem.value.dueDateString)
   causeId.value = selectedItem.value.cause?.id
@@ -80,7 +87,7 @@ const editItem = (item: Donation) => {
 }
 
 const deleteItem = (item: Donation) => {
-  editedIndex.value = donations.value.indexOf(item)
+  editedIndex.value = findDonationIndex(item.id)
   selectedItem.value = { ...item }
   deleteDialog.value = true
 }
@@ -108,25 +115,20 @@ const closeDelete = () => {
   selectedItem.value = { ...defaultItem.value }
 }
 
-const saveAddEdit = () => {
+const saveAddEdit = async () => {
   selectedItem.value.dueDateString = format(selectedDate, 'dd-MM-yyyy')
   selectedItem.value.cause = causes.value.find(
     refData => refData.id === causeId.value,
   )
-  if (dialogTitle.value?.indexOf('Edit') != -1) {
-    if (editedIndex.value > -1) {
-      Object.assign(donations.value[editedIndex.value], selectedItem.value)
-
-      donationsStore.updateDonation(selectedItem.value)
-    }
-    else {
-      donations.value.push(selectedItem.value)
-    }
+  if (dialogTitle.value?.indexOf('Edit') !== -1) {
+    await donationsStore.updateDonation(selectedItem.value)
+    const idx = findDonationIndex(selectedItem.value.id)
+    if (idx > -1)
+      donations.value.splice(idx, 1, { ...selectedItem.value })
   }
   else {
-    console.log('Response3:', selectedItem.value)
-    donations.value.push(selectedItem.value)
-    donationsStore.addDonation(selectedItem.value)
+    await donationsStore.addDonation(selectedItem.value)
+    donations.value = await donationsStore.getDonations()
   }
 
   closeAddEdit()
