@@ -5,13 +5,17 @@ def version = -1
 def imageName = "expense-manager-frontend"
 
 node {
-    stage('Delete Workspace') {
-        sh 'rm -rf *'
-        sh 'rm -rf .dockerignore .editorconfig .eslintrc.cjs .gitattributes .npmrc .nvmrc .stylelintrc.json .vscode .git .gitignore'
-    }
-
     stage('Checkout') {
-        sh 'git clone git@github.com:cjmason8/expense-manager-frontend.git .'
+        sh '''
+            if [ ! -d .git ]; then
+                git clone git@github.com:cjmason8/expense-manager-frontend.git .
+            else
+                git fetch origin
+                git checkout -f main
+                git reset --hard origin/main
+                git clean -fd
+            fi
+        '''
     }
 
     stage('Update Version') {
