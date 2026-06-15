@@ -275,7 +275,10 @@ const uploadFile = async () => {
   uploadStatusMessage.value = ''
   uploadStatusError.value = false
   try {
-    const res = await documentStore.uploadFile(file.value)
+    const res = await documentStore.uploadFile(
+      file.value,
+      editIncomeDialog.value ? 'incomes' : 'expenses',
+    )
     if (res) {
       if (editIncomeDialog.value)
         selectedIncomeItem.value.documentDto = res
@@ -307,7 +310,7 @@ watch(file, newFile => {
 })
 
 async function populateFileInputFromDocumentDto(doc?: Document) {
-  if (!doc?.id || doc.id <= 0)
+  if (!doc?.id || doc.id === '' || doc.id === -1)
     return
   const name = doc.fileName || doc.originalFileName
   if (!name)

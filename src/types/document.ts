@@ -1,5 +1,5 @@
 export class Document {
-  id: number = -1
+  id: string | number = ''
   fileName: string = ''
   originalFileName: string = ''
   isFolder: boolean = false

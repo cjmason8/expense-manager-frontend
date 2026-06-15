@@ -206,17 +206,7 @@ watch(file, newFile => {
     imageUrl.value = null
 })
 
-const viewDocumentation = (donation: Donation) => {
-  if (donation.documentDto) {
-    documentStore
-      .getFileById(donation.documentDto.id, donation.documentDto.fileName)
-      .then(res => {
-        const fileURL = URL.createObjectURL(res)
 
-        window.open(fileURL)
-      })
-  }
-}
 </script>
 
 <template>
@@ -288,13 +278,7 @@ const viewDocumentation = (donation: Donation) => {
         <table>
           <tr>
             <td style="min-width: 35px">
-              <IconBtn
-                v-if="item.documentDto"
-                size="small"
-                @click="viewDocumentation(item)"
-              >
-                <VIcon icon="ri-download-line" />
-              </IconBtn>
+              <DocumentDownloadBtn :document="item.documentDto" />
             </td>
             <td style="min-width: 35px">
               <IconBtn

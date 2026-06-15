@@ -135,7 +135,7 @@ export const useDocumentStore = defineStore('document', () => {
     }
   }
 
-  const getFileById = async (id: number, fileName: string) => {
+  const getFileById = async (id: string | number, fileName: string) => {
     const mediaType = getMediaType(fileName)
 
     const response = await axios.get(`/documents/get/${id}`, {

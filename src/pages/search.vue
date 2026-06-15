@@ -413,13 +413,6 @@ const clearSearch = () => {
   chartUpdateKey.value += 1
 }
 
-const viewDocumentation = (document: Document) => {
-  documentStore.getFileById(document.id, document.fileName).then(res => {
-    const fileURL = URL.createObjectURL(res)
-
-    window.open(fileURL)
-  })
-}
 
 const findDocumentIndex = (id?: number) => {
   if (id == null)
@@ -612,13 +605,10 @@ onMounted(async () => {
           >
             <template #item.actions="{ item }">
               <div class="d-flex gap-1">
-                <IconBtn
+                <DocumentDownloadBtn
                   v-if="!item.isFolder"
-                  size="small"
-                  @click="viewDocumentation(item)"
-                >
-                  <VIcon icon="ri-download-line" />
-                </IconBtn>
+                  :document="item"
+                />
                 <IconBtn
                   size="small"
                   @click="editDocument(item)"
@@ -653,13 +643,7 @@ onMounted(async () => {
             </template>
             <template #item.actions="{ item }">
               <div class="d-flex gap-1">
-                <IconBtn
-                  v-if="item.documentDto"
-                  size="small"
-                  @click="viewDocumentation(item.documentDto)"
-                >
-                  <VIcon icon="ri-download-line" />
-                </IconBtn>
+                <DocumentDownloadBtn :document="item.documentDto" />
                 <IconBtn
                   size="small"
                   @click="editExpense(item)"

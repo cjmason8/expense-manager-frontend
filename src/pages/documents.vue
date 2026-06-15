@@ -210,13 +210,6 @@ watch(uploadDocument, isOpen => {
   }
 })
 
-const viewDocumentation = (viewDocument: Document) => {
-  documentStore.getFileById(viewDocument.id, viewDocument.fileName).then(res => {
-    const fileURL = URL.createObjectURL(res)
-
-    window.open(fileURL)
-  })
-}
 
 const editDocument = (document: Document) => {
   if (document.isFolder) {
@@ -433,13 +426,10 @@ onMounted(() => {
                 <table>
                   <tr>
                     <td style="min-width: 35px">
-                      <IconBtn
+                      <DocumentDownloadBtn
                         v-if="!item.isFolder"
-                        size="small"
-                        @click="viewDocumentation(item)"
-                      >
-                        <VIcon icon="ri-download-line" />
-                      </IconBtn>
+                        :document="item"
+                      />
                       <IconBtn
                         v-if="item.isFolder"
                         size="small"

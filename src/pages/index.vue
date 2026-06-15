@@ -124,17 +124,6 @@ const setPaid = (item: Expense) => {
     expenseStore.unPayExpense(item.id)
 }
 
-const viewDocumentation = (documentDto: Document) => {
-  if (documentDto) {
-    documentStore
-      .getFileById(documentDto.id, documentDto.fileName)
-      .then(res => {
-        const fileURL = URL.createObjectURL(res)
-
-        window.open(fileURL)
-      })
-  }
-}
 
 const findExpenseIndex = (list: Expense[] | undefined, id?: number) => {
   if (!list || id == null)
@@ -346,7 +335,10 @@ const uploadFile = async () => {
   uploadStatusMessage.value = ''
   uploadStatusError.value = false
   try {
-    const res = await documentStore.uploadFile(file.value)
+    const res = await documentStore.uploadFile(
+      file.value,
+      addEditIncomeDialog.value ? 'incomes' : 'expenses',
+    )
     if (res) {
       if (addEditIncomeDialog.value)
         selectedIncomeItem.value.documentDto = res
@@ -378,7 +370,7 @@ watch(file, newFile => {
 })
 
 async function populateFileInputFromDocumentDto(doc?: Document) {
-  if (!doc?.id || doc.id <= 0)
+  if (!doc?.id || doc.id === '' || doc.id === -1)
     return
   const name = doc.fileName || doc.originalFileName
   if (!name)
@@ -493,13 +485,7 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
                 <table>
                   <tr>
                     <td style="min-width: 35px">
-                      <IconBtn
-                        v-if="item.documentDto"
-                        size="small"
-                        @click="viewDocumentation(item.documentDto)"
-                      >
-                        <VIcon icon="ri-download-line" />
-                      </IconBtn>
+                      <DocumentDownloadBtn :document="item.documentDto" />
                     </td>
                     <td style="min-width: 35px">
                       <IconBtn
@@ -546,13 +532,7 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
                 <table>
                   <tr>
                     <td style="min-width: 35px">
-                      <IconBtn
-                        v-if="item.documentDto"
-                        size="small"
-                        @click="viewDocumentation(item.documentDto)"
-                      >
-                        <VIcon icon="ri-download-line" />
-                      </IconBtn>
+                      <DocumentDownloadBtn :document="item.documentDto" />
                     </td>
                     <td style="min-width: 35px">
                       <IconBtn
@@ -608,13 +588,7 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
                 <table>
                   <tr>
                     <td style="min-width: 35px">
-                      <IconBtn
-                        v-if="item.documentDto"
-                        size="small"
-                        @click="viewDocumentation(item.documentDto)"
-                      >
-                        <VIcon icon="ri-download-line" />
-                      </IconBtn>
+                      <DocumentDownloadBtn :document="item.documentDto" />
                     </td>
                     <td style="min-width: 35px">
                       <IconBtn
