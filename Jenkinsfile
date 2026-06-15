@@ -8,13 +8,13 @@ node {
     stage('Checkout') {
         sh '''
             if [ ! -d .git ]; then
-                git clone git@github.com:cjmason8/expense-manager-frontend.git .
-            else
-                git fetch origin
-                git checkout -f main
-                git reset --hard origin/main
-                git clean -fd
+                git init
+                git remote add origin git@github.com:cjmason8/expense-manager-frontend.git
             fi
+            git fetch origin
+            git checkout -f -B main origin/main
+            git reset --hard origin/main
+            git clean -fd
         '''
     }
 
