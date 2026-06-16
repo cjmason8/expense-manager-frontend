@@ -18,16 +18,22 @@ export const useNotificationsStore = defineStore('notifications', () => {
       }
       else if (
         notification.message.startsWith('Unhandled Email with title - ')
+        || notification.message.startsWith('Unhandled Email: ')
       ) {
         notification.title = 'Unhandled Email'
         notification.icon = 'ri-mail-line'
         notification.color = 'error' // primary, info, success, error
         notification.text = ''
       }
-      notification.subTitle = notification.message.replace(
-        'Unhandled Email with title - ',
-        '',
-      )
+      else if (notification.message.startsWith('Uploaded ')) {
+        notification.title = 'Email processed'
+        notification.icon = 'ri-file-upload-line'
+        notification.color = 'success'
+        notification.text = ''
+      }
+      notification.subTitle = notification.message
+        .replace('Unhandled Email with title - ', '')
+        .replace('Unhandled Email: ', '')
     })
     console.log(JSON.stringify(notifications.value))
   }

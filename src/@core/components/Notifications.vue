@@ -131,7 +131,7 @@ const totalUnreadNotifications = computed(
           <VList class="py-0">
             <template
               v-for="(notification, index) in props.notifications"
-              :key="notification.title"
+              :key="notification.id"
             >
               <VDivider v-if="index > 0" />
               <VListItem
