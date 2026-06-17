@@ -27,20 +27,27 @@ const router = createRouter({
 
     return { top: 0 }
   },
-  extendRoutes: pages => [
-    ...[...pages].map(route => recursiveLayouts(route)),
-    {
-      path: '/',
-      component: Default,
-      children: [
-        {
-          path: 'home/:date',
-          name: 'gotoWeek',
-          component: index,
-        },
-      ],
-    },
-  ],
+  extendRoutes: pages => {
+    const routes = [...pages].map(route => recursiveLayouts(route))
+    const errorRoute = routes.find(route => route.name === '$error')
+    const otherRoutes = routes.filter(route => route.name !== '$error')
+
+    return [
+      ...otherRoutes,
+      ...(errorRoute ? [errorRoute] : []),
+      {
+        path: '/',
+        component: Default,
+        children: [
+          {
+            path: 'home/:date',
+            name: 'gotoWeek',
+            component: index,
+          },
+        ],
+      },
+    ]
+  },
 })
 
 router.beforeEach(async to => {

@@ -1,3 +1,4 @@
+import type { ProxyOptions } from 'vite'
 import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
@@ -10,6 +11,29 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 import Layouts from 'vite-plugin-vue-layouts'
 import vuetify from 'vite-plugin-vuetify'
 import svgLoader from 'vite-svg-loader'
+
+const API_TARGET = 'http://localhost:8083'
+
+/** Backend routes that are also SPA pages — GET/HEAD must stay on Vite, not the API. */
+function spaPageProxy(): ProxyOptions {
+  return {
+    target: API_TARGET,
+    changeOrigin: true,
+    secure: false,
+    bypass(req) {
+      if (req.method === 'GET' || req.method === 'HEAD')
+        return false
+    },
+  }
+}
+
+function apiProxy(): ProxyOptions {
+  return {
+    target: API_TARGET,
+    changeOrigin: true,
+    secure: false,
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -104,27 +128,19 @@ export default defineConfig({
   server: {
     proxy: {
       // Local dev: forward backend routes (no /api prefix — matches production nginx style)
-      // POST → Spring; GET/HEAD must hit the SPA (refresh /login), not Spring's GET /login JSON error
-      '/login': {
-        target: 'http://localhost:8083',
-        changeOrigin: true,
-        secure: false,
-        bypass(req) {
-          if (req.method === 'GET' || req.method === 'HEAD')
-            return '/index.html'
-        },
-      },
-      '/users': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/week': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/recurring': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/expenses': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/search': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/documents': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/rentalPayments': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/refDatas': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/notifications': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/incomes': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
-      '/donations': { target: 'http://localhost:8083', changeOrigin: true, secure: false },
+      // POST /login → Spring; GET/HEAD /login → SPA (page refresh / direct navigation)
+      '/login': spaPageProxy(),
+      '/users': apiProxy(),
+      '/week': apiProxy(),
+      '/recurring': apiProxy(),
+      '/expenses': apiProxy(),
+      '/search': spaPageProxy(),
+      '/documents': spaPageProxy(),
+      '/rentalPayments': apiProxy(),
+      '/refDatas': apiProxy(),
+      '/notifications': spaPageProxy(),
+      '/incomes': apiProxy(),
+      '/donations': spaPageProxy(),
     },
   },
 })
