@@ -30,8 +30,8 @@ const defaultFolderItem = ref<Document>({
   folderPath: '',
 })
 
-const selectedItem = ref<Document>(defaultItem.value)
-const selectedFolderItem = ref<Document>(defaultFolderItem.value)
+const selectedItem = ref<Document>({ ...defaultItem.value })
+const selectedFolderItem = ref<Document>({ ...defaultFolderItem.value })
 let directoryAction: string = 'Create'
 
 const showArchive = ref(false)
@@ -54,6 +54,7 @@ const headers = [
 
 const closeAddEditFolder = () => {
   createDirectory.value = false
+  directoryAction = 'Create'
   selectedFolderItem.value = { ...defaultFolderItem.value }
 }
 
@@ -64,7 +65,7 @@ const actionDirectory = () => {
     documentStore.createDirectory(selectedFolderItem.value).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
-        selectedFolderItem.value = defaultFolderItem.value
+        selectedFolderItem.value = { ...defaultFolderItem.value }
         currentFolderPath.value = res.folderPath
         displayedFolderPath.value = getDirectoryPath()
       })
@@ -75,7 +76,7 @@ const actionDirectory = () => {
     documentStore.updateDirectory(selectedFolderItem.value).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
-        selectedFolderItem.value = defaultFolderItem.value
+        selectedFolderItem.value = { ...defaultFolderItem.value }
         currentFolderPath.value = res.folderPath
         directoryAction = 'Create'
         displayedFolderPath.value = getDirectoryPath()
@@ -123,6 +124,8 @@ const toggleArchived = () => {
 }
 
 const addFolder = () => {
+  directoryAction = 'Create'
+  selectedFolderItem.value = { ...defaultFolderItem.value }
   createDirectory.value = true
   folderDialogTitle.value = 'Add Folder'
 }
