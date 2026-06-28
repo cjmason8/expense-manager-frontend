@@ -32,9 +32,17 @@ export const useDocumentStore = defineStore('document', () => {
         },
       }
 
+      const payload = {
+        fileName: directory.fileName,
+        originalFileName: directory.originalFileName,
+        isFolder: directory.isFolder,
+        folderPath: directory.folderPath,
+        ...(directory.metaDataChunk ? { metaDataChunk: directory.metaDataChunk } : {}),
+      }
+
       const response = await axios.post(
         '/documents/directory',
-        JSON.stringify(directory),
+        JSON.stringify(payload),
         config,
       )
 

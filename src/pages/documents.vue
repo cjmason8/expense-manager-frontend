@@ -15,7 +15,7 @@ const archiveButtonDescription = ref('Show Archived')
 const folderDialogTitle = ref('Add Folder')
 
 const defaultItem = ref<Document>({
-  id: -1,
+  id: '',
   fileName: '',
   originalFileName: '',
   isFolder: false,
@@ -23,7 +23,7 @@ const defaultItem = ref<Document>({
 })
 
 const defaultFolderItem = ref<Document>({
-  id: -1,
+  id: '',
   fileName: '',
   originalFileName: '',
   isFolder: false,
