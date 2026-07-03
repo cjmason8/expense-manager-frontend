@@ -1,6 +1,6 @@
-# vue
+# Expense Manager Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3 + Vite frontend for the expense manager application. The current app version is shown in the bottom-right corner of the page (from the `VERSION` file).
 
 ## Recommended IDE Setup
 
