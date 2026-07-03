@@ -13,3 +13,8 @@ declare module 'vue-prism-component' {
 }
 declare module 'vue-shepherd';
 declare module '@videojs-player/vue';
+
+declare module '*?raw' {
+  const src: string
+  export default src
+}
