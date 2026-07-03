@@ -13,9 +13,29 @@ jobs:
       - name: Trigger GitLab pipeline
         env:
           GITLAB_TRIGGER_TOKEN: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
         run: |
-          curl --fail --show-error --silent \
+          if [ -z "${GITLAB_TRIGGER_TOKEN}" ]; then
+            echo "Missing secret: GITLAB_TRIGGER_TOKEN"
+            exit 1
+          fi
+          if [ -z "${GITLAB_PROJECT_ID}" ]; then
+            echo "Missing secret: GITLAB_PROJECT_ID"
+            exit 1
+          fi
+
+          response="$(curl --show-error --silent --write-out '\n%{http_code}' \
             --request POST \
             --form "token=${GITLAB_TRIGGER_TOKEN}" \
             --form "ref=main" \
-            "https://gitlab.com/api/v4/projects/cjmason8-group%2Fexpense-manager-frontend-deploy/trigger/pipeline"
+            "https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline")"
+
+          body="${response%$'\n'*}"
+          status="${response##*$'\n'}"
+
+          echo "GitLab response (${status}):"
+          echo "${body}"
+
+          if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
+            exit 1
+          fi
