@@ -34,7 +34,7 @@ const selectedItem = ref<Document>({ ...defaultItem.value })
 const selectedFolderItem = ref<Document>({ ...defaultFolderItem.value })
 let directoryAction: string = 'Create'
 
-const showArchive = ref(false)
+const ROOT_FOLDER_PATH = '/docs/expenseManager/filofax'
 const currentFolderPath = ref('')
 const displayedFolderPath = ref('/')
 
@@ -88,11 +88,6 @@ const actionDirectory = () => {
 
 const openFolder = (folderPath: string) => {
   console.log(folderPath)
-  if (folderPath.endsWith('IPs') || folderPath === '/docs/expenseManager/filofax')
-    showArchive.value = true
-  else
-    showArchive.value = false
-
   documents.value = []
   documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived').then(res => {
     documents.value = res
@@ -107,17 +102,30 @@ const openParentFolder = () => {
   )
 }
 
+const isArchiveToggleLocation = (folderPath: string) => {
+  return folderPath === ROOT_FOLDER_PATH || folderPath.endsWith('IPs')
+}
+
 const toggleArchived = () => {
-  let includeArchived = false
-  if (archiveButtonDescription.value === 'Show Archived') {
-    includeArchived = true
-    archiveButtonDescription.value = 'Hide Archived'
+  const wasShowingArchived = archiveButtonDescription.value === 'Hide Archived'
+
+  if (wasShowingArchived) {
+    archiveButtonDescription.value = 'Show Archived'
+
+    if (!isArchiveToggleLocation(currentFolderPath.value)) {
+      openFolder(ROOT_FOLDER_PATH)
+
+      return
+    }
   }
   else {
-    archiveButtonDescription.value = 'Show Archived'
+    archiveButtonDescription.value = 'Hide Archived'
   }
 
-  documentStore.getDocuments(currentFolderPath.value, includeArchived).then(res => {
+  documentStore.getDocuments(
+    currentFolderPath.value,
+    archiveButtonDescription.value === 'Hide Archived',
+  ).then(res => {
     documents.value = res
     displayedFolderPath.value = getDirectoryPath()
   })
@@ -320,12 +328,11 @@ onMounted(() => {
     openFolder(currentFolderPath.value)
   }
   else {
-    showArchive.value = true
     documentStore
-      .getDocuments('/docs/expenseManager/filofax', archiveButtonDescription.value === 'Hide Archived')
+      .getDocuments(ROOT_FOLDER_PATH, archiveButtonDescription.value === 'Hide Archived')
       .then(res => {
         documents.value = res
-        currentFolderPath.value = '/docs/expenseManager/filofax'
+        currentFolderPath.value = ROOT_FOLDER_PATH
       })
   }
 })
@@ -376,7 +383,6 @@ onMounted(() => {
         sm="auto"
       >
         <VBtn
-          v-if="showArchive"
           color="primary"
           @click="toggleArchived"
         >
