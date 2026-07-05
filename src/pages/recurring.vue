@@ -54,6 +54,8 @@ const defaultExpenseItem = ref<Expense>({
 
 const defaultIncomeItem = ref<Income>({
   dueDateString: '',
+  startDateString: '',
+  endDateString: '',
   notes: '',
 })
 
@@ -113,6 +115,9 @@ const closeEditIncome = () => {
   editedIncomeIndex.value = -1
   selectedIncomeItem.value = { ...defaultIncomeItem.value }
   dueDate = null
+  startDate = null
+  endDate = null
+  recurring.value = false
   resetUploadState()
 }
 
@@ -172,7 +177,10 @@ const editIncomesItem = (item: Income) => {
 
   selectedIncomeItem.value = { ...item }
   transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
-  dueDate = parseDate(selectedIncomeItem.value.dueDateString)
+  recurringTypeId.value = selectedIncomeItem.value.recurringType?.id
+  startDate = parseDate(selectedIncomeItem.value.startDateString)
+  endDate = parseDate(selectedIncomeItem.value.endDateString)
+  recurring.value = true
   editIncomeDialog.value = true
   void populateFileInputFromDocumentDto(item.documentDto)
 }
@@ -186,12 +194,20 @@ const deleteIncomesItem = (item: Income) => {
 }
 
 const saveEditIncome = async () => {
-  if (dueDate != null)
-    selectedIncomeItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
+  if (startDate != null)
+    selectedIncomeItem.value.startDateString = format(startDate, 'dd-MM-yyyy')
+
+  if (endDate != null)
+    selectedIncomeItem.value.endDateString = format(endDate, 'dd-MM-yyyy')
 
   selectedIncomeItem.value.transactionType = incomeTypes.value.find(
     refData => refData.id === transactionTypeId.value,
   )
+  if (recurringTypeId.value != null) {
+    selectedIncomeItem.value.recurringType = recurringTypes.value.find(
+      refData => refData.id === recurringTypeId.value,
+    )
+  }
 
   await incomeStore.updateIncome(selectedIncomeItem.value)
 
@@ -710,14 +726,65 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
             cols="6"
             sm="3"
           >
-            <label for="selectedDate">Due Date</label>
+            <label for="recurring">Recurring</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VCheckbox v-model="recurring" />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="recurringTypeId">Recurring Type</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <VSelect
+              v-model="recurringTypeId"
+              :items="recurringTypes"
+              item-title="description"
+              item-value="id"
+              placeholder="Select..."
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedDate">Start Date</label>
           </VCol>
           <VCol
             cols="12"
             sm="6"
           >
             <DatePicker
-              v-model="dueDate"
+              v-model="startDate"
+              date-format="dd-mm-yy"
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedDate">End Date</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <DatePicker
+              v-model="endDate"
               date-format="dd-mm-yy"
             />
           </VCol>

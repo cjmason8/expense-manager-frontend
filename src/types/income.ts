@@ -7,6 +7,8 @@ export class Income {
   amount?: number
   dueDateString: string = ''
   recurringType?: RefData
+  startDateString: string = ''
+  endDateString: string = ''
   notes: string = ''
   documentDto?: Document
   metaDataChunk?: string = ''
