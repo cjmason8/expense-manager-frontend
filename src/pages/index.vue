@@ -179,12 +179,14 @@ const deleteIncomesItem = (item: Income) => {
 }
 
 const editIncomeItem = (item: Income) => {
+  resetUploadState()
   editedIndex.value = findIncomeIndex(expenseStore.homeInfo?.incomes, item.id)
   selectedIncomeItem.value = { ...item }
   transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
   dueDate = parseDate(selectedIncomeItem.value.dueDateString)
-  addEditDialog.value = true
+  addEditIncomeDialog.value = true
   dialogTitle.value = 'Edit Income'
+  void populateFileInputFromDocumentDto(item.documentDto)
 }
 
 const resetUploadState = () => {
