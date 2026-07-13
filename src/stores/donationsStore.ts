@@ -1,9 +1,11 @@
 import axios from 'axios'
+
+import { apiFetch } from '@/utils/apiFetch'
 import type { Donation } from '@/types/donation'
 
 export const useDonationsStore = defineStore('donations', () => {
   const getDonations = async () => {
-    const response = await fetch('/donations')
+    const response = await apiFetch('/donations')
 
     return await response.json()
   }

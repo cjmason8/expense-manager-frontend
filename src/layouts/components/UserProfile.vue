@@ -20,9 +20,9 @@ const roleLabel = computed(() => {
   return r || '—'
 })
 
-function handleLogout() {
-  authStore.logout()
-  router.push('/login')
+async function handleLogout() {
+  await authStore.logout()
+  await router.push('/login')
 }
 
 const userProfileList = [

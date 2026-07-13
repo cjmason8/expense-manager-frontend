@@ -30,7 +30,7 @@ export default function (_app: App) {
 
     const ok = await auth.validateSession()
     if (!ok) {
-      auth.logout()
+      await auth.logout()
       await router.replace({
         path: '/login',
         query:

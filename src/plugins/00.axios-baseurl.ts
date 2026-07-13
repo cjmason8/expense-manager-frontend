@@ -11,11 +11,25 @@ function routeIsPublic(): boolean {
 
 /**
  * Pin axios to the same API base as $api / useApi (relative on HTTPS pages).
- * Prevents mixed content if anything ever set a stale http://… base URL.
- * Logs out on 401 from the API when the session/token is no longer valid.
+ * Attaches Cognito access token as Bearer on every request.
  */
 export default function (_: App) {
   axios.defaults.baseURL = resolveApiBaseUrl()
+
+  axios.interceptors.request.use(config => {
+    try {
+      const auth = useAuthStore()
+      if (auth.token) {
+        config.headers = config.headers ?? {}
+        config.headers.Authorization = `Bearer ${auth.token}`
+      }
+    }
+    catch {
+      /* Pinia not ready */
+    }
+
+    return config
+  })
 
   axios.interceptors.response.use(
     r => r,
@@ -23,18 +37,11 @@ export default function (_: App) {
       if (!axios.isAxiosError(error) || error.response == null)
         return Promise.reject(error)
 
-      const status = error.response.status
-      const reqUrl = String(error.config?.url ?? '')
-
-      // Don’t treat auth endpoints as “session expired”
-      if (reqUrl.includes('/login') || reqUrl.includes('/users/') && reqUrl.includes('/authenticate'))
-        return Promise.reject(error)
-
-      if (status === 401) {
+      if (error.response.status === 401) {
         try {
           const auth = useAuthStore()
 
-          auth.logout()
+          await auth.logout()
           if (!routeIsPublic())
             await router.replace({ path: '/login', query: { redirect: router.currentRoute.value.fullPath } })
         }

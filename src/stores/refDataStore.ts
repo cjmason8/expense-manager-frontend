@@ -1,4 +1,6 @@
 import axios from 'axios'
+
+import { apiFetch } from '@/utils/apiFetch'
 import type { RefData } from '@/types/refData'
 
 export const useRefDataStore = defineStore('refData', () => {
@@ -9,7 +11,7 @@ export const useRefDataStore = defineStore('refData', () => {
     if (type)
       url = `/refDatas/type/${type}`
 
-    const response = await fetch(url)
+    const response = await apiFetch(url)
 
     return await response.json()
   }

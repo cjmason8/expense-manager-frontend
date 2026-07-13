@@ -14,15 +14,22 @@ import svgLoader from 'vite-svg-loader'
 
 const API_TARGET = 'http://localhost:8083'
 
-/** Backend routes that are also SPA pages — GET/HEAD must stay on Vite, not the API. */
+/**
+ * Routes that are both SPA pages and API paths (e.g. GET /search = page, POST /search = API).
+ * Browser navigation (Accept: text/html) serves index.html; API calls are proxied.
+ */
 function spaPageProxy(): ProxyOptions {
   return {
     target: API_TARGET,
     changeOrigin: true,
     secure: false,
     bypass(req) {
-      if (req.method === 'GET' || req.method === 'HEAD')
-        return false
+      const method = req.method ?? 'GET'
+      if (method !== 'GET' && method !== 'HEAD')
+        return
+      const accept = req.headers.accept ?? ''
+      if (accept.includes('text/html'))
+        return '/index.html'
     },
   }
 }

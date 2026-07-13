@@ -59,20 +59,9 @@ router.beforeEach(async to => {
 
   auth.hydrateFromStorage()
 
-  if (!auth.token) {
-    return {
-      path: '/login',
-      query:
-        to.fullPath && to.fullPath !== '/' && !to.fullPath.startsWith('/login')
-          ? { redirect: to.fullPath }
-          : {},
-    }
-  }
-
-  // Re-validate on every navigation (Angular AuthenticateComponent / authenticate() per view)
   const ok = await auth.validateSession()
   if (!ok) {
-    auth.logout()
+    await auth.logout()
 
     return {
       path: '/login',

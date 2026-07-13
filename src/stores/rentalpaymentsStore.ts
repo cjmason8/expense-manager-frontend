@@ -1,4 +1,6 @@
 import axios from 'axios'
+
+import { apiFetch } from '@/utils/apiFetch'
 import type { RefData } from '@/types/refData'
 import type { RentalPayment } from '@/types/rentalPayment'
 import { RentalPaymentYear } from '@/types/rentalPaymentYear'
@@ -81,14 +83,14 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   const getRentalPayment = async (id: number) => {
     const url = `/rentalPayments/${id}`
 
-    const response = await fetch(url)
+    const response = await apiFetch(url)
 
     rentalPayment.value = await response.json()
   }
 
   const getRentalPayments = async (year?: number) => {
     if (year != undefined && year != null) {
-      const response1 = await fetch(
+      const response1 = await apiFetch(
         `/rentalPayments/getByProperty/WODONGA/${year}`,
       )
 
@@ -96,7 +98,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
 
       rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments
 
-      const response2 = await fetch(
+      const response2 = await apiFetch(
         `/rentalPayments/getByProperty/STH_KINGSVILLE/${year}`,
       )
 
@@ -107,7 +109,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
       rentalPayments.value.previousYear = tmp2.previousYear
     }
     else {
-      const response1 = await fetch(
+      const response1 = await apiFetch(
         '/rentalPayments/getByProperty/WODONGA',
       )
 
@@ -115,7 +117,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
 
       rentalPayments.value.wodongaRentalPayments = tmp1.rentalPayments
 
-      const response2 = await fetch(
+      const response2 = await apiFetch(
         '/rentalPayments/getByProperty/STH_KINGSVILLE',
       )
 
@@ -128,7 +130,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   }
 
   const getTypes = async (type: string) => {
-    const response = await fetch(`/rentalPayments/type/${type}`)
+    const response = await apiFetch(`/rentalPayments/type/${type}`)
 
     types.value = await response.json()
   }

@@ -1,4 +1,6 @@
 import axios from 'axios'
+
+import { apiFetch } from '@/utils/apiFetch'
 import type { Expense } from '@/types/expense'
 import type { HomeInfo } from '@/types/homeInfo'
 import type { Document } from '@/types/document'
@@ -26,7 +28,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     if (week)
       url += `/${week}`
 
-    const response = await fetch(url)
+    const response = await apiFetch(url)
 
     await response.json().then(res => {
       homeInfo.value = res
@@ -38,7 +40,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     if (includeAll)
       url = '/recurring/all'
 
-    const response = await fetch(url)
+    const response = await apiFetch(url)
 
     homeInfo.value = await response.json()
   }
@@ -47,7 +49,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     if (id) {
       const reqUrl = `/expenses/pay/${id}`
 
-      await fetch(reqUrl)
+      await apiFetch(reqUrl)
     }
   }
 
@@ -55,7 +57,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     if (id) {
       const reqUrl = `/expenses/unpay/${id}`
 
-      await fetch(reqUrl)
+      await apiFetch(reqUrl)
     }
   }
 

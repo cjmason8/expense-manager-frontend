@@ -1,6 +1,6 @@
-import axios from 'axios'
+import { confirmSignIn, fetchAuthSession, getCurrentUser, signIn, signOut } from 'aws-amplify/auth'
 
-import type { AuthenticateResponse, LoginResponse } from '@/types/auth'
+import { cognitoLoginErrorMessage } from '@/utils/cognitoErrors'
 
 const STORAGE_KEY = 'expense-manager-auth'
 
@@ -10,19 +10,16 @@ interface PersistedAuth {
   user: string
 }
 
-function parseLoginBody(data: unknown): LoginResponse {
-  if (data == null)
-    return {}
-  if (typeof data === 'string') {
-    try {
-      return JSON.parse(data) as LoginResponse
-    }
-    catch {
-      return { error: data }
-    }
-  }
+function readAccessTokenPayload(accessToken: { payload: Record<string, unknown> }) {
+  const payload = accessToken.payload
+  const username = payload.username ?? payload['cognito:username'] ?? payload.email
+  const groups = payload['cognito:groups']
+  const roles = Array.isArray(groups) ? groups.join(',') : ''
 
-  return data as LoginResponse
+  return {
+    user: username != null ? String(username) : '',
+    roles,
+  }
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -30,14 +27,19 @@ export const useAuthStore = defineStore('auth', () => {
   const roles = ref('')
   const user = ref('')
 
-  /** True after successful login or successful GET /users/{token}/authenticate */
   const sessionValidated = ref(false)
   const hydrated = ref(false)
   const loginError = ref<string | null>(null)
+  const needsNewPassword = ref(false)
+  const pendingUserName = ref('')
 
   const isAuthenticated = computed(
     () => sessionValidated.value && !!token.value,
   )
+
+  function syncAccessTokenCookie(accessToken: string) {
+    useCookie('accessToken').value = accessToken || null
+  }
 
   function persist() {
     const payload: PersistedAuth = {
@@ -47,6 +49,40 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  }
+
+  async function applyAmplifySession(): Promise<boolean> {
+    const session = await fetchAuthSession()
+    const accessToken = session.tokens?.accessToken
+
+    if (!accessToken) {
+      sessionValidated.value = false
+      token.value = ''
+      syncAccessTokenCookie('')
+
+      return false
+    }
+
+    const accessTokenString = accessToken.toString()
+    const { user: sessionUser, roles: sessionRoles } = readAccessTokenPayload(accessToken)
+
+    token.value = accessTokenString
+    roles.value = sessionRoles
+    user.value = sessionUser
+    sessionValidated.value = true
+    syncAccessTokenCookie(accessTokenString)
+    persist()
+
+    try {
+      const currentUser = await getCurrentUser()
+      if (currentUser.signInDetails?.loginId)
+        user.value = currentUser.signInDetails.loginId
+    }
+    catch {
+      // display name from token claims is enough
+    }
+
+    return true
   }
 
   function hydrateFromStorage() {
@@ -64,138 +100,109 @@ export const useAuthStore = defineStore('auth', () => {
         roles.value = p.roles
       if (p.user != null)
         user.value = p.user
+      if (p.token)
+        syncAccessTokenCookie(p.token)
     }
     catch {
       localStorage.removeItem(STORAGE_KEY)
     }
   }
 
-  /** Clears session when opening the login page (same as Angular LoginFormComponent ngOnInit). */
-  function clearSessionForLoginPage() {
+  async function clearSessionForLoginPage() {
+    try {
+      await signOut()
+    }
+    catch {
+      // already signed out
+    }
     token.value = ''
     roles.value = ''
     user.value = ''
     sessionValidated.value = false
     loginError.value = null
+    needsNewPassword.value = false
+    pendingUserName.value = ''
     localStorage.removeItem(STORAGE_KEY)
-  }
-
-  function logout() {
-    clearSessionForLoginPage()
+    syncAccessTokenCookie('')
     hydrated.value = true
   }
 
-  /**
-   * Validates token with backend (Angular AuthenticateService.authenticate).
-   */
+  async function logout() {
+    await clearSessionForLoginPage()
+  }
+
   async function validateSession(): Promise<boolean> {
-    if (!token.value) {
-      sessionValidated.value = false
-
-      return false
-    }
     try {
-      const { data } = await axios.get<AuthenticateResponse>(
-        `/users/${encodeURIComponent(token.value)}/authenticate`,
-      )
-
-      if (data.status === 'failed') {
-        sessionValidated.value = false
-
-        return false
-      }
-      if (data.user)
-        user.value = data.user
-      sessionValidated.value = true
-      persist()
-
-      return true
+      return await applyAmplifySession()
     }
     catch {
       sessionValidated.value = false
+      token.value = ''
+      syncAccessTokenCookie('')
 
       return false
     }
   }
 
-  /**
-   * POST /login with { userName, password } (Angular AuthenticateService.loginUser).
-   */
   async function login(credentials: { userName: string; password: string }): Promise<boolean> {
     loginError.value = null
+    needsNewPassword.value = false
+    pendingUserName.value = credentials.userName.trim()
     try {
-      const { data, status } = await axios.post<unknown>(
-        '/login',
-        {
-          userName: credentials.userName,
-          password: credentials.password,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        },
-      )
+      const result = await signIn({
+        username: pendingUserName.value,
+        password: credentials.password,
+      })
 
-      const res = parseLoginBody(data)
-      if (res.error) {
-        loginError.value = typeof res.error === 'string' ? res.error : 'Login failed'
-
+      if (result.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+        needsNewPassword.value = true
         return false
       }
-      if (res.loginStatus !== 'success' || !res.token) {
-        // 2xx but empty body, HTML, or JSON without loginStatus/token — common when proxy hits wrong server
-        const preview
-          = data === undefined || data === null || data === ''
-            ? '(empty body)'
-            : typeof data === 'object'
-              ? JSON.stringify(data).slice(0, 200)
-              : String(data).slice(0, 200)
 
-        loginError.value
-          = `Login response was not successful (HTTP ${status}). Expected JSON with loginStatus "success" and token. Got: ${preview}`
-
+      if (result.nextStep.signInStep !== 'DONE') {
+        loginError.value = `Additional sign-in step required: ${result.nextStep.signInStep}`
         return false
       }
-      token.value = res.token
-      roles.value = res.roles ?? ''
-      user.value = res.user ?? ''
-      sessionValidated.value = true
-      persist()
 
-      return true
+      return await applyAmplifySession()
     }
-    catch (e: unknown) {
-      if (axios.isAxiosError(e)) {
-        const status = e.response?.status
-        const body = e.response?.data
-        if (typeof body === 'string') {
-          try {
-            const j = JSON.parse(body) as { error?: string }
-
-            loginError.value = j.error ?? body
-          }
-          catch {
-            loginError.value = body.trim() || `Request failed (HTTP ${status ?? '?'})`
-          }
-        }
-        else if (body && typeof body === 'object' && 'error' in body) {
-          loginError.value = String((body as { error?: string }).error)
-        }
-        else if (status != null) {
-          loginError.value = `Request failed (HTTP ${status}${e.response?.statusText ? ` ${e.response.statusText}` : ''})`
-        }
-        else {
-          loginError.value = e.message || 'Network error — is the API running and the Vite proxy correct?'
-        }
-
-        return false
-      }
-      loginError.value = 'Login failed'
-
+    catch (error: unknown) {
+      loginError.value = cognitoLoginErrorMessage(error)
       return false
     }
+  }
+
+  async function confirmNewPassword(newPassword: string): Promise<boolean> {
+    loginError.value = null
+    try {
+      const result = await confirmSignIn({
+        challengeResponse: newPassword,
+      })
+
+      if (result.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+        loginError.value = 'Please choose a different password that meets the pool policy.'
+        return false
+      }
+
+      if (result.nextStep.signInStep !== 'DONE') {
+        loginError.value = `Additional sign-in step required: ${result.nextStep.signInStep}`
+        return false
+      }
+
+      needsNewPassword.value = false
+      return await applyAmplifySession()
+    }
+    catch (error: unknown) {
+      loginError.value = cognitoLoginErrorMessage(error)
+      return false
+    }
+  }
+
+  function cancelNewPassword() {
+    needsNewPassword.value = false
+    pendingUserName.value = ''
+    loginError.value = null
+    void signOut()
   }
 
   return {
@@ -205,11 +212,15 @@ export const useAuthStore = defineStore('auth', () => {
     sessionValidated,
     hydrated,
     loginError,
+    needsNewPassword,
+    pendingUserName,
     isAuthenticated,
     hydrateFromStorage,
     clearSessionForLoginPage,
     logout,
     validateSession,
     login,
+    confirmNewPassword,
+    cancelNewPassword,
   }
 })
