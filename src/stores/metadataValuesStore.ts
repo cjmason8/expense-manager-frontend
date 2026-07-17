@@ -71,6 +71,43 @@ export const useMetadataValuesStore = defineStore('metadataValues', () => {
     }
   }
 
+  const updateMetadataValue = async (metadataValue: MetadataValue) => {
+    if (metadataValue.id == null)
+      return
+
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+
+      const response = await axios.put(
+        `/metadataValues/${metadataValue.id}`,
+        JSON.stringify(metadataValue),
+        config,
+      )
+
+      const updated = response.data as MetadataValue
+      const keyId = updated.metadataKey?.id
+
+      if (keyId != null && valuesByKeyId.value[keyId]) {
+        valuesByKeyId.value = {
+          ...valuesByKeyId.value,
+          [keyId]: valuesByKeyId.value[keyId]
+            .map(item => item.id === updated.id ? updated : item)
+            .sort((a, b) => a.value.localeCompare(b.value)),
+        }
+      }
+
+      return updated
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   const deleteMetadataValue = async (id?: number, metadataKeyId?: number) => {
     if (id == null)
       return
@@ -90,12 +127,21 @@ export const useMetadataValuesStore = defineStore('metadataValues', () => {
     }
   }
 
+  const clearValuesForKey = (metadataKeyId: number) => {
+    const next = { ...valuesByKeyId.value }
+
+    delete next[metadataKeyId]
+    valuesByKeyId.value = next
+  }
+
   return {
     valuesByKeyId,
     getMetadataValuesByKey,
     ensureValuesForKey,
     valuesForKey,
     addMetadataValue,
+    updateMetadataValue,
     deleteMetadataValue,
+    clearValuesForKey,
   }
 })

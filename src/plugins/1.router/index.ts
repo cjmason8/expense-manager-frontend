@@ -72,6 +72,9 @@ router.beforeEach(async to => {
     }
   }
 
+  if ((to.name === 'notifications' || to.name === 'ref-data' || to.name === 'metadata') && !auth.isAdmin)
+    return { path: '/' }
+
   return true
 })
 

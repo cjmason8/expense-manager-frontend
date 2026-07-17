@@ -10,15 +10,39 @@ interface PersistedAuth {
   user: string
 }
 
-function readAccessTokenPayload(accessToken: { payload: Record<string, unknown> }) {
-  const payload = accessToken.payload
-  const username = payload.username ?? payload['cognito:username'] ?? payload.email
-  const groups = payload['cognito:groups']
-  const roles = Array.isArray(groups) ? groups.join(',') : ''
+function normalizeGroups(raw: unknown): string[] {
+  if (Array.isArray(raw))
+    return raw.map(group => String(group).trim()).filter(Boolean)
+
+  if (typeof raw === 'string' && raw.trim())
+    return [raw.trim()]
+
+  return []
+}
+
+function readGroupsFromPayload(payload: Record<string, unknown> | undefined) {
+  if (!payload)
+    return []
+
+  return normalizeGroups(payload['cognito:groups'])
+}
+
+function readSessionClaims(session: Awaited<ReturnType<typeof fetchAuthSession>>) {
+  const accessPayload = session.tokens?.accessToken?.payload as Record<string, unknown> | undefined
+  const idPayload = session.tokens?.idToken?.payload as Record<string, unknown> | undefined
+  const username = accessPayload?.username
+    ?? accessPayload?.['cognito:username']
+    ?? idPayload?.['cognito:username']
+    ?? idPayload?.email
+  const groups = [...new Set([
+    ...readGroupsFromPayload(accessPayload),
+    ...readGroupsFromPayload(idPayload),
+  ])]
 
   return {
     user: username != null ? String(username) : '',
-    roles,
+    roles: groups.join(','),
+    groups,
   }
 }
 
@@ -37,6 +61,23 @@ export const useAuthStore = defineStore('auth', () => {
     () => sessionValidated.value && !!token.value,
   )
 
+  const groups = computed(() =>
+    roles.value
+      .split(',')
+      .map(group => group.trim())
+      .filter(Boolean),
+  )
+
+  const isAdmin = computed(() =>
+    groups.value.some(group => group.toLowerCase() === 'admin'),
+  )
+
+  function hasGroup(groupName: string) {
+    const target = groupName.toLowerCase()
+
+    return groups.value.some(group => group.toLowerCase() === target)
+  }
+
   function syncAccessTokenCookie(accessToken: string) {
     useCookie('accessToken').value = accessToken || null
   }
@@ -51,8 +92,15 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   }
 
-  async function applyAmplifySession(): Promise<boolean> {
-    const session = await fetchAuthSession()
+  async function applyAmplifySession(forceRefresh = false): Promise<boolean> {
+    let session = await fetchAuthSession({ forceRefresh })
+    let { user: sessionUser, roles: sessionRoles } = readSessionClaims(session)
+
+    if (!sessionRoles && !forceRefresh) {
+      session = await fetchAuthSession({ forceRefresh: true })
+      ;({ user: sessionUser, roles: sessionRoles } = readSessionClaims(session))
+    }
+
     const accessToken = session.tokens?.accessToken
 
     if (!accessToken) {
@@ -64,7 +112,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     const accessTokenString = accessToken.toString()
-    const { user: sessionUser, roles: sessionRoles } = readAccessTokenPayload(accessToken)
 
     token.value = accessTokenString
     roles.value = sessionRoles
@@ -164,7 +211,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      return await applyAmplifySession()
+      return await applyAmplifySession(true)
     }
     catch (error: unknown) {
       loginError.value = cognitoLoginErrorMessage(error)
@@ -215,6 +262,9 @@ export const useAuthStore = defineStore('auth', () => {
     needsNewPassword,
     pendingUserName,
     isAuthenticated,
+    groups,
+    isAdmin,
+    hasGroup,
     hydrateFromStorage,
     clearSessionForLoginPage,
     logout,

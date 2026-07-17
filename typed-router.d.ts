@@ -23,6 +23,7 @@ declare module 'vue-router/auto-routes' {
     'documents': RouteRecordInfo<'documents', '/documents', Record<never, never>, Record<never, never>>,
     'donations': RouteRecordInfo<'donations', '/donations', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
+    'metadata': RouteRecordInfo<'metadata', '/metadata', Record<never, never>, Record<never, never>>,
     'notifications': RouteRecordInfo<'notifications', '/notifications', Record<never, never>, Record<never, never>>,
     'recurring': RouteRecordInfo<'recurring', '/recurring', Record<never, never>, Record<never, never>>,
     'ref-data': RouteRecordInfo<'ref-data', '/ref-data', Record<never, never>, Record<never, never>>,

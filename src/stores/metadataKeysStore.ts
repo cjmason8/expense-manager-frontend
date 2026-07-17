@@ -43,6 +43,37 @@ export const useMetadataKeysStore = defineStore('metadataKeys', () => {
     }
   }
 
+  const updateMetadataKey = async (metadataKey: MetadataKey) => {
+    if (metadataKey.id == null)
+      return
+
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+
+      const response = await axios.put(
+        `/metadataKeys/${metadataKey.id}`,
+        JSON.stringify(metadataKey),
+        config,
+      )
+
+      const updated = response.data as MetadataKey
+
+      metadataKeys.value = metadataKeys.value
+        .map(key => key.id === updated.id ? updated : key)
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      return updated
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   const deleteMetadataKey = async (id?: number) => {
     if (id == null)
       return
@@ -60,6 +91,7 @@ export const useMetadataKeysStore = defineStore('metadataKeys', () => {
     metadataKeys,
     getMetadataKeys,
     addMetadataKey,
+    updateMetadataKey,
     deleteMetadataKey,
   }
 })

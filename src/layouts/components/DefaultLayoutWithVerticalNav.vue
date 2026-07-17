@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import navItems from '@/navigation/vertical'
 import { themeConfig } from '@themeConfig'
+import { useAuthStore } from '@/stores/authStore'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
@@ -11,10 +12,29 @@ import NavBarI18n from '@core/components/I18n.vue'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+
+const auth = useAuthStore()
+
+const adminNavTitles = new Set(['Ref Data', 'Metadata', 'Notifications'])
+
+const visibleNavItems = computed(() => {
+  if (auth.isAdmin)
+    return navItems
+
+  return navItems.filter(item => {
+    if ('heading' in item)
+      return item.heading !== 'Admin'
+
+    if ('title' in item)
+      return !adminNavTitles.has(item.title)
+
+    return true
+  })
+})
 </script>
 
 <template>
-  <VerticalNavLayout :nav-items="navItems">
+  <VerticalNavLayout :nav-items="visibleNavItems">
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">
@@ -37,7 +57,10 @@ import { VerticalNavLayout } from '@layouts'
           "
           :languages="themeConfig.app.i18n.langConfig"
         />
-        <NavBarNotifications class="me-2" />
+        <NavBarNotifications
+          v-if="auth.isAdmin"
+          class="me-2"
+        />
         <UserProfile />
       </div>
     </template>
