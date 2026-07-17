@@ -3,11 +3,9 @@ import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
 import { useRoute } from 'vue-router'
 import { VCardTitle } from 'vuetify/components'
-import { useDocumentStore } from '@/stores/documentStore'
 import { useExpensesStore } from '@/stores/expensesStore'
 import { useIncomesStore } from '@/stores/incomesStore'
 import { useRefDataStore } from '@/stores/refDataStore'
-import type { Document } from '@/types/document'
 import type { Expense } from '@/types/expense'
 import type { Income } from '@/types/income'
 import type { RefData } from '@/types/refData'
@@ -48,8 +46,6 @@ if (gotoDate)
 else
   expenseStore.getTransactionsForWeek()
 
-const documentStore = useDocumentStore()
-
 const selectedDate = ref<Date | null>(null)
 let startDate: Date | null = null
 let endDate: Date | null = null
@@ -72,33 +68,61 @@ const incomeHeaders = [
   { title: 'ACTIONS', key: 'actions' },
 ]
 
-const defaultItem = ref<Expense>({
+const createEmptyExpense = (): Expense => ({
   dueDateString: '',
   startDateString: '',
   endDateString: '',
   notes: '',
+  metaDataChunk: '',
   paid: false,
 })
 
-const selectedItem = ref<Expense>(defaultItem.value)
+const selectedItem = ref<Expense>(createEmptyExpense())
+const expenseFormKey = ref(0)
+const incomeFormKey = ref(0)
 
-const defaultIncomeItem = ref<Income>({
+const createEmptyIncome = (): Income => ({
   dueDateString: '',
+  startDateString: '',
+  endDateString: '',
   notes: '',
+  metaDataChunk: '',
 })
 
-const selectedIncomeItem = ref<Income>(defaultIncomeItem.value)
+const selectedIncomeItem = ref<Income>(createEmptyIncome())
 const dialogTitle = ref<string>()
 const editedIndex = ref(-1)
 
+const resetExpenseForm = () => {
+  editedIndex.value = -1
+  selectedItem.value = createEmptyExpense()
+  transactionTypeId.value = undefined
+  recurringTypeId.value = undefined
+  dueDate = null
+  startDate = null
+  endDate = null
+  recurring.value = false
+  expenseFormKey.value += 1
+}
+
+const resetIncomeForm = () => {
+  editedIndex.value = -1
+  selectedIncomeItem.value = createEmptyIncome()
+  transactionTypeId.value = undefined
+  dueDate = null
+  incomeFormKey.value += 1
+}
+
 const addExpense = () => {
-  addEditDialog.value = true
+  resetExpenseForm()
   dialogTitle.value = 'Add Expense'
+  addEditDialog.value = true
 }
 
 const addIncome = () => {
-  addEditIncomeDialog.value = true
+  resetIncomeForm()
   dialogTitle.value = 'Add Income'
+  addEditIncomeDialog.value = true
 }
 
 const prevWeek = () => {
@@ -140,14 +164,14 @@ const findIncomeIndex = (list: Income[] | undefined, id?: number) => {
 }
 
 const editExpensesItem = (item: Expense, unPaid: boolean) => {
-  resetUploadState()
   if (expenseStore.homeInfo) {
     if (unPaid && expenseStore.homeInfo.unpaidExpenses)
       editedIndex.value = findExpenseIndex(expenseStore.homeInfo.unpaidExpenses, item.id)
     else
       editedIndex.value = findExpenseIndex(expenseStore.homeInfo.expenses, item.id)
   }
-  selectedItem.value = { ...item }
+  selectedItem.value = { ...item, metaDataChunk: item.metaDataChunk ?? '' }
+  expenseFormKey.value += 1
   transactionTypeId.value = selectedItem.value.transactionType?.id
   recurringTypeId.value = selectedItem.value.recurringType?.id
   dueDate = parseDate(selectedItem.value.dueDateString)
@@ -158,7 +182,6 @@ const editExpensesItem = (item: Expense, unPaid: boolean) => {
     dialogTitle.value = 'Edit Unpaid Expense'
   else
     dialogTitle.value = 'Edit Expense'
-  void populateFileInputFromDocumentDto(item.documentDto)
 }
 
 const deleteExpensesItem = (item: Expense, unPaid: boolean) => {
@@ -179,41 +202,23 @@ const deleteIncomesItem = (item: Income) => {
 }
 
 const editIncomeItem = (item: Income) => {
-  resetUploadState()
   editedIndex.value = findIncomeIndex(expenseStore.homeInfo?.incomes, item.id)
-  selectedIncomeItem.value = { ...item }
+  selectedIncomeItem.value = { ...item, metaDataChunk: item.metaDataChunk ?? '' }
+  incomeFormKey.value += 1
   transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
   dueDate = parseDate(selectedIncomeItem.value.dueDateString)
   addEditIncomeDialog.value = true
   dialogTitle.value = 'Edit Income'
-  void populateFileInputFromDocumentDto(item.documentDto)
-}
-
-const resetUploadState = () => {
-  file.value = null
-  imageUrl.value = null
-  uploading.value = false
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
 }
 
 const closeAddEdit = () => {
   addEditDialog.value = false
-  editedIndex.value = -1
-  selectedItem.value = { ...defaultItem.value }
-  dueDate = null
-  startDate = null
-  endDate = null
-  recurring.value = false
-  resetUploadState()
+  resetExpenseForm()
 }
 
 const closeAddEditIncome = () => {
   addEditIncomeDialog.value = false
-  editedIndex.value = -1
-  selectedIncomeItem.value = { ...defaultIncomeItem.value }
-  dueDate = null
-  resetUploadState()
+  resetIncomeForm()
 }
 
 const closeDelete = () => {
@@ -297,96 +302,6 @@ const deleteIncomesItemConfirm = () => {
   expenseStore.homeInfo?.incomes.splice(editedIndex.value, 1)
   incomeStore.deleteIncome(selectedIncomeItem.value)
   closeDeleteIncome()
-}
-
-const file = ref<File | null>(null)
-const imageUrl = ref<string | null>(null)
-const uploading = ref<boolean>(false)
-const uploadStatusMessage = ref('')
-const uploadStatusError = ref(false)
-
-// Handle file selection and preview
-const handleFileChange = () => {
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  if (!file.value) {
-    imageUrl.value = null
-
-    return
-  }
-
-  if (file.value && file.value.type.startsWith('image/')) {
-    const reader = new FileReader()
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      imageUrl.value = e.target?.result as string
-    }
-    reader.readAsDataURL(file.value)
-  }
-  else {
-    imageUrl.value = null
-  }
-}
-
-// Upload file to API
-const uploadFile = async () => {
-  if (!file.value || uploading.value)
-    return
-
-  uploading.value = true
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  try {
-    const res = await documentStore.uploadFile(
-      file.value,
-      addEditIncomeDialog.value ? 'incomes' : 'expenses',
-    )
-    if (res) {
-      if (addEditIncomeDialog.value)
-        selectedIncomeItem.value.documentDto = res
-      else
-        selectedItem.value.documentDto = res
-      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
-      uploadStatusError.value = false
-      file.value = null
-      imageUrl.value = null
-    }
-    else {
-      uploadStatusMessage.value = 'Upload failed. Please try again.'
-      uploadStatusError.value = true
-    }
-  }
-  catch {
-    uploadStatusMessage.value = 'Upload failed. Please try again.'
-    uploadStatusError.value = true
-  }
-  finally {
-    uploading.value = false
-  }
-}
-
-// Watch for file changes to reset preview
-watch(file, newFile => {
-  if (!newFile)
-    imageUrl.value = null
-})
-
-async function populateFileInputFromDocumentDto(doc?: Document) {
-  if (!doc?.id || doc.id === '' || doc.id === -1)
-    return
-  const name = doc.fileName || doc.originalFileName
-  if (!name)
-    return
-  try {
-    const blob = await documentStore.getFileById(doc.id, name)
-
-    file.value = new File([blob], name, { type: blob.type })
-    handleFileChange()
-  }
-  catch {
-    file.value = null
-    imageUrl.value = null
-  }
 }
 </script>
 
@@ -621,7 +536,7 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
     v-model="addEditDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="dialogTitle">
       <VCardText>
@@ -769,9 +684,9 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
             cols="18"
             sm="9"
           >
-            <VTextarea
+            <MetadataEditor
+              :key="`expense-meta-${expenseFormKey}`"
               v-model="selectedItem.metaDataChunk"
-              rows="2"
             />
           </VCol>
         </VRow>
@@ -784,54 +699,13 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
           </VCol>
           <VCol
             cols="18"
-            sm="6"
+            sm="9"
           >
-            <VCard style="width: 650px">
-              <VCardTitle>Upload File</VCardTitle>
-              <VCardText>
-                <VFileInput
-                  v-model="file"
-                  style="width: 600px"
-                  label="Choose a file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
-                  show-size
-                  @change="handleFileChange"
-                />
-
-                <VProgressLinear
-                  v-if="uploading"
-                  indeterminate
-                  color="primary"
-                  class="mt-2"
-                />
-
-                <VAlert
-                  v-if="uploadStatusMessage"
-                  :type="uploadStatusError ? 'error' : 'success'"
-                  density="compact"
-                  variant="tonal"
-                  class="mt-2"
-                >
-                  {{ uploadStatusMessage }}
-                </VAlert>
-
-                <VBtn
-                  :disabled="!file || uploading"
-                  color="primary"
-                  class="mt-2"
-                  @click="uploadFile"
-                >
-                  Upload
-                </VBtn>
-
-                <VImg
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  class="mt-4"
-                  max-width="200"
-                />
-              </VCardText>
-            </VCard>
+            <FileUploadEditor
+              :key="`expense-file-${expenseFormKey}`"
+              v-model="selectedItem.documentDto"
+              upload-type="expenses"
+            />
           </VCol>
         </VRow>
       </VCardText>
@@ -860,7 +734,7 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
   <!-- 👉 Add/Edit Income Dialog  -->
   <VDialog
     v-model="addEditIncomeDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="dialogTitle">
       <VCardText>
@@ -940,9 +814,9 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
             cols="18"
             sm="9"
           >
-            <VTextarea
+            <MetadataEditor
+              :key="`income-meta-${incomeFormKey}`"
               v-model="selectedIncomeItem.metaDataChunk"
-              rows="2"
             />
           </VCol>
         </VRow>
@@ -955,54 +829,13 @@ async function populateFileInputFromDocumentDto(doc?: Document) {
           </VCol>
           <VCol
             cols="18"
-            sm="6"
+            sm="9"
           >
-            <VCard style="width: 650px">
-              <VCardTitle>Upload File</VCardTitle>
-              <VCardText>
-                <VFileInput
-                  v-model="file"
-                  style="width: 600px"
-                  label="Choose a file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
-                  show-size
-                  @change="handleFileChange"
-                />
-
-                <VProgressLinear
-                  v-if="uploading"
-                  indeterminate
-                  color="primary"
-                  class="mt-2"
-                />
-
-                <VAlert
-                  v-if="uploadStatusMessage"
-                  :type="uploadStatusError ? 'error' : 'success'"
-                  density="compact"
-                  variant="tonal"
-                  class="mt-2"
-                >
-                  {{ uploadStatusMessage }}
-                </VAlert>
-
-                <VBtn
-                  :disabled="!file || uploading"
-                  color="primary"
-                  class="mt-2"
-                  @click="uploadFile"
-                >
-                  Upload
-                </VBtn>
-
-                <VImg
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  class="mt-4"
-                  max-width="200"
-                />
-              </VCardText>
-            </VCard>
+            <FileUploadEditor
+              :key="`income-file-${incomeFormKey}`"
+              v-model="selectedIncomeItem.documentDto"
+              upload-type="incomes"
+            />
           </VCol>
         </VRow>
       </VCardText>

@@ -221,7 +221,7 @@ onMounted(() => {
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
     v-model="addEditDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="dialogTitle">
       <VCardText>
@@ -270,10 +270,7 @@ onMounted(() => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedItem.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedItem.metaDataChunk" />
           </VCol>
         </VRow>
       </VCardText>

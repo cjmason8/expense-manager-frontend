@@ -2,7 +2,6 @@
 import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
 import { VCardTitle } from 'vuetify/components'
-import { useDocumentStore } from '@/stores/documentStore'
 import { useRentalPaymentStore } from '@/stores/rentalpaymentsStore'
 import type { RentalPayment } from '@/types/rentalPayment'
 
@@ -23,9 +22,9 @@ const editDialog = ref(false)
 const deleteDialog = ref(false)
 
 const selectedItem = ref<RentalPayment>(defaultItem.value)
+const rentalPaymentFormKey = ref(0)
 
 const editedIndex = ref(-1)
-const documentStore = useDocumentStore()
 const rentalPaymentsStore = useRentalPaymentStore()
 
 rentalPaymentsStore.getRentalPayments()
@@ -55,6 +54,7 @@ const getRentalPaymentList = (property: string) => {
 const editItem = (item: RentalPayment) => {
   editedIndex.value = findRentalPaymentIndex(item.property, item.id)
   selectedItem.value = { ...item }
+  rentalPaymentFormKey.value += 1
   statementFromDate = parseDate(selectedItem.value.statementFromString)
   statementToDate = parseDate(selectedItem.value.statementToString)
   editDialog.value = true
@@ -67,19 +67,11 @@ const deleteItem = (item: RentalPayment) => {
   deleteDialog.value = true
 }
 
-const resetUploadState = () => {
-  file.value = null
-  imageUrl.value = null
-  uploading.value = false
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-}
-
 const closeEdit = () => {
   editDialog.value = false
   editedIndex.value = -1
   selectedItem.value = { ...defaultItem.value }
-  resetUploadState()
+  rentalPaymentFormKey.value += 1
 }
 
 const closeDelete = () => {
@@ -135,72 +127,6 @@ const headers = [
   { title: 'TOTAL RENT', key: 'totalRent' },
   { title: 'ACTIONS', key: 'actions' },
 ]
-
-const file = ref<File | null>(null)
-const imageUrl = ref<string | null>(null)
-const uploading = ref<boolean>(false)
-const uploadStatusMessage = ref('')
-const uploadStatusError = ref(false)
-
-// Handle file selection and preview
-const handleFileChange = () => {
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  if (!file.value) {
-    imageUrl.value = null
-
-    return
-  }
-
-  if (file.value && file.value.type.startsWith('image/')) {
-    const reader = new FileReader()
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      imageUrl.value = e.target?.result as string
-    }
-    reader.readAsDataURL(file.value)
-  }
-  else {
-    imageUrl.value = null
-  }
-}
-
-// Upload file to API
-const uploadFile = async () => {
-  if (!file.value || uploading.value)
-    return
-
-  uploading.value = true
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  try {
-    const res = await documentStore.uploadFile(file.value)
-    if (res) {
-      selectedItem.value.documentDto = res
-      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
-      uploadStatusError.value = false
-      file.value = null
-      imageUrl.value = null
-    }
-    else {
-      uploadStatusMessage.value = 'Upload failed. Please try again.'
-      uploadStatusError.value = true
-    }
-  }
-  catch {
-    uploadStatusMessage.value = 'Upload failed. Please try again.'
-    uploadStatusError.value = true
-  }
-  finally {
-    uploading.value = false
-  }
-}
-
-// Watch for file changes to reset preview
-watch(file, newFile => {
-  if (!newFile)
-    imageUrl.value = null
-})
 
 const prevYear = () => {
   rentalPaymentsStore.getRentalPayments(
@@ -468,54 +394,12 @@ const nextYear = () => {
           </VCol>
           <VCol
             cols="18"
-            sm="6"
+            sm="9"
           >
-            <VCard style="width: 650px">
-              <VCardTitle>Upload File</VCardTitle>
-              <VCardText>
-                <VFileInput
-                  v-model="file"
-                  style="width: 600px"
-                  label="Choose a file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
-                  show-size
-                  @change="handleFileChange"
-                />
-
-                <VProgressLinear
-                  v-if="uploading"
-                  indeterminate
-                  color="primary"
-                  class="mt-2"
-                />
-
-                <VAlert
-                  v-if="uploadStatusMessage"
-                  :type="uploadStatusError ? 'error' : 'success'"
-                  density="compact"
-                  variant="tonal"
-                  class="mt-2"
-                >
-                  {{ uploadStatusMessage }}
-                </VAlert>
-
-                <VBtn
-                  :disabled="!file || uploading"
-                  color="primary"
-                  class="mt-2"
-                  @click="uploadFile"
-                >
-                  Upload
-                </VBtn>
-
-                <VImg
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  class="mt-4"
-                  max-width="200"
-                />
-              </VCardText>
-            </VCard>
+            <FileUploadEditor
+              :key="`rental-payment-file-${rentalPaymentFormKey}`"
+              v-model="selectedItem.documentDto"
+            />
           </VCol>
         </VRow>
       </VCardText>

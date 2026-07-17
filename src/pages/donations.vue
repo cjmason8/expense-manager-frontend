@@ -3,7 +3,6 @@ import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
 import { ref } from 'vue'
 import { VCardActions, VCardText } from 'vuetify/components'
-import { useDocumentStore } from '@/stores/documentStore'
 import { useDonationsStore } from '@/stores/donationsStore'
 import { useRefDataStore } from '@/stores/refDataStore'
 import type { Donation } from '@/types/donation'
@@ -27,8 +26,6 @@ refDataStore.getRefData('cause').then(res => {
   causes.value = res
 })
 
-const documentStore = useDocumentStore()
-
 const defaultItem = ref<Donation>({
   cause: new RefData(),
   dueDateString: '',
@@ -39,6 +36,7 @@ const defaultItem = ref<Donation>({
 })
 
 const selectedItem = ref<Donation>(defaultItem.value)
+const donationFormKey = ref(0)
 const causeId = ref<number>()
 const filterCauseId = ref<number | null>()
 const dialogTitle = ref<string>()
@@ -53,6 +51,8 @@ const headers = [
 ]
 
 const addDonation = () => {
+  selectedItem.value = { ...defaultItem.value }
+  donationFormKey.value += 1
   addEditDialog.value = true
   dialogTitle.value = 'Add Donation'
 }
@@ -80,6 +80,7 @@ const findDonationIndex = (id?: number) => {
 const editItem = (item: Donation) => {
   editedIndex.value = findDonationIndex(item.id)
   selectedItem.value = { ...item }
+  donationFormKey.value += 1
   selectedDate = parseDate(selectedItem.value.dueDateString)
   causeId.value = selectedItem.value.cause?.id
   addEditDialog.value = true
@@ -92,21 +93,13 @@ const deleteItem = (item: Donation) => {
   deleteDialog.value = true
 }
 
-const resetUploadState = () => {
-  file.value = null
-  imageUrl.value = null
-  uploading.value = false
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-}
-
 const closeAddEdit = () => {
   addEditDialog.value = false
   editedIndex.value = -1
   selectedItem.value = { ...defaultItem.value }
   selectedDate = new Date()
   causeId.value = -1
-  resetUploadState()
+  donationFormKey.value += 1
 }
 
 const closeDelete = () => {
@@ -139,73 +132,6 @@ const deleteItemConfirm = () => {
   donationsStore.deleteDonation(selectedItem.value)
   closeDelete()
 }
-
-const file = ref<File | null>(null)
-const imageUrl = ref<string | null>(null)
-const uploading = ref<boolean>(false)
-const uploadStatusMessage = ref('')
-const uploadStatusError = ref(false)
-
-// Handle file selection and preview
-const handleFileChange = () => {
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  if (!file.value) {
-    imageUrl.value = null
-
-    return
-  }
-
-  if (file.value && file.value.type.startsWith('image/')) {
-    const reader = new FileReader()
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      imageUrl.value = e.target?.result as string
-    }
-    reader.readAsDataURL(file.value)
-  }
-  else {
-    imageUrl.value = null
-  }
-}
-
-// Upload file to API
-const uploadFile = async () => {
-  if (!file.value || uploading.value)
-    return
-
-  uploading.value = true
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  try {
-    const res = await documentStore.uploadFile(file.value, 'donations')
-    if (res) {
-      selectedItem.value.documentDto = res
-      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
-      uploadStatusError.value = false
-      file.value = null
-      imageUrl.value = null
-    }
-    else {
-      uploadStatusMessage.value = 'Upload failed. Please try again.'
-      uploadStatusError.value = true
-    }
-  }
-  catch {
-    uploadStatusMessage.value = 'Upload failed. Please try again.'
-    uploadStatusError.value = true
-  }
-  finally {
-    uploading.value = false
-  }
-}
-
-// Watch for file changes to reset preview
-watch(file, newFile => {
-  if (!newFile)
-    imageUrl.value = null
-})
-
 
 </script>
 
@@ -305,7 +231,7 @@ watch(file, newFile => {
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
     v-model="addEditDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="dialogTitle">
       <VCardText>
@@ -368,10 +294,7 @@ watch(file, newFile => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedItem.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedItem.metaDataChunk" />
           </VCol>
         </VRow>
         <VRow>
@@ -400,54 +323,13 @@ watch(file, newFile => {
           </VCol>
           <VCol
             cols="18"
-            sm="6"
+            sm="9"
           >
-            <VCard style="width: 650px">
-              <VCardTitle>Upload File</VCardTitle>
-              <VCardText>
-                <VFileInput
-                  v-model="file"
-                  style="width: 600px"
-                  label="Choose a file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
-                  show-size
-                  @change="handleFileChange"
-                />
-
-                <VProgressLinear
-                  v-if="uploading"
-                  indeterminate
-                  color="primary"
-                  class="mt-2"
-                />
-
-                <VAlert
-                  v-if="uploadStatusMessage"
-                  :type="uploadStatusError ? 'error' : 'success'"
-                  density="compact"
-                  variant="tonal"
-                  class="mt-2"
-                >
-                  {{ uploadStatusMessage }}
-                </VAlert>
-
-                <VBtn
-                  :disabled="!file || uploading"
-                  color="primary"
-                  class="mt-2"
-                  @click="uploadFile"
-                >
-                  Upload
-                </VBtn>
-
-                <VImg
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  class="mt-4"
-                  max-width="200"
-                />
-              </VCardText>
-            </VCard>
+            <FileUploadEditor
+              :key="`donation-file-${donationFormKey}`"
+              v-model="selectedItem.documentDto"
+              upload-type="donations"
+            />
           </VCol>
         </VRow>
       </VCardText>

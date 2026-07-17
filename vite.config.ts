@@ -145,6 +145,8 @@ export default defineConfig({
       '/documents': spaPageProxy(),
       '/rentalPayments': apiProxy(),
       '/refDatas': apiProxy(),
+      '/metadataKeys': apiProxy(),
+      '/metadataValues': apiProxy(),
       '/notifications': spaPageProxy(),
       '/incomes': apiProxy(),
       '/donations': spaPageProxy(),

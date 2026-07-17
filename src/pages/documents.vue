@@ -32,6 +32,7 @@ const defaultFolderItem = ref<Document>({
 
 const selectedItem = ref<Document>({ ...defaultItem.value })
 const selectedFolderItem = ref<Document>({ ...defaultFolderItem.value })
+const documentUploadKey = ref(0)
 let directoryAction: string = 'Create'
 
 const ROOT_FOLDER_PATH = '/docs/expenseManager/filofax'
@@ -40,12 +41,6 @@ const displayedFolderPath = ref('/')
 
 const documentStore = useDocumentStore()
 const documents = ref<Document[]>([])
-
-const file = ref<File | null>(null)
-const imageUrl = ref<string | null>(null)
-const uploading = ref<boolean>(false)
-const uploadStatusMessage = ref('')
-const uploadStatusError = ref(false)
 
 const headers = [
   { title: '', key: 'fileName' },
@@ -140,87 +135,9 @@ const addFolder = () => {
 
 const openUploadFile = () => {
   selectedItem.value = { ...defaultItem.value, folderPath: currentFolderPath.value }
-  resetUploadState()
+  documentUploadKey.value += 1
   uploadDocument.value = true
 }
-
-// Handle file selection and preview
-const handleFileChange = () => {
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  if (!file.value) {
-    imageUrl.value = null
-
-    return
-  }
-
-  if (file.value && file.value.type.startsWith('image/')) {
-    const reader = new FileReader()
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      imageUrl.value = e.target?.result as string
-    }
-    reader.readAsDataURL(file.value)
-  }
-  else {
-    imageUrl.value = null
-  }
-}
-
-// Upload file to API
-const uploadFile = async () => {
-  if (!file.value || uploading.value)
-    return
-
-  uploading.value = true
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-  try {
-    const res = await documentStore.uploadFile(
-      file.value,
-      'documents',
-      currentFolderPath.value,
-    )
-
-    if (res) {
-      selectedItem.value = {
-        ...selectedItem.value,
-        ...res,
-        folderPath: currentFolderPath.value,
-        originalFileName: res.originalFileName || res.fileName,
-      }
-      uploadStatusMessage.value = 'Upload finished. The file is attached. Choose another file to upload again.'
-      uploadStatusError.value = false
-      file.value = null
-      imageUrl.value = null
-    }
-    else {
-      uploadStatusMessage.value = 'Upload failed. Please try again.'
-      uploadStatusError.value = true
-    }
-  }
-  catch {
-    uploadStatusMessage.value = 'Upload failed. Please try again.'
-    uploadStatusError.value = true
-  }
-  finally {
-    uploading.value = false
-  }
-}
-
-// Watch for file changes to reset preview
-watch(file, newFile => {
-  if (!newFile)
-    imageUrl.value = null
-})
-
-watch(uploadDocument, isOpen => {
-  if (!isOpen) {
-    selectedItem.value = { ...defaultItem.value }
-    resetUploadState()
-  }
-})
-
 
 const editDocument = (document: Document) => {
   if (document.isFolder) {
@@ -237,7 +154,7 @@ const editDocument = (document: Document) => {
     selectedItem.value.isFolder = document.isFolder
     selectedItem.value.folderPath = document.folderPath
     selectedItem.value.metaDataChunk = document.metaDataChunk
-    resetUploadState()
+    documentUploadKey.value += 1
     uploadDocument.value = true
   }
 }
@@ -309,19 +226,17 @@ const saveUploadDocument = async () => {
   closeUploadDocument()
 }
 
-function resetUploadState() {
-  file.value = null
-  imageUrl.value = null
-  uploading.value = false
-  uploadStatusMessage.value = ''
-  uploadStatusError.value = false
-}
-
 function closeUploadDocument() {
   uploadDocument.value = false
   selectedItem.value = { ...defaultItem.value }
-  resetUploadState()
 }
+
+watch(uploadDocument, isOpen => {
+  if (!isOpen) {
+    selectedItem.value = { ...defaultItem.value }
+    documentUploadKey.value += 1
+  }
+})
 
 onMounted(() => {
   if (route.query.existingFolder) {
@@ -476,7 +391,7 @@ onMounted(() => {
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
     v-model="uploadDocument"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard title="Upload Document">
       <VCardText>
@@ -489,54 +404,14 @@ onMounted(() => {
           </VCol>
           <VCol
             cols="18"
-            sm="6"
+            sm="9"
           >
-            <VCard style="width: 650px">
-              <VCardTitle>Upload File</VCardTitle>
-              <VCardText>
-                <VFileInput
-                  v-model="file"
-                  style="width: 600px"
-                  label="Choose a file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg"
-                  show-size
-                  @change="handleFileChange"
-                />
-
-                <VProgressLinear
-                  v-if="uploading"
-                  indeterminate
-                  color="primary"
-                  class="mt-2"
-                />
-
-                <VAlert
-                  v-if="uploadStatusMessage"
-                  :type="uploadStatusError ? 'error' : 'success'"
-                  density="compact"
-                  variant="tonal"
-                  class="mt-2"
-                >
-                  {{ uploadStatusMessage }}
-                </VAlert>
-
-                <VBtn
-                  :disabled="!file || uploading"
-                  color="primary"
-                  class="mt-2"
-                  @click="uploadFile"
-                >
-                  Upload
-                </VBtn>
-
-                <VImg
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  class="mt-4"
-                  max-width="200"
-                />
-              </VCardText>
-            </VCard>
+            <FileUploadEditor
+              :key="documentUploadKey"
+              v-model="selectedItem"
+              upload-type="documents"
+              :upload-path="currentFolderPath"
+            />
           </VCol>
         </VRow>
         <VRow>
@@ -564,10 +439,7 @@ onMounted(() => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedItem.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedItem.metaDataChunk" />
           </VCol>
         </VRow>
       </VCardText>
@@ -596,7 +468,7 @@ onMounted(() => {
   <!-- 👉 Add/Edit Folder Dialog  -->
   <VDialog
     v-model="createDirectory"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="folderDialogTitle">
       <VCardText>
@@ -625,10 +497,7 @@ onMounted(() => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedFolderItem.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedFolderItem.metaDataChunk" />
           </VCol>
         </VRow>
       </VCardText>

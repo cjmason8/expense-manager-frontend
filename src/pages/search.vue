@@ -227,6 +227,7 @@ const expenseGraphDto = ref<unknown>(null)
 
 /** Bumps when search results change so vue-chartjs remounts with new data. */
 const chartUpdateKey = ref(0)
+const searchMetadataKey = ref(0)
 
 const searchParams = ref<SearchParams>({
   transactionType: null,
@@ -411,6 +412,7 @@ const clearSearch = () => {
   documents.value = []
   expenseGraphDto.value = null
   chartUpdateKey.value += 1
+  searchMetadataKey.value += 1
 }
 
 
@@ -505,15 +507,13 @@ onMounted(async () => {
               clearable
             />
           </VCol>
-          <VCol
-            cols="12"
-            md="4"
-          >
-            <VTextarea
+        </VRow>
+        <VRow>
+          <VCol cols="12">
+            <label class="text-caption mb-1 d-inline-block">Metadata</label>
+            <MetadataEditor
+              :key="`search-meta-${searchMetadataKey}`"
               v-model="searchParams.metaDataChunk"
-              label="Metadata"
-              rows="1"
-              clearable
             />
           </VCol>
         </VRow>
@@ -666,7 +666,7 @@ onMounted(async () => {
 
   <VDialog
     v-model="addEditDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard title="Edit Expense">
       <VCardText>
@@ -760,10 +760,7 @@ onMounted(async () => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedItem.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedItem.metaDataChunk" />
           </VCol>
         </VRow>
       </VCardText>
@@ -817,7 +814,7 @@ onMounted(async () => {
 
   <VDialog
     v-model="addEditDocumentDialog"
-    max-width="900px"
+    max-width="1100px"
   >
     <VCard :title="documentDialogTitle">
       <VCardText>
@@ -846,10 +843,7 @@ onMounted(async () => {
             cols="18"
             sm="9"
           >
-            <VTextarea
-              v-model="selectedDocument.metaDataChunk"
-              rows="2"
-            />
+            <MetadataEditor v-model="selectedDocument.metaDataChunk" />
           </VCol>
         </VRow>
       </VCardText>
