@@ -125,7 +125,7 @@ async function confirmDeleteValue() {
             cols="12"
             md="4"
           >
-            <VSelect
+            <VAutocomplete
               v-model="selectedKeyId"
               :items="metadataKeys"
               item-title="name"
@@ -182,7 +182,7 @@ async function confirmDeleteValue() {
               cols="12"
               md="4"
             >
-              <VSelect
+              <VAutocomplete
                 v-model="selectedValueId"
                 :items="metadataValues"
                 item-title="value"

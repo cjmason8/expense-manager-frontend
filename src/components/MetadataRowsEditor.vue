@@ -265,7 +265,7 @@ watch(
               </td>
 
               <td class="metadata-col-value">
-                <VSelect
+                <VAutocomplete
                   v-if="row.editingValueIndex === valueIndex"
                   v-model="row.pendingValue"
                   :items="optionValuesForRow(row, valueIndex)"
@@ -342,7 +342,7 @@ watch(
             <tr v-if="row.addingValue">
               <td class="metadata-col-key" />
               <td class="metadata-col-value">
-                <VSelect
+                <VAutocomplete
                   v-model="row.pendingValue"
                   :items="optionValuesForRow(row)"
                   item-title="value"
@@ -377,7 +377,7 @@ watch(
           <!-- Editable / new key row -->
           <tr v-else>
             <td class="metadata-col-key">
-              <VSelect
+              <VAutocomplete
                 v-model="row.keyName"
                 :items="availableKeysForRow(row)"
                 item-title="name"
@@ -389,7 +389,7 @@ watch(
               />
             </td>
             <td class="metadata-col-value">
-              <VSelect
+              <VAutocomplete
                 v-if="row.keyName"
                 v-model="row.pendingValue"
                 :items="optionValuesForRow(row)"

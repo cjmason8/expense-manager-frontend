@@ -343,40 +343,28 @@ const deleteIncomesItemConfirm = () => {
                 </tr>
               </table>
             </td>
-            <td width="50px">
-              <IconBtn
-                size="small"
-                @click="prevWeek"
-              >
-                <VIcon icon="ri-arrow-left-double-line" />
-              </IconBtn>
-            </td>
-            <td
-              width="50px"
-              @click="prevWeek"
-            >
-              Prev
-            </td>
-            <td
-              width="50px"
-              @click="nextWeek"
-            >
-              Next
-            </td>
-            <td width="50px">
-              <IconBtn
-                size="small"
-                @click="nextWeek"
-              >
-                <VIcon icon="ri-arrow-right-double-line" />
-              </IconBtn>
-            </td>
             <td>
-              <DatePicker
-                v-model="selectedDate"
-                date-format="dd-mm-yy"
-                @date-select="gotoWeek"
-              />
+              <div class="d-flex align-center gap-2">
+                <VBtn
+                  variant="tonal"
+                  prepend-icon="ri-arrow-left-s-line"
+                  @click="prevWeek"
+                >
+                  Previous
+                </VBtn>
+                <VBtn
+                  variant="tonal"
+                  append-icon="ri-arrow-right-s-line"
+                  @click="nextWeek"
+                >
+                  Next
+                </VBtn>
+                <DatePicker
+                  v-model="selectedDate"
+                  date-format="dd-mm-yy"
+                  @date-select="gotoWeek"
+                />
+              </div>
             </td>
           </tr>
         </table>

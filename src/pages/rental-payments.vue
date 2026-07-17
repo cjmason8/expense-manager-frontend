@@ -150,33 +150,23 @@ const nextYear = () => {
       <td style="float: right">
         <table>
           <tr>
-            <td width="50px">
-              <IconBtn
-                size="small"
-                @click="prevYear"
-              >
-                <VIcon icon="ri-arrow-left-double-line" />
-              </IconBtn>
-            </td>
-            <td
-              width="50px"
-              @click="prevYear"
-            >
-              Prev
-            </td>
-            <td
-              width="50px"
-              @click="nextYear"
-            >
-              Next
-            </td>
-            <td width="50px">
-              <IconBtn
-                size="small"
-                @click="nextYear"
-              >
-                <VIcon icon="ri-arrow-right-double-line" />
-              </IconBtn>
+            <td>
+              <div class="d-flex align-center gap-2">
+                <VBtn
+                  variant="tonal"
+                  prepend-icon="ri-arrow-left-s-line"
+                  @click="prevYear"
+                >
+                  Previous
+                </VBtn>
+                <VBtn
+                  variant="tonal"
+                  append-icon="ri-arrow-right-s-line"
+                  @click="nextYear"
+                >
+                  Next
+                </VBtn>
+              </div>
             </td>
           </tr>
         </table>
