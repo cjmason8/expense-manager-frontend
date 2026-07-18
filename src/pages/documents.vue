@@ -35,11 +35,9 @@ const selectedFolderItem = ref<Document>({ ...defaultFolderItem.value })
 const documentUploadKey = ref(0)
 let directoryAction: string = 'Create'
 
-const ROOT_FOLDER_PATH = '/docs/expenseManager/filofax'
-const currentFolderPath = ref('')
-const displayedFolderPath = ref('/')
-
 const documentStore = useDocumentStore()
+const ROOT_FOLDER_PATH = documentStore.ROOT_FOLDER_PATH
+const displayedFolderPath = ref('/')
 const documents = ref<Document[]>([])
 
 const headers = [
@@ -55,24 +53,24 @@ const closeAddEditFolder = () => {
 
 const actionDirectory = () => {
   if (directoryAction === 'Create') {
-    selectedFolderItem.value.folderPath = currentFolderPath.value
+    selectedFolderItem.value.folderPath = documentStore.currentFolderPath
     selectedFolderItem.value.isFolder = true
     documentStore.createDirectory(selectedFolderItem.value).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
         selectedFolderItem.value = { ...defaultFolderItem.value }
-        currentFolderPath.value = res.folderPath
+        documentStore.currentFolderPath = res.folderPath
         displayedFolderPath.value = getDirectoryPath()
       })
     })
   }
   else {
-    selectedFolderItem.value.folderPath = currentFolderPath.value
+    selectedFolderItem.value.folderPath = documentStore.currentFolderPath
     documentStore.updateDirectory(selectedFolderItem.value).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
         selectedFolderItem.value = { ...defaultFolderItem.value }
-        currentFolderPath.value = res.folderPath
+        documentStore.currentFolderPath = res.folderPath
         directoryAction = 'Create'
         displayedFolderPath.value = getDirectoryPath()
       })
@@ -82,19 +80,18 @@ const actionDirectory = () => {
 }
 
 const openFolder = (folderPath: string) => {
-  console.log(folderPath)
   documents.value = []
   documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived').then(res => {
     documents.value = res
-    currentFolderPath.value = folderPath
+    documentStore.currentFolderPath = folderPath
     displayedFolderPath.value = getDirectoryPath()
   })
 }
 
 const openParentFolder = () => {
-  openFolder(
-    currentFolderPath.value.substring(0, currentFolderPath.value.lastIndexOf('/')),
-  )
+  const path = documentStore.currentFolderPath
+
+  openFolder(path.substring(0, path.lastIndexOf('/')))
 }
 
 const isArchiveToggleLocation = (folderPath: string) => {
@@ -107,7 +104,7 @@ const toggleArchived = () => {
   if (wasShowingArchived) {
     archiveButtonDescription.value = 'Show Archived'
 
-    if (!isArchiveToggleLocation(currentFolderPath.value)) {
+    if (!isArchiveToggleLocation(documentStore.currentFolderPath)) {
       openFolder(ROOT_FOLDER_PATH)
 
       return
@@ -118,7 +115,7 @@ const toggleArchived = () => {
   }
 
   documentStore.getDocuments(
-    currentFolderPath.value,
+    documentStore.currentFolderPath,
     archiveButtonDescription.value === 'Hide Archived',
   ).then(res => {
     documents.value = res
@@ -134,7 +131,7 @@ const addFolder = () => {
 }
 
 const openUploadFile = () => {
-  selectedItem.value = { ...defaultItem.value, folderPath: currentFolderPath.value }
+  selectedItem.value = { ...defaultItem.value, folderPath: documentStore.currentFolderPath }
   documentUploadKey.value += 1
   uploadDocument.value = true
 }
@@ -175,7 +172,7 @@ const deleteDocument = (document: Document) => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
         selectedItem.value = new Document()
-        currentFolderPath.value = res.folderPath
+        documentStore.currentFolderPath = res.folderPath
       })
     })
   }
@@ -187,7 +184,7 @@ const archiveFolder = (document: Document) => {
 
   if (confirm(msg)) {
     documentStore.archiveFolder(document).then(res => {
-      documentStore.getDocuments(currentFolderPath.value, false).then(res2 => {
+      documentStore.getDocuments(documentStore.currentFolderPath, false).then(res2 => {
         documents.value = res2
 
         // directory = new Document()
@@ -197,17 +194,19 @@ const archiveFolder = (document: Document) => {
 }
 
 function getDirectoryPath(): string {
-  return !currentFolderPath.value || currentFolderPath.value === '/docs/expenseManager/filofax'
+  const path = documentStore.currentFolderPath
+
+  return !path || path === ROOT_FOLDER_PATH
     ? '/'
-    : currentFolderPath.value.replace('/docs/expenseManager/filofax/', '/')
+    : path.replace(`${ROOT_FOLDER_PATH}/`, '/')
 }
 
 const move = () => {
-  router.push('/documents/move')
+  router.push('/documents-move')
 }
 
 const saveUploadDocument = async () => {
-  selectedItem.value.folderPath = currentFolderPath.value
+  selectedItem.value.folderPath = documentStore.currentFolderPath
 
   const isExistingDocument = selectedItem.value.id > 0
 
@@ -218,7 +217,7 @@ const saveUploadDocument = async () => {
   if (!result)
     return
 
-  const folderPath = result.folderPath || currentFolderPath.value
+  const folderPath = result.folderPath || documentStore.currentFolderPath
   const refreshedDocuments = await documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived')
   if (refreshedDocuments)
     documents.value = refreshedDocuments
@@ -240,14 +239,15 @@ watch(uploadDocument, isOpen => {
 
 onMounted(() => {
   if (route.query.existingFolder) {
-    openFolder(currentFolderPath.value)
+    openFolder(documentStore.currentFolderPath)
   }
   else {
     documentStore
       .getDocuments(ROOT_FOLDER_PATH, archiveButtonDescription.value === 'Hide Archived')
       .then(res => {
         documents.value = res
-        currentFolderPath.value = ROOT_FOLDER_PATH
+        documentStore.currentFolderPath = ROOT_FOLDER_PATH
+        displayedFolderPath.value = getDirectoryPath()
       })
   }
 })
@@ -274,9 +274,9 @@ onMounted(() => {
         sm="auto"
       >
         <VBtn
-          v-if="currentFolderPath !== '/docs/expenseManager/filofax'"
+          v-if="documentStore.currentFolderPath !== ROOT_FOLDER_PATH"
           color="primary"
-          @click="openFolder('/docs/expenseManager/filofax')"
+          @click="openFolder(ROOT_FOLDER_PATH)"
         >
           Home
         </VBtn>
@@ -286,7 +286,7 @@ onMounted(() => {
         sm="auto"
       >
         <VBtn
-          v-if="currentFolderPath !== '/docs/expenseManager/filofax'"
+          v-if="documentStore.currentFolderPath !== ROOT_FOLDER_PATH"
           color="primary"
           @click="openParentFolder"
         >
@@ -324,6 +324,17 @@ onMounted(() => {
           @click="openUploadFile"
         >
           Upload File
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="8"
+        sm="auto"
+      >
+        <VBtn
+          color="primary"
+          @click="move"
+        >
+          Move
         </VBtn>
       </VCol>
     </VRow>
@@ -410,7 +421,7 @@ onMounted(() => {
               :key="documentUploadKey"
               v-model="selectedItem"
               upload-type="documents"
-              :upload-path="currentFolderPath"
+              :upload-path="documentStore.currentFolderPath"
             />
           </VCol>
         </VRow>

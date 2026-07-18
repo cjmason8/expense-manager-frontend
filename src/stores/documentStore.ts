@@ -2,6 +2,9 @@ import axios from 'axios'
 import type { Document } from '@/types/document'
 
 export const useDocumentStore = defineStore('document', () => {
+  const ROOT_FOLDER_PATH = '/docs/expenseManager/filofax'
+  const currentFolderPath = ref(ROOT_FOLDER_PATH)
+
   const uploadFile = async (file: File, type?: string, path?: string) => {
     const formData = new FormData()
 
@@ -206,6 +209,41 @@ export const useDocumentStore = defineStore('document', () => {
     }
   }
 
+  const moveFiles = async (fileIds: Array<string | number>, directoryTo: string) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+
+      const response = await axios.post(
+        '/documents/move',
+        JSON.stringify({
+          fileIds,
+          directoryTo,
+        }),
+        config,
+      )
+
+      const data = response.data
+      if (typeof data === 'string') {
+        try {
+          return JSON.parse(data) as { folderPath?: string }
+        }
+        catch {
+          return { folderPath: directoryTo }
+        }
+      }
+
+      return data as { folderPath?: string }
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   function getMediaType(fileName: string) {
     let mediaType = 'application/pdf'
     if (fileName.endsWith('doc') || fileName.endsWith('docx'))
@@ -219,6 +257,8 @@ export const useDocumentStore = defineStore('document', () => {
   }
 
   return {
+    ROOT_FOLDER_PATH,
+    currentFolderPath,
     uploadFile,
     getFileById,
     getDocuments,
@@ -228,5 +268,6 @@ export const useDocumentStore = defineStore('document', () => {
     addDocument,
     createDirectory,
     updateDirectory,
+    moveFiles,
   }
 })
