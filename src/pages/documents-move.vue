@@ -88,6 +88,7 @@ async function loadDestFolders(path: string) {
   moveError.value = ''
   try {
     const res = await documentStore.getDocuments(path, false)
+
     destFolderPath.value = path
     destFolders.value = (res ?? [])
       .filter(doc => doc.isFolder)
@@ -100,11 +101,12 @@ async function loadDestFolders(path: string) {
 
 function openDestFolder(folder: Document) {
   const nextPath = `${folder.folderPath}/${folder.fileName}`
-  void loadDestFolders(nextPath)
+
+  loadDestFolders(nextPath)
 }
 
 function goToDestPath(path: string) {
-  void loadDestFolders(path)
+  loadDestFolders(path)
 }
 
 function goUpDest() {
@@ -112,11 +114,12 @@ function goUpDest() {
     return
 
   const lastSlash = destFolderPath.value.lastIndexOf('/')
+
   const parent = lastSlash > 0
     ? destFolderPath.value.slice(0, lastSlash)
     : documentStore.ROOT_FOLDER_PATH
 
-  void loadDestFolders(parent || documentStore.ROOT_FOLDER_PATH)
+  loadDestFolders(parent || documentStore.ROOT_FOLDER_PATH)
 }
 
 async function moveFiles() {
@@ -148,12 +151,12 @@ async function moveFiles() {
 }
 
 function cancel() {
-  void router.push('/documents')
+  router.push('/documents')
 }
 
 onMounted(() => {
-  void loadDocuments()
-  void loadDestFolders(documentStore.ROOT_FOLDER_PATH)
+  loadDocuments()
+  loadDestFolders(documentStore.ROOT_FOLDER_PATH)
 })
 </script>
 

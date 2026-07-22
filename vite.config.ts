@@ -1,5 +1,5 @@
-import type { ProxyOptions } from 'vite'
 import { fileURLToPath } from 'node:url'
+import type { ProxyOptions } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import AutoImport from 'unplugin-auto-import/vite'

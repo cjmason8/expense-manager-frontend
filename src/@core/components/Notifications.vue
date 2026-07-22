@@ -150,7 +150,7 @@ const totalUnreadNotifications = computed(
                       variant="tonal"
                       @click.stop="handleAvatarClick(notification)"
                     >
-                      <span v-if="notification.text != ''">{{
+                      <span v-if="notification.text !== ''">{{
                         avatarText(notification.text)
                       }}</span>
                       <!--

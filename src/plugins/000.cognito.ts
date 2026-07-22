@@ -20,6 +20,6 @@ else {
   })
 }
 
-export default function (_app: App) {
+export default function (_: App) {
   // Configuration runs at import time so Amplify is ready before authStore / axios.
 }

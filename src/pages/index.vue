@@ -2,6 +2,7 @@
 import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
 import { useRoute } from 'vue-router'
+// eslint-disable-next-line no-restricted-imports
 import { VCardTitle } from 'vuetify/components'
 import { useExpensesStore } from '@/stores/expensesStore'
 import { useIncomesStore } from '@/stores/incomesStore'
@@ -148,7 +149,6 @@ const setPaid = (item: Expense) => {
     expenseStore.unPayExpense(item.id)
 }
 
-
 const findExpenseIndex = (list: Expense[] | undefined, id?: number) => {
   if (!list || id == null)
     return -1
@@ -274,7 +274,7 @@ const saveAddEditIncome = async () => {
     selectedIncomeItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
 
   selectedIncomeItem.value.transactionType = incomeTypes.value.find(
-    refData => refData.id == transactionTypeId.value,
+    refData => refData.id === transactionTypeId.value,
   )
   if (dialogTitle.value?.indexOf('Edit') !== -1)
     await incomeStore.updateIncome(selectedIncomeItem.value)

@@ -116,7 +116,7 @@ function loadFromModel(chunk: string | undefined) {
 
 onMounted(() => {
   if (metadataKeysStore.metadataKeys.length === 0)
-    void metadataKeysStore.getMetadataKeys()
+    metadataKeysStore.getMetadataKeys()
 
   loadFromModel(model.value)
 })

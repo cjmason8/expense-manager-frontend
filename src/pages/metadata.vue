@@ -39,7 +39,7 @@ const canSaveValue = computed(() =>
   && valueText.value.trim() !== selectedValue.value?.value,
 )
 
-void metadataKeysStore.getMetadataKeys()
+metadataKeysStore.getMetadataKeys()
 
 watch(selectedKeyId, async keyId => {
   selectedValueId.value = null

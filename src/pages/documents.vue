@@ -178,21 +178,6 @@ const deleteDocument = (document: Document) => {
   }
 }
 
-const archiveFolder = (document: Document) => {
-  const msg
-    = `Are you sure you want to archive the folder ${document.fileName}?`
-
-  if (confirm(msg)) {
-    documentStore.archiveFolder(document).then(res => {
-      documentStore.getDocuments(documentStore.currentFolderPath, false).then(res2 => {
-        documents.value = res2
-
-        // directory = new Document()
-      })
-    })
-  }
-}
-
 function getDirectoryPath(): string {
   const path = documentStore.currentFolderPath
 

@@ -52,7 +52,7 @@ async function loadAllNotifications() {
   }
 }
 
-void loadActiveNotifications()
+loadActiveNotifications()
 
 const baseNotifications = computed(() => {
   if (showAll.value)
@@ -173,7 +173,7 @@ watch(showAll, includeAll => {
   clearFilters()
 
   if (includeAll)
-    void loadAllNotifications()
+    loadAllNotifications()
   else
     allNotifications.value = []
 })
@@ -213,11 +213,11 @@ const markRead = (item: Notification) => {
     return
 
   if (item.read) {
-    void notificationsStore.markRead(item.id)
+    notificationsStore.markRead(item.id)
     syncNotificationReadState(item.id, true)
   }
   else {
-    void notificationsStore.markUnRead(item.id)
+    notificationsStore.markUnRead(item.id)
     syncNotificationReadState(item.id, false)
   }
 }
@@ -226,162 +226,162 @@ const markRead = (item: Notification) => {
 <template>
   <div class="notifications-page">
     <VCard class="notifications-card">
-    <VCardText class="pb-0 notifications-filters">
-      <VRow
-        class="align-center"
-        dense
-      >
-        <VCol
-          cols="12"
-          md="3"
+      <VCardText class="pb-0 notifications-filters">
+        <VRow
+          class="align-center"
+          dense
         >
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <VCheckbox
+              v-model="showAll"
+              label="Show All"
+              hide-details
+              density="compact"
+              :disabled="notificationsStore.loading || pageLoading"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="4"
+          >
+            <VSelect
+              v-model="selectedExpenseTypeId"
+              :items="expenseTypeOptions"
+              item-title="description"
+              item-value="id"
+              label="Expense type"
+              placeholder="All"
+              clearable
+              hide-details
+              density="compact"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <VTextField
+              v-model="messageFilter"
+              label="Search message"
+              placeholder="Filter by message text..."
+              clearable
+              hide-details
+              density="compact"
+              @keyup.enter="runFilter"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="2"
+            class="d-flex align-center gap-2"
+          >
+            <VBtn
+              color="primary"
+              @click="runFilter"
+            >
+              Filter
+            </VBtn>
+            <VBtn
+              variant="outlined"
+              @click="clearFilters"
+            >
+              Clear
+            </VBtn>
+          </VCol>
+        </VRow>
+        <VRow
+          class="align-center notifications-filters-date-row"
+          dense
+        >
+          <VCol
+            cols="12"
+            md="3"
+          />
+          <VCol
+            cols="12"
+            md="2"
+            class="notifications-date-type-col"
+          >
+            <VRadioGroup
+              v-model="dateFilterType"
+              hide-details
+              density="compact"
+            >
+              <VRadio
+                label="Created"
+                value="created"
+                density="compact"
+                hide-details
+              />
+              <VRadio
+                label="Due date"
+                value="due"
+                density="compact"
+                hide-details
+              />
+            </VRadioGroup>
+          </VCol>
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <label class="text-caption mb-0 d-inline-block">From</label>
+            <DatePicker
+              v-model="dateFrom"
+              class="w-100 notifications-date-field"
+              date-format="dd-mm-yy"
+              show-icon
+              placeholder="From"
+              size="small"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <label class="text-caption mb-0 d-inline-block">To</label>
+            <DatePicker
+              v-model="dateTo"
+              class="w-100 notifications-date-field"
+              date-format="dd-mm-yy"
+              show-icon
+              placeholder="To"
+              size="small"
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VDataTable
+        :headers="headers"
+        :items="displayedNotifications"
+        :items-per-page="15"
+        :loading="pageLoading"
+        loading-text="Loading notifications..."
+        class="notifications-table"
+      >
+        <template #item.read="{ item }">
           <VCheckbox
-            v-model="showAll"
-            label="Show All"
+            v-model="item.read"
+            :disabled="item.removed"
             hide-details
             density="compact"
-            :disabled="notificationsStore.loading || pageLoading"
+            @update:model-value="markRead(item)"
           />
-        </VCol>
-        <VCol
-          cols="12"
-          md="4"
-        >
-          <VSelect
-            v-model="selectedExpenseTypeId"
-            :items="expenseTypeOptions"
-            item-title="description"
-            item-value="id"
-            label="Expense type"
-            placeholder="All"
-            clearable
-            hide-details
-            density="compact"
-          />
-        </VCol>
-        <VCol
-          cols="12"
-          md="3"
-        >
-          <VTextField
-            v-model="messageFilter"
-            label="Search message"
-            placeholder="Filter by message text..."
-            clearable
-            hide-details
-            density="compact"
-            @keyup.enter="runFilter"
-          />
-        </VCol>
-        <VCol
-          cols="12"
-          md="2"
-          class="d-flex align-center gap-2"
-        >
-          <VBtn
-            color="primary"
-            @click="runFilter"
-          >
-            Filter
-          </VBtn>
-          <VBtn
-            variant="outlined"
-            @click="clearFilters"
-          >
-            Clear
-          </VBtn>
-        </VCol>
-      </VRow>
-      <VRow
-        class="align-center notifications-filters-date-row"
-        dense
-      >
-        <VCol
-          cols="12"
-          md="3"
-        />
-        <VCol
-          cols="12"
-          md="2"
-          class="notifications-date-type-col"
-        >
-          <VRadioGroup
-            v-model="dateFilterType"
-            hide-details
-            density="compact"
-          >
-            <VRadio
-              label="Created"
-              value="created"
-              density="compact"
-              hide-details
-            />
-            <VRadio
-              label="Due date"
-              value="due"
-              density="compact"
-              hide-details
-            />
-          </VRadioGroup>
-        </VCol>
-        <VCol
-          cols="12"
-          md="3"
-        >
-          <label class="text-caption mb-0 d-inline-block">From</label>
-          <DatePicker
-            v-model="dateFrom"
-            class="w-100 notifications-date-field"
-            date-format="dd-mm-yy"
-            show-icon
-            placeholder="From"
-            size="small"
-          />
-        </VCol>
-        <VCol
-          cols="12"
-          md="3"
-        >
-          <label class="text-caption mb-0 d-inline-block">To</label>
-          <DatePicker
-            v-model="dateTo"
-            class="w-100 notifications-date-field"
-            date-format="dd-mm-yy"
-            show-icon
-            placeholder="To"
-            size="small"
-          />
-        </VCol>
-      </VRow>
-    </VCardText>
+        </template>
 
-    <VDataTable
-      :headers="headers"
-      :items="displayedNotifications"
-      :items-per-page="15"
-      :loading="pageLoading"
-      loading-text="Loading notifications..."
-      class="notifications-table"
-    >
-      <template #item.read="{ item }">
-        <VCheckbox
-          v-model="item.read"
-          :disabled="item.removed"
-          hide-details
-          density="compact"
-          @update:model-value="markRead(item)"
-        />
-      </template>
-
-      <template #item.removed="{ item }">
-        <VCheckbox
-          :model-value="item.removed"
-          disabled
-          hide-details
-          density="compact"
-        />
-      </template>
-    </VDataTable>
+        <template #item.removed="{ item }">
+          <VCheckbox
+            :model-value="item.removed"
+            disabled
+            hide-details
+            density="compact"
+          />
+        </template>
+      </VDataTable>
     </VCard>
   </div>
 </template>

@@ -2,8 +2,6 @@
 import { useDocumentStore } from '@/stores/documentStore'
 import type { Document } from '@/types/document'
 
-const model = defineModel<Document | undefined>()
-
 const props = withDefaults(defineProps<{
   uploadType?: string
   uploadPath?: string
@@ -15,6 +13,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   uploaded: [document: Document]
 }>()
+
+const model = defineModel<Document | undefined>()
 
 const documentStore = useDocumentStore()
 

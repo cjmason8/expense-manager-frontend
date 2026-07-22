@@ -12,6 +12,7 @@ export async function apiFetch(
   let token: string | undefined
   try {
     const auth = useAuthStore()
+
     token = auth.token || undefined
   }
   catch {

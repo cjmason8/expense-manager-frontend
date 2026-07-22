@@ -26,7 +26,7 @@ const isNewPasswordVisible = ref(false)
 const loading = ref(false)
 
 onMounted(() => {
-  void authStore.clearSessionForLoginPage()
+  authStore.clearSessionForLoginPage()
 })
 
 async function navigateAfterLogin() {
@@ -64,6 +64,7 @@ async function loginUser() {
 async function setNewPassword() {
   if (!form.value.newPassword || form.value.newPassword !== form.value.confirmPassword) {
     authStore.loginError = 'Passwords do not match.'
+
     return
   }
   loading.value = true

@@ -62,14 +62,14 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
     }
   }
 
-  const deleteRentalPayment = async (rentalPayment: RentalPayment) => {
+  const deleteRentalPayment = async (payment: RentalPayment) => {
     try {
       const config = {
         headers: {},
       }
 
       const response = await axios.delete(
-        `/rentalPayments/${rentalPayment.id}`,
+        `/rentalPayments/${payment.id}`,
         config,
       )
 
@@ -89,7 +89,7 @@ export const useRentalPaymentStore = defineStore('rentalPayment', () => {
   }
 
   const getRentalPayments = async (year?: number) => {
-    if (year != undefined && year != null) {
+    if (year !== undefined && year !== null) {
       const response1 = await apiFetch(
         `/rentalPayments/getByProperty/WODONGA/${year}`,
       )

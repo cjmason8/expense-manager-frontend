@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
+// eslint-disable-next-line no-restricted-imports
 import { VCardTitle, VCheckbox } from 'vuetify/components'
 import { useExpensesStore } from '@/stores/expensesStore'
 import { useIncomesStore } from '@/stores/incomesStore'
@@ -79,7 +80,6 @@ const editedExpenseIndex = ref(-1)
 const editedIncomeIndex = ref(-1)
 let startDate: Date | null = null
 let endDate: Date | null = null
-let dueDate: Date | null = null
 const transactionTypeId = ref<number>()
 const recurringTypeId = ref<number>()
 
@@ -104,7 +104,6 @@ const closeEditIncome = () => {
   editIncomeDialog.value = false
   editedIncomeIndex.value = -1
   selectedIncomeItem.value = { ...defaultIncomeItem.value }
-  dueDate = null
   startDate = null
   endDate = null
   recurring.value = false
@@ -240,7 +239,6 @@ const deleteExpensesItemConfirm = () => {
   expenseStore.deleteExpense(selectedExpenseItem.value)
   closeDelete()
 }
-
 </script>
 
 <template>

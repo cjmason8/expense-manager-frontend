@@ -415,7 +415,6 @@ const clearSearch = () => {
   searchMetadataKey.value += 1
 }
 
-
 const findDocumentIndex = (id?: number) => {
   if (id == null)
     return -1

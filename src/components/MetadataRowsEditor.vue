@@ -61,6 +61,7 @@ function keyForName(name: string | null) {
 function optionValuesForRow(row: MetadataRow, editingIndex: number | null = null) {
   const key = keyForName(row.keyName)
   const options = metadataValuesStore.valuesForKey(key?.id)
+
   const selected = new Set(
     row.values.filter((_, index) => index !== editingIndex),
   )

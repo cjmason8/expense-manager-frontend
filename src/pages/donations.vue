@@ -22,13 +22,13 @@ const appliedCauseId = ref<number | null>(null)
 const appliedDateFrom = ref<Date | null>(null)
 const appliedDateTo = ref<Date | null>(null)
 
-void donationsStore.getDonations().then(res => {
+donationsStore.getDonations().then(res => {
   allDonations.value = res ?? []
 })
 
 const refDataStore = useRefDataStore()
 
-void refDataStore.getRefData('cause').then(res => {
+refDataStore.getRefData('cause').then(res => {
   causes.value = res ?? []
 })
 
@@ -185,6 +185,7 @@ const saveAddEdit = async () => {
   )
   if (dialogTitle.value?.indexOf('Edit') !== -1) {
     await donationsStore.updateDonation(selectedItem.value)
+
     const idx = findDonationIndex(selectedItem.value.id)
     if (idx > -1)
       allDonations.value.splice(idx, 1, { ...selectedItem.value })
@@ -299,39 +300,39 @@ const deleteItemConfirm = () => {
       :items-per-page="15"
       class="text-no-wrap donations-table"
     >
-    <template #item.id="{ item }">
-      <span class="text-h6">{{ item.id }}</span>
-    </template>
+      <template #item.id="{ item }">
+        <span class="text-h6">{{ item.id }}</span>
+      </template>
 
-    <!-- Actions -->
-    <template #item.actions="{ item }">
-      <div class="d-flex gap-1">
-        <table>
-          <tr>
-            <td style="min-width: 35px">
-              <DocumentDownloadBtn :document="item.documentDto" />
-            </td>
-            <td style="min-width: 35px">
-              <IconBtn
-                size="small"
-                @click="editItem(item)"
-              >
-                <VIcon icon="ri-pencil-line" />
-              </IconBtn>
-            </td>
-            <td style="min-width: 35px">
-              <IconBtn
-                size="small"
-                @click="deleteItem(item)"
-              >
-                <VIcon icon="ri-delete-bin-line" />
-              </IconBtn>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </template>
-  </VDataTable>
+      <!-- Actions -->
+      <template #item.actions="{ item }">
+        <div class="d-flex gap-1">
+          <table>
+            <tr>
+              <td style="min-width: 35px">
+                <DocumentDownloadBtn :document="item.documentDto" />
+              </td>
+              <td style="min-width: 35px">
+                <IconBtn
+                  size="small"
+                  @click="editItem(item)"
+                >
+                  <VIcon icon="ri-pencil-line" />
+                </IconBtn>
+              </td>
+              <td style="min-width: 35px">
+                <IconBtn
+                  size="small"
+                  @click="deleteItem(item)"
+                >
+                  <VIcon icon="ri-delete-bin-line" />
+                </IconBtn>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </template>
+    </VDataTable>
   </VCard>
 
   <!-- 👉 Add/Edit Dialog  -->

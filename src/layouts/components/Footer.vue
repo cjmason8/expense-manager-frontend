@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// eslint-disable-next-line import/extensions
 import versionRaw from '../../../VERSION?raw'
 
 const version = versionRaw.trim()

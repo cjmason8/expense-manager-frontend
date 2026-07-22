@@ -48,6 +48,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       const url = includeRemoved
         ? '/notifications?includeRemoved=true'
         : '/notifications'
+
       const response = await apiFetch(url, { cache: 'no-store' })
 
       if (!response.ok)

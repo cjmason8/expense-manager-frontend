@@ -30,10 +30,12 @@ function readGroupsFromPayload(payload: Record<string, unknown> | undefined) {
 function readSessionClaims(session: Awaited<ReturnType<typeof fetchAuthSession>>) {
   const accessPayload = session.tokens?.accessToken?.payload as Record<string, unknown> | undefined
   const idPayload = session.tokens?.idToken?.payload as Record<string, unknown> | undefined
+
   const username = accessPayload?.username
     ?? accessPayload?.['cognito:username']
     ?? idPayload?.['cognito:username']
     ?? idPayload?.email
+
   const groups = [...new Set([
     ...readGroupsFromPayload(accessPayload),
     ...readGroupsFromPayload(idPayload),
@@ -203,11 +205,13 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (result.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
         needsNewPassword.value = true
+
         return false
       }
 
       if (result.nextStep.signInStep !== 'DONE') {
         loginError.value = `Additional sign-in step required: ${result.nextStep.signInStep}`
+
         return false
       }
 
@@ -215,6 +219,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
     catch (error: unknown) {
       loginError.value = cognitoLoginErrorMessage(error)
+
       return false
     }
   }
@@ -228,19 +233,23 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (result.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
         loginError.value = 'Please choose a different password that meets the pool policy.'
+
         return false
       }
 
       if (result.nextStep.signInStep !== 'DONE') {
         loginError.value = `Additional sign-in step required: ${result.nextStep.signInStep}`
+
         return false
       }
 
       needsNewPassword.value = false
+
       return await applyAmplifySession()
     }
     catch (error: unknown) {
       loginError.value = cognitoLoginErrorMessage(error)
+
       return false
     }
   }

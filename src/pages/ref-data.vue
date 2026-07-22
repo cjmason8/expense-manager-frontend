@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+// eslint-disable-next-line no-restricted-imports
 import { VCardActions, VCardText } from 'vuetify/components'
 import { useRefDataStore } from '@/stores/refDataStore'
 import type { RefData } from '@/types/refData'
@@ -17,8 +18,6 @@ const selectedItem = ref<RefData>(defaultItem.value)
 const dialogTitle = ref<string>()
 const editedIndex = ref(-1)
 const refData = ref<RefData[]>([])
-
-let selectedDate = new Date()
 
 const addEditDialog = ref(false)
 const deleteDialog = ref(false)
@@ -58,7 +57,7 @@ const filter = () => {
 
 const clear = () => {
   refData.value = JSON.parse(
-    JSON.stringify(refDataStore.refData.filter(ref => !ref.deleted)),
+    JSON.stringify(refDataStore.refData.filter(item => !item.deleted)),
   )
   filterTypeId.value = null
 }
@@ -87,7 +86,6 @@ const closeAddEdit = () => {
   addEditDialog.value = false
   editedIndex.value = -1
   selectedItem.value = { ...defaultItem.value }
-  selectedDate = new Date()
 }
 
 const closeDelete = () => {
@@ -97,18 +95,20 @@ const closeDelete = () => {
 }
 
 const saveAddEdit = async () => {
-  const result = types.find(type => type.id == selectedItem.value.type)
+  const result = types.find(type => type.id === selectedItem.value.type)
   if (result)
     selectedItem.value.typeDescription = result.value
 
   if (dialogTitle.value?.indexOf('Edit') !== -1) {
     await refDataStore.updateRefData(selectedItem.value)
+
     const idx = findRefDataIndex(selectedItem.value.id)
     if (idx > -1)
       refData.value.splice(idx, 1, { ...selectedItem.value })
   }
   else {
     const res = await refDataStore.addRefData(selectedItem.value)
+
     refData.value.push(res)
   }
 
@@ -123,7 +123,7 @@ const deleteItemConfirm = () => {
 
 onMounted(() => {
   refData.value = JSON.parse(
-    JSON.stringify(refDataStore.refData.filter(ref => !ref.deleted)),
+    JSON.stringify(refDataStore.refData.filter(item => !item.deleted)),
   )
 })
 </script>
@@ -324,5 +324,3 @@ onMounted(() => {
     </VCard>
   </VDialog>
 </template>
-
-<style></style>

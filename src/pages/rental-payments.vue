@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
+// eslint-disable-next-line no-restricted-imports
 import { VCardTitle } from 'vuetify/components'
 import { useRentalPaymentStore } from '@/stores/rentalpaymentsStore'
 import type { RentalPayment } from '@/types/rentalPayment'

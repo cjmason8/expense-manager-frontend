@@ -14,7 +14,7 @@ function isLoginPath(fullPath: string) {
  * Re-check session when the tab becomes visible and on a timer — covers idle pages
  * where vue-router does not run (Angular called authenticate when entering each view).
  */
-export default function (_app: App) {
+export default function (_: App) {
   if (typeof window === 'undefined')
     return
 
@@ -45,10 +45,10 @@ export default function (_app: App) {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible')
-      void revalidate()
+      revalidate()
   })
 
   window.setInterval(() => {
-    void revalidate()
+    revalidate()
   }, SESSION_POLL_MS)
 }
