@@ -47,7 +47,7 @@ const handleNotificationClick = (notification: Notification) => {
 
 <template>
   <Notifications
-    :notifications="notificationStore.notifications"
+    :notifications="notificationStore.unreadNotifications"
     @remove="removeNotification"
     @read="markRead"
     @unread="markUnRead"

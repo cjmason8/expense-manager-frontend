@@ -19,14 +19,28 @@ const appliedDateFrom = ref<Date | null>(null)
 const appliedDateTo = ref<Date | null>(null)
 
 const notificationsStore = useNotificationsStore()
+const pageNotifications = ref<Notification[]>([])
+const pageLoading = ref(false)
 
-void notificationsStore.getNotifications()
+async function loadPageNotifications(includeAll = false) {
+  pageLoading.value = true
+  try {
+    pageNotifications.value = includeAll
+      ? await notificationsStore.fetchNotifications(true)
+      : await notificationsStore.getNotifications(false)
+  }
+  finally {
+    pageLoading.value = false
+  }
+}
+
+void loadPageNotifications()
 
 const baseNotifications = computed(() => {
   if (showAll.value)
-    return notificationsStore.notifications
+    return pageNotifications.value
 
-  return notificationsStore.notifications.filter(
+  return pageNotifications.value.filter(
     notification => !notification.read && !notification.removed,
   )
 })
@@ -139,11 +153,27 @@ function clearFilters() {
 
 watch(showAll, includeAll => {
   clearFilters()
-  void notificationsStore.getNotifications(includeAll)
+  void loadPageNotifications(includeAll)
 })
 
+function syncNotificationReadState(id: number, read: boolean) {
+  for (const notification of pageNotifications.value) {
+    if (notification.id === id) {
+      notification.read = read
+      break
+    }
+  }
+
+  for (const notification of notificationsStore.notifications) {
+    if (notification.id === id) {
+      notification.read = read
+      break
+    }
+  }
+}
+
 const displayedNotifications = computed(() => {
-  if (notificationsStore.loading && showAll.value)
+  if (pageLoading.value && showAll.value)
     return []
 
   return sortNewestFirst(applyFilters(baseNotifications.value))
@@ -163,10 +193,14 @@ const markRead = (item: Notification) => {
   if (item.removed)
     return
 
-  if (item.read)
-    notificationsStore.markRead(item.id)
-  else
-    notificationsStore.markUnRead(item.id)
+  if (item.read) {
+    void notificationsStore.markRead(item.id)
+    syncNotificationReadState(item.id, true)
+  }
+  else {
+    void notificationsStore.markUnRead(item.id)
+    syncNotificationReadState(item.id, false)
+  }
 }
 </script>
 
@@ -187,7 +221,7 @@ const markRead = (item: Notification) => {
             label="Show All"
             hide-details
             density="compact"
-            :disabled="notificationsStore.loading"
+            :disabled="notificationsStore.loading || pageLoading"
           />
         </VCol>
         <VCol
@@ -306,7 +340,7 @@ const markRead = (item: Notification) => {
       :headers="headers"
       :items="displayedNotifications"
       :items-per-page="15"
-      :loading="notificationsStore.loading"
+      :loading="pageLoading"
       loading-text="Loading notifications..."
       class="notifications-table"
     >
