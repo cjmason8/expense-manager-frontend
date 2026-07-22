@@ -6,12 +6,6 @@ import { useNotificationsStore } from '@/stores/notificationsStore'
 import type { Notification } from '@/types/notification'
 import type { RefData } from '@/types/refData'
 
-definePage({
-  meta: {
-    layoutWrapperClasses: 'search-layout-full-width',
-  },
-})
-
 const showAll = ref(false)
 const selectedExpenseTypeId = ref<number | null>(null)
 const messageFilter = ref('')
@@ -340,16 +334,6 @@ const markRead = (item: Notification) => {
 </template>
 
 <style scoped lang="scss">
-.notifications-page {
-  inline-size: 100%;
-  max-inline-size: none;
-}
-
-.notifications-card {
-  inline-size: 100%;
-  max-inline-size: none;
-}
-
 .notifications-filters {
   :deep(.notifications-filters-date-row) {
     margin-top: -4px;
