@@ -166,8 +166,18 @@ const verticalNavAttrs = computed(() => {
     max-inline-size: variables.$layout-boxed-content-width;
   }
 
-  &.search-layout-full-width.layout-content-width-boxed .layout-content-capped {
-    max-inline-size: none;
+  &.search-layout-full-width.layout-content-width-boxed {
+    .layout-content-capped {
+      flex: 1 1 auto;
+      inline-size: 100%;
+      max-inline-size: none;
+    }
+
+    .layout-page-content,
+    .page-content-container {
+      inline-size: 100%;
+      max-inline-size: none !important;
+    }
   }
 
   // Undo per-section max-width from `boxed-content` mixins — the cap wrapper owns the limit

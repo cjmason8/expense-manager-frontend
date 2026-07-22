@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import DatePicker from 'primevue/datepicker'
-import { ref } from 'vue'
-import { VCardActions, VCardText } from 'vuetify/components'
+import { computed, ref } from 'vue'
 import { useDonationsStore } from '@/stores/donationsStore'
 import { useRefDataStore } from '@/stores/refDataStore'
 import type { Donation } from '@/types/donation'
@@ -13,18 +12,103 @@ let selectedDate = new Date()
 const addEditDialog = ref(false)
 const deleteDialog = ref(false)
 const causes = ref<RefData[]>([])
-const donations = ref<Donation[]>([])
+const allDonations = ref<Donation[]>([])
 const donationsStore = useDonationsStore()
 
-donationsStore.getDonations().then(res => {
-  donations.value = res
+const selectedCauseId = ref<number | null>(null)
+const dateFrom = ref<Date | null>(null)
+const dateTo = ref<Date | null>(null)
+const appliedCauseId = ref<number | null>(null)
+const appliedDateFrom = ref<Date | null>(null)
+const appliedDateTo = ref<Date | null>(null)
+
+void donationsStore.getDonations().then(res => {
+  allDonations.value = res ?? []
 })
 
 const refDataStore = useRefDataStore()
 
-refDataStore.getRefData('cause').then(res => {
-  causes.value = res
+void refDataStore.getRefData('cause').then(res => {
+  causes.value = res ?? []
 })
+
+const causeOptions = computed(() => {
+  const causesById = new Map<number, RefData>()
+
+  for (const donation of allDonations.value) {
+    if (donation.cause?.id != null && donation.cause.description)
+      causesById.set(donation.cause.id, donation.cause)
+  }
+
+  return [...causesById.values()].sort((a, b) => a.description.localeCompare(b.description))
+})
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function getDueDate(donation: Donation) {
+  const parsed = parseDate(donation.dueDateString)
+
+  return parsed ? startOfDay(parsed) : null
+}
+
+function matchesDueDateFilter(donation: Donation) {
+  const dueDate = getDueDate(donation)
+  const from = appliedDateFrom.value ? startOfDay(appliedDateFrom.value) : null
+  const to = appliedDateTo.value ? startOfDay(appliedDateTo.value) : null
+
+  if (!from && !to)
+    return true
+
+  if (!dueDate)
+    return false
+
+  if (from && !to)
+    return dueDate >= from
+
+  if (!from && to)
+    return dueDate <= to
+
+  const rangeStart = from! <= to! ? from! : to!
+  const rangeEnd = from! <= to! ? to! : from!
+
+  return dueDate >= rangeStart && dueDate <= rangeEnd
+}
+
+const displayedDonations = computed(() => {
+  let filtered = allDonations.value
+
+  if (appliedCauseId.value != null) {
+    filtered = filtered.filter(
+      donation => donation.cause?.id === appliedCauseId.value,
+    )
+  }
+
+  if (appliedDateFrom.value || appliedDateTo.value)
+    filtered = filtered.filter(matchesDueDateFilter)
+
+  return filtered
+})
+
+function runFilter() {
+  appliedCauseId.value = selectedCauseId.value
+  appliedDateFrom.value = dateFrom.value
+  appliedDateTo.value = dateTo.value
+}
+
+function clearFilters() {
+  selectedCauseId.value = null
+  dateFrom.value = null
+  dateTo.value = null
+  appliedCauseId.value = null
+  appliedDateFrom.value = null
+  appliedDateTo.value = null
+}
+
+async function refreshDonations() {
+  allDonations.value = await donationsStore.getDonations()
+}
 
 const defaultItem = ref<Donation>({
   cause: new RefData(),
@@ -38,7 +122,6 @@ const defaultItem = ref<Donation>({
 const selectedItem = ref<Donation>(defaultItem.value)
 const donationFormKey = ref(0)
 const causeId = ref<number>()
-const filterCauseId = ref<number | null>()
 const dialogTitle = ref<string>()
 const editedIndex = ref(-1)
 
@@ -57,24 +140,11 @@ const addDonation = () => {
   dialogTitle.value = 'Add Donation'
 }
 
-const filter = () => {
-  donations.value = donations.value.filter(
-    donation => donation.cause?.id === filterCauseId.value,
-  )
-}
-
-const clear = () => {
-  donationsStore.getDonations().then(res => {
-    donations.value = res
-  })
-  filterCauseId.value = null
-}
-
 const findDonationIndex = (id?: number) => {
   if (id == null)
     return -1
 
-  return donations.value.findIndex(donation => donation.id === id)
+  return allDonations.value.findIndex(donation => donation.id === id)
 }
 
 const editItem = (item: Donation) => {
@@ -117,83 +187,118 @@ const saveAddEdit = async () => {
     await donationsStore.updateDonation(selectedItem.value)
     const idx = findDonationIndex(selectedItem.value.id)
     if (idx > -1)
-      donations.value.splice(idx, 1, { ...selectedItem.value })
+      allDonations.value.splice(idx, 1, { ...selectedItem.value })
   }
   else {
     await donationsStore.addDonation(selectedItem.value)
-    donations.value = await donationsStore.getDonations()
+    await refreshDonations()
   }
 
   closeAddEdit()
 }
 
 const deleteItemConfirm = () => {
-  donations.value.splice(editedIndex.value, 1)
+  allDonations.value.splice(editedIndex.value, 1)
   donationsStore.deleteDonation(selectedItem.value)
   closeDelete()
 }
-
 </script>
 
 <template>
-  <VCard
-    title="Filter"
-    max-width="700px"
-  >
-    <VCardText>
-      <VRow>
+  <VCard class="donations-card">
+    <VCardText class="pb-0 donations-filters">
+      <VRow
+        class="align-center"
+        dense
+      >
         <VCol
-          cols="6"
-          sm="3"
+          cols="12"
+          md="4"
         >
-          <label for="filterCauseId">Cause</label>
+          <VSelect
+            v-model="selectedCauseId"
+            :items="causeOptions"
+            item-title="description"
+            item-value="id"
+            label="Cause"
+            placeholder="All"
+            clearable
+            hide-details
+            density="compact"
+          />
         </VCol>
         <VCol
           cols="12"
-          sm="6"
+          md="8"
+          class="d-flex justify-end"
         >
-          <VSelect
-            v-model="filterCauseId"
-            :items="causes"
-            item-title="description"
-            item-value="id"
-            placeholder="Select..."
-          />
+          <VBtn
+            color="primary"
+            @click="addDonation"
+          >
+            Add Donation
+          </VBtn>
         </VCol>
       </VRow>
-      <VRow>
-        <VSpacer />
-        <VBtn
-          color="primary"
-          style="margin-right: 10px"
-          @click="filter"
+      <VRow
+        class="align-end donations-filters-date-row"
+        dense
+      >
+        <VCol
+          cols="12"
+          md="3"
         >
-          Filter
-        </VBtn>
-        <VBtn
-          color="primary"
-          @click="clear"
+          <label class="text-caption mb-0 d-inline-block">Due date from</label>
+          <DatePicker
+            v-model="dateFrom"
+            class="w-100 donations-date-field"
+            date-format="dd-mm-yy"
+            show-icon
+            placeholder="Due date from"
+            size="small"
+          />
+        </VCol>
+        <VCol
+          cols="12"
+          md="3"
         >
-          Clear
-        </VBtn>
+          <label class="text-caption mb-0 d-inline-block">Due date to</label>
+          <DatePicker
+            v-model="dateTo"
+            class="w-100 donations-date-field"
+            date-format="dd-mm-yy"
+            show-icon
+            placeholder="Due date to"
+            size="small"
+          />
+        </VCol>
+        <VCol
+          cols="12"
+          md="3"
+          class="d-flex align-center gap-2"
+        >
+          <VBtn
+            color="primary"
+            @click="runFilter"
+          >
+            Filter
+          </VBtn>
+          <VBtn
+            variant="outlined"
+            @click="clearFilters"
+          >
+            Clear
+          </VBtn>
+        </VCol>
       </VRow>
     </VCardText>
-  </VCard>
-  <VCardTitle>
-    <VSpacer />
-    <VBtn
-      color="primary"
-      @click="addDonation"
+
+    <VDataTable
+      :headers="headers"
+      :items="displayedDonations"
+      :items-per-page="15"
+      class="text-no-wrap donations-table"
     >
-      Add Donation
-    </VBtn>
-  </VCardTitle>
-  <VDataTable
-    :headers="headers"
-    :items="donations"
-    :items-per-page="15"
-    class="text-no-wrap"
-  >
     <template #item.id="{ item }">
       <span class="text-h6">{{ item.id }}</span>
     </template>
@@ -227,6 +332,7 @@ const deleteItemConfirm = () => {
       </div>
     </template>
   </VDataTable>
+  </VCard>
 
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
@@ -383,6 +489,28 @@ const deleteItemConfirm = () => {
     </VCard>
   </VDialog>
 </template>
+
+<style scoped lang="scss">
+.donations-filters {
+  :deep(.donations-filters-date-row) {
+    margin-top: -4px;
+  }
+
+  :deep(.donations-filters-date-row .v-col) {
+    padding-top: 0;
+  }
+
+  :deep(.donations-date-field .p-inputtext) {
+    font-size: 0.8125rem;
+    padding-block: 0.35rem;
+    padding-inline: 0.5rem;
+  }
+
+  :deep(.donations-date-field .p-datepicker-input-icon-container) {
+    font-size: 0.875rem;
+  }
+}
+</style>
 
 <style>
 .p-datepicker {
