@@ -9,7 +9,7 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
     title: 'expense manager',
 
-    logo: h('div', { innerHTML: 'EM', style: 'font-size: 24px; line-height:0; color: rgb(var(--v-global-theme-primary))' }),
+    logo: h('div', { innerHTML: 'EM', style: 'font-size: 18px; line-height:0; color: rgb(var(--v-global-theme-primary))' }),
     contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Vertical,
     overlayNavFromBreakpoint: breakpointsVuetifyV3.lg - 1, // 1 for matching with vuetify breakpoint. Docs: https://next.vuetifyjs.com/en/features/display-and-platform/

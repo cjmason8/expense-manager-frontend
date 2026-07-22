@@ -20,12 +20,30 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const refNav = ref()
+const configStore = useLayoutConfigStore()
 
 const isHovered = useElementHover(refNav)
+const suppressHoverExpand = ref(false)
 
-provide(injectionKeyIsVerticalNavHovered, isHovered)
+const isNavHovered = computed(() => isHovered.value && !suppressHoverExpand.value)
 
-const configStore = useLayoutConfigStore()
+provide(injectionKeyIsVerticalNavHovered, isNavHovered)
+
+watch(isHovered, hovered => {
+  if (!hovered)
+    suppressHoverExpand.value = false
+})
+
+function toggleVerticalNavCollapsed() {
+  const willCollapse = !configStore.isVerticalNavCollapsed
+
+  configStore.isVerticalNavCollapsed = willCollapse
+
+  if (willCollapse)
+    suppressHoverExpand.value = true
+  else
+    suppressHoverExpand.value = false
+}
 
 const resolveNavItemComponent = (item: NavLink | NavSectionTitle | NavGroup): unknown => {
   if ('heading' in item)
@@ -54,7 +72,7 @@ const handleNavScroll = (evt: Event) => {
   isVerticalNavScrolled.value = (evt.target as HTMLElement).scrollTop > 0
 }
 
-const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
+const hideTitleAndIcon = configStore.isVerticalNavMini(isNavHovered)
 </script>
 
 <template>
@@ -65,7 +83,7 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
     :class="[
       {
         'overlay-nav': configStore.isLessThanOverlayNavBreakpoint,
-        'hovered': isHovered,
+        'hovered': isNavHovered,
         'visible': isOverlayNavActive,
         'scrolled': isVerticalNavScrolled,
       },
@@ -98,7 +116,7 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
             class="d-none nav-unpin"
             :class="configStore.isVerticalNavCollapsed && 'd-lg-block'"
             v-bind="layoutConfig.icons.verticalNavUnPinned"
-            @click="configStore.isVerticalNavCollapsed = !configStore.isVerticalNavCollapsed"
+            @click="toggleVerticalNavCollapsed"
           />
           <Component
             :is="layoutConfig.app.iconRenderer || 'div'"
@@ -106,7 +124,7 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
             class="d-none nav-pin"
             :class="!configStore.isVerticalNavCollapsed && 'd-lg-block'"
             v-bind="layoutConfig.icons.verticalNavPinned"
-            @click="configStore.isVerticalNavCollapsed = !configStore.isVerticalNavCollapsed"
+            @click="toggleVerticalNavCollapsed"
           />
           <Component
             :is="layoutConfig.app.iconRenderer || 'div'"

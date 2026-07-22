@@ -1,4 +1,9 @@
-@forward "@core/scss/template/variables";
+@forward "@core/scss/template/variables" with (
+  $layout-vertical-nav-width: 250px,
+  $vertical-nav-header-padding: 1rem 0.75rem 1rem 1rem,
+  $vertical-nav-header-logo-title-spacing: 0.5rem,
+  $vertical-nav-items-icon-size: 1.125rem
+);
 
 // ℹ️ Remove above import and uncomment below to override core variables.
 // @forward "@core/scss/template/variables" with (

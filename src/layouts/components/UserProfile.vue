@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import avatar1 from '@images/avatars/avatar-1.png'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -24,43 +23,6 @@ async function handleLogout() {
   await authStore.logout()
   await router.push('/login')
 }
-
-const userProfileList = [
-  { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'ri-user-line',
-    title: 'Profile',
-    value: 'profile',
-  },
-  {
-    type: 'navItem',
-    icon: 'ri-settings-4-line',
-    title: 'Settings',
-    value: 'settings',
-  },
-  {
-    type: 'navItem',
-    icon: 'ri-file-text-line',
-    title: 'Billing Plan',
-    value: 'billing',
-    badgeProps: { color: 'error', content: '4' },
-  },
-  { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'ri-money-dollar-circle-line',
-    title: 'Pricing',
-    value: 'pricing',
-  },
-  {
-    type: 'navItem',
-    icon: 'ri-question-line',
-    title: 'FAQ',
-    value: 'faq',
-  },
-  { type: 'divider' },
-]
 </script>
 
 <template>
@@ -115,52 +77,18 @@ const userProfileList = [
             </VListItemSubtitle>
           </VListItem>
 
-          <PerfectScrollbar :options="{ wheelPropagation: false }">
-            <template
-              v-for="item in userProfileList"
-              :key="item.title"
+          <VDivider class="my-1" />
+
+          <VListItem>
+            <VBtn
+              block
+              color="error"
+              append-icon="ri-logout-box-r-line"
+              @click="handleLogout"
             >
-              <VListItem
-                v-if="item.type === 'navItem'"
-                :value="item.value"
-              >
-                <template #prepend>
-                  <VIcon
-                    :icon="item.icon"
-                    size="22"
-                  />
-                </template>
-
-                <VListItemTitle>{{ item.title }}</VListItemTitle>
-
-                <template
-                  v-if="item.badgeProps"
-                  #append
-                >
-                  <VBadge
-                    inline
-                    v-bind="item.badgeProps"
-                  />
-                </template>
-              </VListItem>
-
-              <VDivider
-                v-else
-                class="my-1"
-              />
-            </template>
-
-            <VListItem>
-              <VBtn
-                block
-                color="error"
-                append-icon="ri-logout-box-r-line"
-                @click="handleLogout"
-              >
-                Logout
-              </VBtn>
-            </VListItem>
-          </PerfectScrollbar>
+              Logout
+            </VBtn>
+          </VListItem>
         </VList>
       </VMenu>
       <!-- !SECTION -->

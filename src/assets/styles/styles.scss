@@ -1,1 +1,43 @@
-// Write your overrides
+// Nav header: keep logo, title, and collapse toggle visible in the narrower sidebar
+.layout-nav-type-vertical .layout-vertical-nav {
+  .nav-header {
+    gap: 0.5rem;
+    // Template sets padding-inline-end to 0 — leave room for the collapse toggle
+    padding-inline-end: 0.75rem !important;
+
+    .app-title-wrapper {
+      flex: 1 1 auto;
+      margin-inline-end: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .app-logo {
+      flex-shrink: 1;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .header-action {
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 1;
+      font-size: 1rem;
+    }
+  }
+
+  .app-logo {
+    column-gap: 0.5rem;
+
+    .app-logo-title {
+      overflow: hidden;
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.25rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
