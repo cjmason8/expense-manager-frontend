@@ -20,23 +20,23 @@ export const useNotificationsStore = defineStore('notifications', () => {
         notification.color = 'primary'
       }
       else if (
-        notification.message.startsWith('Unhandled Email with title - ')
-        || notification.message.startsWith('Unhandled Email: ')
+        notification.message?.startsWith('Unhandled Email with title - ')
+        || notification.message?.startsWith('Unhandled Email: ')
       ) {
         notification.title = 'Unhandled Email'
         notification.icon = 'ri-mail-line'
         notification.color = 'error'
         notification.text = ''
       }
-      else if (notification.message.startsWith('Uploaded ')) {
+      else if (notification.message?.startsWith('Uploaded ')) {
         notification.title = 'Email processed'
         notification.icon = 'ri-file-upload-line'
         notification.color = 'success'
         notification.text = ''
       }
       notification.subTitle = notification.message
-        .replace('Unhandled Email with title - ', '')
-        .replace('Unhandled Email: ', '')
+        ?.replace('Unhandled Email with title - ', '')
+        ?.replace('Unhandled Email: ', '') ?? ''
     })
 
     return list
@@ -45,9 +45,13 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const fetchNotifications = async (includeRemoved = false) => {
     loading.value = true
     try {
-      const response = await apiFetch(
-        includeRemoved ? '/notifications?includeRemoved=true' : '/notifications',
-      )
+      const url = includeRemoved
+        ? '/notifications?includeRemoved=true'
+        : '/notifications'
+      const response = await apiFetch(url, { cache: 'no-store' })
+
+      if (!response.ok)
+        throw new Error(`Failed to load notifications (${response.status})`)
 
       return decorateNotifications(await response.json())
     }

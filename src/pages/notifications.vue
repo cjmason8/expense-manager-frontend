@@ -19,28 +19,46 @@ const appliedDateFrom = ref<Date | null>(null)
 const appliedDateTo = ref<Date | null>(null)
 
 const notificationsStore = useNotificationsStore()
-const pageNotifications = ref<Notification[]>([])
+const activeNotifications = ref<Notification[]>([])
+const allNotifications = ref<Notification[]>([])
 const pageLoading = ref(false)
+let allNotificationsRequestId = 0
 
-async function loadPageNotifications(includeAll = false) {
+async function loadActiveNotifications() {
   pageLoading.value = true
   try {
-    pageNotifications.value = includeAll
-      ? await notificationsStore.fetchNotifications(true)
-      : await notificationsStore.getNotifications(false)
+    activeNotifications.value = await notificationsStore.getNotifications(false)
   }
   finally {
     pageLoading.value = false
   }
 }
 
-void loadPageNotifications()
+async function loadAllNotifications() {
+  const requestId = ++allNotificationsRequestId
+
+  pageLoading.value = true
+  try {
+    const data = await notificationsStore.fetchNotifications(true)
+
+    if (requestId !== allNotificationsRequestId)
+      return
+
+    allNotifications.value = data
+  }
+  finally {
+    if (requestId === allNotificationsRequestId)
+      pageLoading.value = false
+  }
+}
+
+void loadActiveNotifications()
 
 const baseNotifications = computed(() => {
   if (showAll.value)
-    return pageNotifications.value
+    return allNotifications.value
 
-  return pageNotifications.value.filter(
+  return activeNotifications.value.filter(
     notification => !notification.read && !notification.removed,
   )
 })
@@ -153,22 +171,23 @@ function clearFilters() {
 
 watch(showAll, includeAll => {
   clearFilters()
-  void loadPageNotifications(includeAll)
+
+  if (includeAll)
+    void loadAllNotifications()
+  else
+    allNotifications.value = []
 })
 
 function syncNotificationReadState(id: number, read: boolean) {
-  for (const notification of pageNotifications.value) {
-    if (notification.id === id) {
-      notification.read = read
-      break
-    }
-  }
+  for (const list of [
+    activeNotifications.value,
+    allNotifications.value,
+    notificationsStore.notifications,
+  ]) {
+    const notification = list.find(item => item.id === id)
 
-  for (const notification of notificationsStore.notifications) {
-    if (notification.id === id) {
+    if (notification)
       notification.read = read
-      break
-    }
   }
 }
 
