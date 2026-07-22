@@ -1,4 +1,4 @@
-# Expense Manager Frontend.
+# Expense Manager Frontend
 
 Vue 3 + Vite frontend for the expense manager application. The current app version is shown in the bottom-right corner
 of the page (from the `VERSION` file).
