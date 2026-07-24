@@ -40,6 +40,7 @@ declare module 'vue' {
     DocumentDownloadBtn: typeof import('./src/components/DocumentDownloadBtn.vue')['default']
     DropZone: typeof import('./src/@core/components/DropZone.vue')['default']
     EnableOneTimePasswordDialog: typeof import('./src/components/dialogs/EnableOneTimePasswordDialog.vue')['default']
+    EntityEntriesList: typeof import('./src/components/EntityEntriesList.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
     FileUploadEditor: typeof import('./src/components/FileUploadEditor.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']

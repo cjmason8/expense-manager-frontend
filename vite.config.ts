@@ -150,6 +150,7 @@ export default defineConfig({
       '/notifications': spaPageProxy(),
       '/incomes': apiProxy(),
       '/donations': spaPageProxy(),
+      '/entities': apiProxy(),
     },
   },
 })

@@ -97,6 +97,12 @@ const verticalNavAttrs = computed(() => {
             />
           </div>
         </header>
+        <div
+          v-if="$slots['entity-nav']"
+          class="layout-entity-nav"
+        >
+          <slot name="entity-nav" />
+        </div>
         <main class="layout-page-content">
           <div class="page-content-container">
             <slot />
@@ -194,6 +200,11 @@ const verticalNavAttrs = computed(() => {
   .layout-content-capped .layout-page-content {
     padding-block-start: 0.5rem;
     padding-block-end: 1rem;
+  }
+
+  .layout-entity-nav {
+    box-sizing: border-box;
+    inline-size: 100%;
   }
 
   .layout-navbar {

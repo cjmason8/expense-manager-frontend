@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
+import EntityTopNav from '@/layouts/components/EntityTopNav.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
@@ -63,6 +64,10 @@ const visibleNavItems = computed(() => {
         />
         <UserProfile />
       </div>
+    </template>
+
+    <template #entity-nav>
+      <EntityTopNav />
     </template>
 
     <!-- 👉 Pages -->
