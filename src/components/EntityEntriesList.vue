@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useEntityEntriesStore } from '@/stores/entityEntriesStore'
 import type { EntityEntry, EntityType } from '@/types/entityEntry'
 import { Document } from '@/types/document'
@@ -45,7 +45,9 @@ async function loadEntries() {
   }
 }
 
-void loadEntries()
+onMounted(() => {
+  loadEntries()
+})
 
 const displayedEntries = computed(() => {
   const query = appliedSearchFilter.value.trim().toLowerCase()
