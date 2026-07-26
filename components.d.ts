@@ -44,6 +44,8 @@ declare module 'vue' {
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
     FileUploadEditor: typeof import('./src/components/FileUploadEditor.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
+    MarkdownContent: typeof import('./src/components/MarkdownContent.vue')['default']
+    MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
     MetadataEditor: typeof import('./src/components/MetadataEditor.vue')['default']
     MetadataRowsEditor: typeof import('./src/components/MetadataRowsEditor.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']

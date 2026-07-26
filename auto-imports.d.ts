@@ -126,9 +126,11 @@ declare global {
   const refWithControl: typeof import('@vueuse/core')['refWithControl']
   const regexValidator: typeof import('./src/@core/utils/validators')['regexValidator']
   const registerPlugins: typeof import('./src/@core/utils/plugins')['registerPlugins']
+  const renderMarkdown: typeof import('./src/utils/renderMarkdown')['renderMarkdown']
   const requiredValidator: typeof import('./src/@core/utils/validators')['requiredValidator']
   const resolveApiBaseUrl: typeof import('./src/utils/resolveApiBaseUrl')['resolveApiBaseUrl']
   const resolveComponent: typeof import('vue')['resolveComponent']
+  const resolveExternalUrl: typeof import('./src/utils/renderMarkdown')['resolveExternalUrl']
   const resolveRef: typeof import('@vueuse/core')['resolveRef']
   const resolveUnref: typeof import('@vueuse/core')['resolveUnref']
   const resolveVuetifyTheme: typeof import('./src/@core/utils/vuetify')['resolveVuetifyTheme']
@@ -139,6 +141,7 @@ declare global {
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
   const storeToRefs: typeof import('pinia')['storeToRefs']
+  const stripMarkdown: typeof import('./src/utils/renderMarkdown')['stripMarkdown']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
   const templateRef: typeof import('@vueuse/core')['templateRef']
@@ -490,9 +493,11 @@ declare module 'vue' {
     readonly refWithControl: UnwrapRef<typeof import('@vueuse/core')['refWithControl']>
     readonly regexValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['regexValidator']>
     readonly registerPlugins: UnwrapRef<typeof import('./src/@core/utils/plugins')['registerPlugins']>
+    readonly renderMarkdown: UnwrapRef<typeof import('./src/utils/renderMarkdown')['renderMarkdown']>
     readonly requiredValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['requiredValidator']>
     readonly resolveApiBaseUrl: UnwrapRef<typeof import('./src/utils/resolveApiBaseUrl')['resolveApiBaseUrl']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
+    readonly resolveExternalUrl: UnwrapRef<typeof import('./src/utils/renderMarkdown')['resolveExternalUrl']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>
     readonly resolveVuetifyTheme: UnwrapRef<typeof import('./src/@core/utils/vuetify')['resolveVuetifyTheme']>
@@ -503,6 +508,7 @@ declare module 'vue' {
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
+    readonly stripMarkdown: UnwrapRef<typeof import('./src/utils/renderMarkdown')['stripMarkdown']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>

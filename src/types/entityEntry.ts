@@ -7,6 +7,7 @@ export interface EntityEntry {
   name: string
   description: string
   type: EntityType
+  link?: string
   documentDto?: Document
   metaDataChunk?: string
 }

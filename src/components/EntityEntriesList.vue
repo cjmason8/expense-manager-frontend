@@ -3,11 +3,13 @@ import { computed, onMounted, ref } from 'vue'
 import { useEntityEntriesStore } from '@/stores/entityEntriesStore'
 import type { EntityEntry, EntityType } from '@/types/entityEntry'
 import { Document } from '@/types/document'
+import { resolveExternalUrl } from '@/utils/renderMarkdown'
 
 const props = defineProps<{
   entityType: EntityType
   entityLabel: string
   uploadType: string
+  showLinkField?: boolean
 }>()
 
 const entityEntriesStore = useEntityEntriesStore()
@@ -29,9 +31,14 @@ const defaultItem = (): EntityEntry => ({
   name: '',
   description: '',
   type: props.entityType,
+  link: props.showLinkField ? '' : undefined,
   documentDto: new Document(),
   metaDataChunk: '',
 })
+
+function entryLink(item: EntityEntry) {
+  return props.showLinkField ? resolveExternalUrl(item.link) : null
+}
 
 const selectedItem = ref<EntityEntry>(defaultItem())
 
@@ -57,7 +64,8 @@ const displayedEntries = computed(() => {
 
   return allEntries.value.filter(entry =>
     entry.name?.toLowerCase().includes(query)
-    || entry.description?.toLowerCase().includes(query),
+    || entry.description?.toLowerCase().includes(query)
+    || entry.link?.toLowerCase().includes(query),
   )
 })
 
@@ -213,8 +221,24 @@ async function deleteItemConfirm() {
         <span class="text-h6">{{ item.id }}</span>
       </template>
 
+      <template #item.name="{ item }">
+        <a
+          v-if="entryLink(item)"
+          :href="entryLink(item)!"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="entity-entry-name-link"
+        >
+          {{ item.name }}
+        </a>
+        <span v-else>{{ item.name }}</span>
+      </template>
+
       <template #item.description="{ item }">
-        <span class="entity-entries-description-cell">{{ item.description }}</span>
+        <MarkdownContent
+          :content="item.description"
+          class="entity-entries-description-cell"
+        />
       </template>
 
       <template #item.actions="{ item }">
@@ -271,11 +295,25 @@ async function deleteItemConfirm() {
             cols="12"
             md="9"
           >
-            <VTextarea
-              :id="`${uploadType}-description`"
-              v-model="selectedItem.description"
-              rows="3"
-              auto-grow
+            <MarkdownEditor v-model="selectedItem.description" />
+          </VCol>
+        </VRow>
+        <VRow v-if="showLinkField">
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <label :for="`${uploadType}-link`">Link</label>
+          </VCol>
+          <VCol
+            cols="12"
+            md="9"
+          >
+            <VTextField
+              :id="`${uploadType}-link`"
+              v-model="selectedItem.link"
+              placeholder="https://..."
+              hide-details
             />
           </VCol>
         </VRow>
@@ -372,5 +410,15 @@ async function deleteItemConfirm() {
   max-inline-size: 100%;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+.entity-entry-name-link {
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>
