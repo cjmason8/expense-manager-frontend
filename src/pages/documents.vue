@@ -91,31 +91,35 @@ const actionDirectory = () => {
   if (directoryAction === 'Create') {
     selectedFolderItem.value.folderPath = documentStore.currentFolderPath
     selectedFolderItem.value.isFolder = true
-    documentStore.createDirectory(selectedFolderItem.value).then(res => {
-      documentStore.getDocuments(res.folderPath, false).then(res2 => {
+    documentStore.createDirectory(selectedFolderItem.value).then(() => {
+      const createdFolderPath = folderFullPath(selectedFolderItem.value)
+
+      documentStore.getDocuments(createdFolderPath, false).then(res2 => {
         documents.value = res2
         syncArchiveStatusFromDocuments(res2)
         selectedFolderItem.value = { ...defaultFolderItem.value }
-        documentStore.currentFolderPath = res.folderPath
+        documentStore.currentFolderPath = createdFolderPath
         displayedFolderPath.value = getDirectoryPath()
       })
     })
   }
   else {
     selectedFolderItem.value.folderPath = documentStore.currentFolderPath
-    rememberFolderArchive(
-      folderFullPath(selectedFolderItem.value),
-      selectedFolderItem.value.isArchived ?? false,
-    )
-    documentStore.updateDirectory(selectedFolderItem.value).then(res => {
+
+    const updatedFolderPath = folderFullPath(selectedFolderItem.value)
+    const updatedFolderIsArchived = selectedFolderItem.value.isArchived ?? false
+
+    rememberFolderArchive(updatedFolderPath, updatedFolderIsArchived)
+
+    documentStore.updateDirectory(selectedFolderItem.value).then(() => {
       documentStore.getDocuments(
-        res.folderPath,
+        updatedFolderPath,
         archiveButtonDescription.value === 'Hide Archived',
       ).then(res2 => {
         documents.value = res2
         syncArchiveStatusFromDocuments(res2)
         selectedFolderItem.value = { ...defaultFolderItem.value }
-        documentStore.currentFolderPath = res.folderPath
+        documentStore.currentFolderPath = updatedFolderPath
         directoryAction = 'Create'
         displayedFolderPath.value = getDirectoryPath()
       })
