@@ -27,6 +27,7 @@ const defaultFolderItem = ref<Document>({
   fileName: '',
   originalFileName: '',
   isFolder: false,
+  isArchived: false,
   folderPath: '',
 })
 
@@ -39,10 +40,45 @@ const documentStore = useDocumentStore()
 const ROOT_FOLDER_PATH = documentStore.ROOT_FOLDER_PATH
 const displayedFolderPath = ref('/')
 const documents = ref<Document[]>([])
+const archivedFoldersByPath = ref<Record<string, boolean>>({})
+
+const currentFolderIsArchived = computed(() =>
+  isFolderArchived(documentStore.currentFolderPath),
+)
+
+function folderFullPath(document: Document) {
+  return `${document.folderPath}/${document.fileName}`
+}
+
+function isFolderArchived(folderPath: string) {
+  if (!folderPath || folderPath === ROOT_FOLDER_PATH)
+    return false
+
+  return archivedFoldersByPath.value[folderPath] ?? false
+}
+
+function rememberFolderArchive(folderPath: string, isArchived: boolean) {
+  archivedFoldersByPath.value = {
+    ...archivedFoldersByPath.value,
+    [folderPath]: isArchived,
+  }
+}
+
+function syncArchiveStatusFromDocuments(items: Document[]) {
+  const next = { ...archivedFoldersByPath.value }
+
+  for (const document of items) {
+    if (document.isFolder)
+      next[folderFullPath(document)] = document.isArchived ?? false
+  }
+
+  archivedFoldersByPath.value = next
+}
 
 const headers = [
   { title: '', key: 'fileName' },
-  { title: '', key: 'actions' },
+  { title: '', key: 'actions', width: '120px', sortable: false },
+  { title: '', key: 'archived', width: '48px', sortable: false },
 ]
 
 const closeAddEditFolder = () => {
@@ -58,6 +94,7 @@ const actionDirectory = () => {
     documentStore.createDirectory(selectedFolderItem.value).then(res => {
       documentStore.getDocuments(res.folderPath, false).then(res2 => {
         documents.value = res2
+        syncArchiveStatusFromDocuments(res2)
         selectedFolderItem.value = { ...defaultFolderItem.value }
         documentStore.currentFolderPath = res.folderPath
         displayedFolderPath.value = getDirectoryPath()
@@ -66,9 +103,17 @@ const actionDirectory = () => {
   }
   else {
     selectedFolderItem.value.folderPath = documentStore.currentFolderPath
+    rememberFolderArchive(
+      folderFullPath(selectedFolderItem.value),
+      selectedFolderItem.value.isArchived ?? false,
+    )
     documentStore.updateDirectory(selectedFolderItem.value).then(res => {
-      documentStore.getDocuments(res.folderPath, false).then(res2 => {
+      documentStore.getDocuments(
+        res.folderPath,
+        archiveButtonDescription.value === 'Hide Archived',
+      ).then(res2 => {
         documents.value = res2
+        syncArchiveStatusFromDocuments(res2)
         selectedFolderItem.value = { ...defaultFolderItem.value }
         documentStore.currentFolderPath = res.folderPath
         directoryAction = 'Create'
@@ -79,13 +124,21 @@ const actionDirectory = () => {
   closeAddEditFolder()
 }
 
-const openFolder = (folderPath: string) => {
+const openFolder = (folderPath: string, isArchived?: boolean) => {
+  if (isArchived != null)
+    rememberFolderArchive(folderPath, isArchived)
+
   documents.value = []
   documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived').then(res => {
     documents.value = res
+    syncArchiveStatusFromDocuments(res)
     documentStore.currentFolderPath = folderPath
     displayedFolderPath.value = getDirectoryPath()
   })
+}
+
+const openFolderItem = (document: Document) => {
+  openFolder(folderFullPath(document), document.isArchived ?? false)
 }
 
 const openParentFolder = () => {
@@ -119,6 +172,7 @@ const toggleArchived = () => {
     archiveButtonDescription.value === 'Hide Archived',
   ).then(res => {
     documents.value = res
+    syncArchiveStatusFromDocuments(res)
     displayedFolderPath.value = getDirectoryPath()
   })
 }
@@ -204,8 +258,10 @@ const saveUploadDocument = async () => {
 
   const folderPath = result.folderPath || documentStore.currentFolderPath
   const refreshedDocuments = await documentStore.getDocuments(folderPath, archiveButtonDescription.value === 'Hide Archived')
-  if (refreshedDocuments)
+  if (refreshedDocuments) {
     documents.value = refreshedDocuments
+    syncArchiveStatusFromDocuments(refreshedDocuments)
+  }
 
   closeUploadDocument()
 }
@@ -231,6 +287,7 @@ onMounted(() => {
       .getDocuments(ROOT_FOLDER_PATH, archiveButtonDescription.value === 'Hide Archived')
       .then(res => {
         documents.value = res
+        syncArchiveStatusFromDocuments(res)
         documentStore.currentFolderPath = ROOT_FOLDER_PATH
         displayedFolderPath.value = getDirectoryPath()
       })
@@ -247,8 +304,15 @@ onMounted(() => {
         sm="auto"
       >
         <VCard>
-          <VCardTitle>
-            {{ displayedFolderPath }}
+          <VCardTitle class="d-flex align-center gap-2">
+            <span>{{ displayedFolderPath }}</span>
+            <VIcon
+              v-if="currentFolderIsArchived"
+              icon="ri-archive-line"
+              size="20"
+              class="documents-archived-icon"
+              title="Archived folder"
+            />
           </VCardTitle>
         </VCard>
       </VCol>
@@ -353,7 +417,7 @@ onMounted(() => {
                       <IconBtn
                         v-if="item.isFolder"
                         size="small"
-                        @click="openFolder(`${item.folderPath}/${item.fileName}`)"
+                        @click="openFolderItem(item)"
                       >
                         <VIcon icon="ri-folder-line" />
                       </IconBtn>
@@ -377,6 +441,16 @@ onMounted(() => {
                   </tr>
                 </table>
               </div>
+            </template>
+
+            <template #item.archived="{ item }">
+              <VIcon
+                v-if="item.isFolder && item.isArchived"
+                icon="ri-archive-line"
+                size="20"
+                class="documents-archived-icon"
+                title="Archived"
+              />
             </template>
           </VDataTable>
         </VCard>
@@ -496,6 +570,15 @@ onMounted(() => {
             <MetadataEditor v-model="selectedFolderItem.metaDataChunk" />
           </VCol>
         </VRow>
+        <VRow v-if="directoryAction === 'Update'">
+          <VCol cols="12">
+            <VCheckbox
+              v-model="selectedFolderItem.isArchived"
+              label="Archive"
+              hide-details
+            />
+          </VCol>
+        </VRow>
       </VCardText>
 
       <VCardText>
@@ -537,5 +620,9 @@ onMounted(() => {
   white-space: normal !important;
   overflow-wrap: break-word;
   flex: 1 1 auto; /* allow the label to grow */
+}
+
+.documents-archived-icon {
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 </style>

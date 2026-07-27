@@ -3,6 +3,7 @@ export class Document {
   fileName: string = ''
   originalFileName: string = ''
   isFolder: boolean = false
+  isArchived: boolean = false
   folderPath: string = ''
   metaDataChunk?: string = ''
 

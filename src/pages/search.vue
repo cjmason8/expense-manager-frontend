@@ -845,6 +845,15 @@ onMounted(async () => {
             <MetadataEditor v-model="selectedDocument.metaDataChunk" />
           </VCol>
         </VRow>
+        <VRow v-if="selectedDocument.isFolder">
+          <VCol cols="12">
+            <VCheckbox
+              v-model="selectedDocument.isArchived"
+              label="Archive"
+              hide-details
+            />
+          </VCol>
+        </VRow>
       </VCardText>
       <VCardText>
         <div class="self-align-end d-flex gap-4 justify-end">
