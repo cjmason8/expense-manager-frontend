@@ -9,8 +9,15 @@ const jsonHeaders = {
 }
 
 export const useEntityEntriesStore = defineStore('entityEntries', () => {
-  const getEntityEntries = async (type?: EntityType) => {
-    const url = type ? `/entities?type=${type}` : '/entities'
+  const getEntityEntries = async (type?: EntityType, includeArchived = false) => {
+    const params = new URLSearchParams()
+    if (type)
+      params.set('type', type)
+    if (includeArchived)
+      params.set('includeArchived', 'true')
+
+    const query = params.toString()
+    const url = query ? `/entities?${query}` : '/entities'
     const response = await apiFetch(url)
 
     if (!response.ok)

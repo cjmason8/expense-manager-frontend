@@ -10,6 +10,7 @@ const props = defineProps<{
   entityLabel: string
   uploadType: string
   showLinkField?: boolean
+  supportsArchive?: boolean
 }>()
 
 const entityEntriesStore = useEntityEntriesStore()
@@ -21,6 +22,8 @@ const deleteDialog = ref(false)
 const dialogTitle = ref('')
 const editedIndex = ref(-1)
 const formKey = ref(0)
+const archiveButtonDescription = ref('Show Archived')
+const includeArchived = ref(false)
 
 const searchFilter = ref('')
 const appliedSearchFilter = ref('')
@@ -32,6 +35,7 @@ const defaultItem = (): EntityEntry => ({
   description: '',
   type: props.entityType,
   link: props.showLinkField ? '' : undefined,
+  isArchived: false,
   documentDto: new Document(),
   metaDataChunk: '',
 })
@@ -45,11 +49,20 @@ const selectedItem = ref<EntityEntry>(defaultItem())
 async function loadEntries() {
   loading.value = true
   try {
-    allEntries.value = await entityEntriesStore.getEntityEntries(props.entityType)
+    allEntries.value = await entityEntriesStore.getEntityEntries(
+      props.entityType,
+      props.supportsArchive ? includeArchived.value : false,
+    )
   }
   finally {
     loading.value = false
   }
+}
+
+function toggleArchived() {
+  includeArchived.value = !includeArchived.value
+  archiveButtonDescription.value = includeArchived.value ? 'Hide Archived' : 'Show Archived'
+  loadEntries()
 }
 
 onMounted(() => {
@@ -78,12 +91,20 @@ function clearFilters() {
   appliedSearchFilter.value = ''
 }
 
-const headers = [
-  { title: 'ID', key: 'id', width: '80px' },
-  { title: 'NAME', key: 'name', minWidth: '180px' },
-  { title: 'DESCRIPTION', key: 'description', minWidth: '320px' },
-  { title: 'ACTIONS', key: 'actions', width: '150px', sortable: false },
-]
+const headers = computed(() => {
+  const base = [
+    { title: 'ID', key: 'id', width: '80px' },
+    { title: 'NAME', key: 'name', minWidth: '180px' },
+    { title: 'DESCRIPTION', key: 'description', minWidth: '320px' },
+  ]
+
+  if (props.supportsArchive)
+    base.push({ title: '', key: 'archived', width: '48px', sortable: false })
+
+  base.push({ title: 'ACTIONS', key: 'actions', width: '150px', sortable: false })
+
+  return base
+})
 
 function findEntryIndex(id?: number) {
   if (id == null)
@@ -135,19 +156,13 @@ async function saveAddEdit() {
     type: props.entityType,
   }
 
-  if (dialogTitle.value.includes('Edit')) {
-    const updated = await entityEntriesStore.updateEntityEntry(payload)
-    const idx = findEntryIndex(updated.id)
+  if (dialogTitle.value.includes('Edit'))
+    await entityEntriesStore.updateEntityEntry(payload)
 
-    if (idx > -1)
-      allEntries.value.splice(idx, 1, updated)
-  }
-  else {
-    const created = await entityEntriesStore.addEntityEntry(payload)
+  else
+    await entityEntriesStore.addEntityEntry(payload)
 
-    allEntries.value.push(created)
-  }
-
+  await loadEntries()
   closeAddEdit()
 }
 
@@ -187,6 +202,13 @@ async function deleteItemConfirm() {
           md="6"
           class="d-flex align-center gap-2 justify-end"
         >
+          <VBtn
+            v-if="supportsArchive"
+            color="primary"
+            @click="toggleArchived"
+          >
+            {{ archiveButtonDescription }}
+          </VBtn>
           <VBtn
             color="primary"
             @click="runFilter"
@@ -238,6 +260,19 @@ async function deleteItemConfirm() {
         <MarkdownContent
           :content="item.description"
           class="entity-entries-description-cell"
+        />
+      </template>
+
+      <template
+        v-if="supportsArchive"
+        #item.archived="{ item }"
+      >
+        <VIcon
+          v-if="item.isArchived"
+          icon="ri-archive-line"
+          size="18"
+          class="entity-entries-archived-icon"
+          title="Archived"
         />
       </template>
 
@@ -313,6 +348,15 @@ async function deleteItemConfirm() {
               :id="`${uploadType}-link`"
               v-model="selectedItem.link"
               placeholder="https://..."
+              hide-details
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="supportsArchive && dialogTitle.includes('Edit')">
+          <VCol cols="12">
+            <VCheckbox
+              v-model="selectedItem.isArchived"
+              label="Archive"
               hide-details
             />
           </VCol>
@@ -420,5 +464,9 @@ async function deleteItemConfirm() {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.entity-entries-archived-icon {
+  opacity: 0.75;
 }
 </style>
