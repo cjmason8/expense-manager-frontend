@@ -242,118 +242,101 @@ const deleteExpensesItemConfirm = () => {
 </script>
 
 <template>
-  <table
-    style="border-spacing: 10px"
-    max-width="500px"
-  >
-    <tr>
-      <td />
-      <td style="float: right">
-        <table>
-          <tr>
-            <td width="50px">
-              Include All
-            </td>
-            <td width="50px">
-              <VCheckbox
-                v-model="includeAll"
-                @change="includeAllFilter"
-              />
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td valign="top">
-        <VCard max-width="750px">
-          <VCardTitle>Incomes</VCardTitle>
-          <VDataTable
-            :headers="incomeHeaders"
-            :items="expenseStore.homeInfo?.incomes"
-            :items-per-page="15"
-            class="text-no-wrap"
-          >
-            <template #item.id="{ item }">
-              <span class="text-h6">{{ item.id }}</span>
-            </template>
+  <div>
+    <div class="d-flex justify-end align-center gap-2 mb-4">
+      <span>Include All</span>
+      <VCheckbox
+        v-model="includeAll"
+        hide-details
+        @change="includeAllFilter"
+      />
+    </div>
 
-            <!-- Actions -->
-            <template #item.actions="{ item }">
-              <div class="d-flex gap-1">
-                <table>
-                  <tr>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="editIncomesItem(item)"
-                      >
-                        <VIcon icon="ri-pencil-line" />
-                      </IconBtn>
-                    </td>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="deleteIncomesItem(item)"
-                      >
-                        <VIcon icon="ri-delete-bin-line" />
-                      </IconBtn>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </template>
-          </VDataTable>
-        </VCard>
-      </td>
-      <td>
-        <VCard max-width="800px">
-          <VCardTitle>Expenses</VCardTitle>
-          <VDataTable
-            :headers="headers"
-            :items="expenseStore.homeInfo?.expenses"
-            :items-per-page="15"
-            class="text-no-wrap"
-            density="compact"
-          >
-            <template #item.paid="{ item }">
-              <VCheckbox
-                v-model="item.paid"
-                dense
-                hide-details
-              />
-            </template>
+    <VCard class="mb-6">
+      <VCardTitle>Incomes</VCardTitle>
+      <VDataTable
+        :headers="incomeHeaders"
+        :items="expenseStore.homeInfo?.incomes"
+        :items-per-page="15"
+        class="text-no-wrap"
+      >
+        <template #item.id="{ item }">
+          <span class="text-h6">{{ item.id }}</span>
+        </template>
 
-            <!-- Actions -->
-            <template #item.actions="{ item }">
-              <div class="d-flex gap-1">
-                <table>
-                  <tr>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="editExpensesItem(item)"
-                      >
-                        <VIcon icon="ri-pencil-line" />
-                      </IconBtn>
-                    </td>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="deleteExpensesItem(item)"
-                      >
-                        <VIcon icon="ri-delete-bin-line" />
-                      </IconBtn>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </template>
-          </VDataTable>
-        </VCard>
-      </td>
-    </tr>
-  </table>
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <table>
+              <tr>
+                <td style="min-width: 35px">
+                  <IconBtn
+                    size="small"
+                    @click="editIncomesItem(item)"
+                  >
+                    <VIcon icon="ri-pencil-line" />
+                  </IconBtn>
+                </td>
+                <td style="min-width: 35px">
+                  <IconBtn
+                    size="small"
+                    @click="deleteIncomesItem(item)"
+                  >
+                    <VIcon icon="ri-delete-bin-line" />
+                  </IconBtn>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </template>
+      </VDataTable>
+    </VCard>
+
+    <VCard>
+      <VCardTitle>Expenses</VCardTitle>
+      <VDataTable
+        :headers="headers"
+        :items="expenseStore.homeInfo?.expenses"
+        :items-per-page="15"
+        class="text-no-wrap"
+        density="compact"
+      >
+        <template #item.paid="{ item }">
+          <VCheckbox
+            v-model="item.paid"
+            dense
+            hide-details
+          />
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <table>
+              <tr>
+                <td style="min-width: 35px">
+                  <IconBtn
+                    size="small"
+                    @click="editExpensesItem(item)"
+                  >
+                    <VIcon icon="ri-pencil-line" />
+                  </IconBtn>
+                </td>
+                <td style="min-width: 35px">
+                  <IconBtn
+                    size="small"
+                    @click="deleteExpensesItem(item)"
+                  >
+                    <VIcon icon="ri-delete-bin-line" />
+                  </IconBtn>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </template>
+      </VDataTable>
+    </VCard>
+  </div>
 
   <!-- 👉 Edit Dialog  -->
   <VDialog
