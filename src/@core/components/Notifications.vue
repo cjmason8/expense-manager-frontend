@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import type { Notification } from '@/types/notification'
+import { useDocumentStore } from '@/stores/documentStore'
 
 interface Props {
   notifications: Notification[]
@@ -27,6 +28,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emit>()
 const menuOpen = ref(false)
 const router = useRouter()
+const documentStore = useDocumentStore()
+
+const canNavigateFromAvatar = (notification: Notification) => {
+  return Boolean(notification.expense?.dueDateString || notification.documentFolderPath)
+}
 
 const isAllMarkRead = computed(() => {
   return props.notifications.some(item => item.read === false)
@@ -46,7 +52,7 @@ const handleClick = (notification: Notification) => {
 }
 
 const handleAvatarClick = async (notification: Notification) => {
-  if (!notification.expense)
+  if (!canNavigateFromAvatar(notification))
     return
 
   emit('remove', notification.id)
@@ -54,7 +60,14 @@ const handleAvatarClick = async (notification: Notification) => {
   // VMenu uses modelValue (v-model), not v-model:open
   menuOpen.value = false
   await nextTick()
-  await router.push(`/home/${notification.expense.dueDateString}`)
+
+  if (notification.documentFolderPath) {
+    documentStore.currentFolderPath = notification.documentFolderPath
+    await router.push({ path: '/documents', query: { existingFolder: 'true' } })
+  }
+  else {
+    await router.push(`/home/${notification.expense!.dueDateString}`)
+  }
 }
 
 const totalUnreadNotifications = computed(

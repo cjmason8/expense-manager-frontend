@@ -28,7 +28,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
         notification.color = 'error'
         notification.text = ''
       }
-      else if (notification.message?.startsWith('Uploaded ')) {
+      else if (
+        notification.message?.startsWith('Uploaded ')
+        || notification.message?.startsWith('Payslip saved: ')
+      ) {
         notification.title = 'Email processed'
         notification.icon = 'ri-file-upload-line'
         notification.color = 'success'
@@ -36,7 +39,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
       }
       notification.subTitle = notification.message
         ?.replace('Unhandled Email with title - ', '')
-        ?.replace('Unhandled Email: ', '') ?? ''
+        ?.replace('Unhandled Email: ', '')
+        ?.replace('Payslip saved: ', '') ?? ''
     })
 
     return list

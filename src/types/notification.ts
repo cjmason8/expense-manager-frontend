@@ -7,6 +7,7 @@ export class Notification {
   createdDateString: string = ''
   read: boolean = false
   removed: boolean = false
+  documentFolderPath?: string
   title: string = ''
   text: string = ''
   subTitle: string = ''
