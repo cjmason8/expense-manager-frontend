@@ -11,6 +11,7 @@ const route = useRoute()
 
 const uploadDocument = ref(false)
 const createDirectory = ref(false)
+const archiveDialog = ref(false)
 const archiveButtonDescription = ref('Show Archived')
 const folderDialogTitle = ref('Add Folder')
 
@@ -33,6 +34,7 @@ const defaultFolderItem = ref<Document>({
 
 const selectedItem = ref<Document>({ ...defaultItem.value })
 const selectedFolderItem = ref<Document>({ ...defaultFolderItem.value })
+const selectedArchiveItem = ref<Document>({ ...defaultFolderItem.value })
 const documentUploadKey = ref(0)
 let directoryAction: string = 'Create'
 
@@ -77,7 +79,7 @@ function syncArchiveStatusFromDocuments(items: Document[]) {
 
 const headers = [
   { title: '', key: 'fileName' },
-  { title: '', key: 'actions', width: '120px', sortable: false },
+  { title: '', key: 'actions', width: '150px', sortable: false },
   { title: '', key: 'archived', width: '48px', sortable: false },
 ]
 
@@ -234,6 +236,34 @@ const deleteDocument = (document: Document) => {
       })
     })
   }
+}
+
+const archiveFolderItem = (document: Document) => {
+  selectedArchiveItem.value = { ...document }
+  archiveDialog.value = true
+}
+
+const closeArchive = () => {
+  archiveDialog.value = false
+  selectedArchiveItem.value = { ...defaultFolderItem.value }
+}
+
+const archiveFolderItemConfirm = async () => {
+  const folder = selectedArchiveItem.value
+  const updatedFolderPath = folderFullPath(folder)
+
+  rememberFolderArchive(updatedFolderPath, true)
+
+  await documentStore.updateDirectory({ ...folder, isArchived: true })
+
+  const res = await documentStore.getDocuments(
+    documentStore.currentFolderPath,
+    archiveButtonDescription.value === 'Hide Archived',
+  )
+
+  documents.value = res
+  syncArchiveStatusFromDocuments(res)
+  closeArchive()
 }
 
 function getDirectoryPath(): string {
@@ -424,6 +454,12 @@ onMounted(() => {
                         @click="openFolderItem(item)"
                       >
                         <VIcon icon="ri-folder-line" />
+                        <VTooltip
+                          activator="parent"
+                          location="top"
+                        >
+                          Open folder
+                        </VTooltip>
                       </IconBtn>
                     </td>
                     <td style="min-width: 35px">
@@ -432,6 +468,12 @@ onMounted(() => {
                         @click="editDocument(item)"
                       >
                         <VIcon icon="ri-pencil-line" />
+                        <VTooltip
+                          activator="parent"
+                          location="top"
+                        >
+                          Edit
+                        </VTooltip>
                       </IconBtn>
                     </td>
                     <td style="min-width: 35px">
@@ -440,6 +482,29 @@ onMounted(() => {
                         @click="deleteDocument(item)"
                       >
                         <VIcon icon="ri-delete-bin-line" />
+                        <VTooltip
+                          activator="parent"
+                          location="top"
+                        >
+                          Delete
+                        </VTooltip>
+                      </IconBtn>
+                    </td>
+                    <td
+                      v-if="item.isFolder && !item.isArchived"
+                      style="min-width: 35px"
+                    >
+                      <IconBtn
+                        size="small"
+                        @click="archiveFolderItem(item)"
+                      >
+                        <VIcon icon="ri-archive-line" />
+                        <VTooltip
+                          activator="parent"
+                          location="top"
+                        >
+                          Archive
+                        </VTooltip>
                       </IconBtn>
                     </td>
                   </tr>
@@ -603,6 +668,33 @@ onMounted(() => {
           </VBtn>
         </div>
       </VCardText>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="archiveDialog"
+    max-width="400px"
+  >
+    <VCard>
+      <VCardTitle>Confirm Archive</VCardTitle>
+      <VCardText>
+        Do you really want to archive
+        <strong>{{ selectedArchiveItem.fileName }}</strong>?
+      </VCardText>
+      <VCardActions>
+        <VBtn
+          color="blue darken-1"
+          @click="closeArchive"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="orange darken-1"
+          @click="archiveFolderItemConfirm"
+        >
+          Archive
+        </VBtn>
+      </VCardActions>
     </VCard>
   </VDialog>
 </template>

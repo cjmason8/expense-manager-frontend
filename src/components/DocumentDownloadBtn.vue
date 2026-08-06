@@ -22,6 +22,12 @@ const loading = computed(() => isDownloading(props.document?.id))
       :icon="loading ? 'ri-loader-4-line' : 'ri-download-line'"
       :class="{ 'document-download-spinner': loading }"
     />
+    <VTooltip
+      activator="parent"
+      location="top"
+    >
+      Download
+    </VTooltip>
   </IconBtn>
 </template>
 

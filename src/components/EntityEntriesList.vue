@@ -19,6 +19,7 @@ const allEntries = ref<EntityEntry[]>([])
 const loading = ref(false)
 const addEditDialog = ref(false)
 const deleteDialog = ref(false)
+const archiveDialog = ref(false)
 const dialogTitle = ref('')
 const editedIndex = ref(-1)
 const formKey = ref(0)
@@ -101,7 +102,7 @@ const headers = computed(() => {
   if (props.supportsArchive)
     base.push({ title: '', key: 'archived', width: '48px', sortable: false })
 
-  base.push({ title: 'ACTIONS', key: 'actions', width: '150px', sortable: false })
+  base.push({ title: 'ACTIONS', key: 'actions', width: '180px', sortable: false })
 
   return base
 })
@@ -137,6 +138,12 @@ function deleteItem(item: EntityEntry) {
   deleteDialog.value = true
 }
 
+function archiveItem(item: EntityEntry) {
+  editedIndex.value = findEntryIndex(item.id)
+  selectedItem.value = { ...item }
+  archiveDialog.value = true
+}
+
 function closeAddEdit() {
   addEditDialog.value = false
   editedIndex.value = -1
@@ -146,6 +153,12 @@ function closeAddEdit() {
 
 function closeDelete() {
   deleteDialog.value = false
+  editedIndex.value = -1
+  selectedItem.value = defaultItem()
+}
+
+function closeArchive() {
+  archiveDialog.value = false
   editedIndex.value = -1
   selectedItem.value = defaultItem()
 }
@@ -173,6 +186,19 @@ async function deleteItemConfirm() {
   await entityEntriesStore.deleteEntityEntry(selectedItem.value.id)
   allEntries.value.splice(editedIndex.value, 1)
   closeDelete()
+}
+
+async function archiveItemConfirm() {
+  if (selectedItem.value.id == null)
+    return
+
+  await entityEntriesStore.updateEntityEntry({
+    ...selectedItem.value,
+    isArchived: true,
+    type: props.entityType,
+  })
+  await loadEntries()
+  closeArchive()
 }
 </script>
 
@@ -284,12 +310,37 @@ async function deleteItemConfirm() {
             @click="editItem(item)"
           >
             <VIcon icon="ri-pencil-line" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Edit
+            </VTooltip>
           </IconBtn>
           <IconBtn
             size="small"
             @click="deleteItem(item)"
           >
             <VIcon icon="ri-delete-bin-line" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Delete
+            </VTooltip>
+          </IconBtn>
+          <IconBtn
+            v-if="supportsArchive && !item.isArchived"
+            size="small"
+            @click="archiveItem(item)"
+          >
+            <VIcon icon="ri-archive-line" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Archive
+            </VTooltip>
           </IconBtn>
         </div>
       </template>
@@ -438,6 +489,33 @@ async function deleteItemConfirm() {
           @click="deleteItemConfirm"
         >
           Delete
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="archiveDialog"
+    max-width="400px"
+  >
+    <VCard>
+      <VCardTitle>Confirm Archive</VCardTitle>
+      <VCardText>
+        Do you really want to archive
+        <strong>{{ selectedItem.name }}</strong>?
+      </VCardText>
+      <VCardActions>
+        <VBtn
+          color="blue darken-1"
+          @click="closeArchive"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="orange darken-1"
+          @click="archiveItemConfirm"
+        >
+          Archive
         </VBtn>
       </VCardActions>
     </VCard>
