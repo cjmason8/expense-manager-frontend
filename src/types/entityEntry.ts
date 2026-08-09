@@ -8,6 +8,7 @@ export interface EntityEntry {
   description: string
   type: EntityType
   link?: string
+  notes?: string[]
   isArchived?: boolean
   documentDto?: Document
   metaDataChunk?: string

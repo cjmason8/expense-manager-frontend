@@ -18,7 +18,7 @@ export const useEntityEntriesStore = defineStore('entityEntries', () => {
 
     const query = params.toString()
     const url = query ? `/entities?${query}` : '/entities'
-    const response = await apiFetch(url)
+    const response = await apiFetch(url, { cache: 'no-store' })
 
     if (!response.ok)
       throw new Error(`Failed to load entities (${response.status})`)
@@ -27,7 +27,7 @@ export const useEntityEntriesStore = defineStore('entityEntries', () => {
   }
 
   const getEntityEntry = async (id: number) => {
-    const response = await apiFetch(`/entities/${id}`)
+    const response = await apiFetch(`/entities/${id}`, { cache: 'no-store' })
 
     if (!response.ok)
       throw new Error(`Failed to load entity (${response.status})`)

@@ -4,5 +4,6 @@
     entity-label="Recipe"
     upload-type="recipes"
     show-link-field
+    show-notes-field
   />
 </template>

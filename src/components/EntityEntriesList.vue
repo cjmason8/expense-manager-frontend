@@ -10,6 +10,7 @@ const props = defineProps<{
   entityLabel: string
   uploadType: string
   showLinkField?: boolean
+  showNotesField?: boolean
   supportsArchive?: boolean
 }>()
 
@@ -20,6 +21,7 @@ const loading = ref(false)
 const addEditDialog = ref(false)
 const deleteDialog = ref(false)
 const archiveDialog = ref(false)
+const notesDialog = ref(false)
 const dialogTitle = ref('')
 const editedIndex = ref(-1)
 const formKey = ref(0)
@@ -36,6 +38,7 @@ const defaultItem = (): EntityEntry => ({
   description: '',
   type: props.entityType,
   link: props.showLinkField ? '' : undefined,
+  notes: props.showNotesField ? [] : undefined,
   isArchived: false,
   documentDto: new Document(),
   metaDataChunk: '',
@@ -46,6 +49,22 @@ function entryLink(item: EntityEntry) {
 }
 
 const selectedItem = ref<EntityEntry>(defaultItem())
+const editingNotes = ref<string[]>([])
+const recipeNotesEditorRef = ref<{ flushPendingNote: () => string[], getNotes: () => string[] } | null>(null)
+
+function normalizeNotes(notes: string[]) {
+  return notes
+    .map(note => note.trim())
+    .filter(note => note.length > 0)
+}
+
+function collectNotesForSave() {
+  return normalizeNotes(
+    recipeNotesEditorRef.value?.flushPendingNote()
+    ?? recipeNotesEditorRef.value?.getNotes()
+    ?? editingNotes.value,
+  )
+}
 
 async function loadEntries() {
   loading.value = true
@@ -102,7 +121,7 @@ const headers = computed(() => {
   if (props.supportsArchive)
     base.push({ title: '', key: 'archived', width: '48px', sortable: false })
 
-  base.push({ title: 'ACTIONS', key: 'actions', width: '180px', sortable: false })
+  base.push({ title: 'ACTIONS', key: 'actions', width: props.showNotesField ? '220px' : '180px', sortable: false })
 
   return base
 })
@@ -116,20 +135,43 @@ function findEntryIndex(id?: number) {
 
 function addEntry() {
   selectedItem.value = defaultItem()
+  editingNotes.value = []
   formKey.value += 1
   addEditDialog.value = true
   dialogTitle.value = `Add ${props.entityLabel}`
 }
 
-function editItem(item: EntityEntry) {
+async function editItem(item: EntityEntry) {
   editedIndex.value = findEntryIndex(item.id)
-  selectedItem.value = {
-    ...item,
-    documentDto: item.documentDto ? { ...item.documentDto } : new Document(),
+
+  let entry = item
+  if (props.showNotesField && item.id != null) {
+    try {
+      entry = await entityEntriesStore.getEntityEntry(item.id)
+    }
+    catch {
+      entry = item
+    }
   }
+
+  selectedItem.value = {
+    ...entry,
+    documentDto: entry.documentDto ? { ...entry.documentDto } : new Document(),
+  }
+  editingNotes.value = [...(entry.notes ?? [])]
   formKey.value += 1
   addEditDialog.value = true
   dialogTitle.value = `Edit ${props.entityLabel}`
+}
+
+function viewNotes(item: EntityEntry) {
+  selectedItem.value = { ...item }
+  notesDialog.value = true
+}
+
+function closeNotes() {
+  notesDialog.value = false
+  selectedItem.value = defaultItem()
 }
 
 function deleteItem(item: EntityEntry) {
@@ -148,6 +190,7 @@ function closeAddEdit() {
   addEditDialog.value = false
   editedIndex.value = -1
   selectedItem.value = defaultItem()
+  editingNotes.value = []
   formKey.value += 1
 }
 
@@ -169,9 +212,14 @@ async function saveAddEdit() {
     type: props.entityType,
   }
 
+  if (props.showNotesField)
+    payload.notes = collectNotesForSave()
+
+  if (!payload.documentDto?.fileName && !payload.documentDto?.id)
+    delete payload.documentDto
+
   if (dialogTitle.value.includes('Edit'))
     await entityEntriesStore.updateEntityEntry(payload)
-
   else
     await entityEntriesStore.addEntityEntry(payload)
 
@@ -306,6 +354,19 @@ async function archiveItemConfirm() {
         <div class="d-flex gap-1">
           <DocumentDownloadBtn :document="item.documentDto" />
           <IconBtn
+            v-if="showNotesField && item.notes?.length"
+            size="small"
+            @click="viewNotes(item)"
+          >
+            <VIcon icon="ri-sticky-note-line" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              View notes
+            </VTooltip>
+          </IconBtn>
+          <IconBtn
             size="small"
             @click="editItem(item)"
           >
@@ -403,6 +464,23 @@ async function archiveItemConfirm() {
             />
           </VCol>
         </VRow>
+        <VRow v-if="showNotesField">
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <label :for="`${uploadType}-notes`">Notes</label>
+          </VCol>
+          <VCol
+            cols="12"
+            md="9"
+          >
+            <RecipeNotesEditor
+              ref="recipeNotesEditorRef"
+              v-model="editingNotes"
+            />
+          </VCol>
+        </VRow>
         <VRow v-if="supportsArchive && dialogTitle.includes('Edit')">
           <VCol cols="12">
             <VCheckbox
@@ -464,6 +542,47 @@ async function archiveItemConfirm() {
           </VBtn>
         </div>
       </VCardText>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="notesDialog"
+    max-width="700px"
+  >
+    <VCard :title="`Notes — ${selectedItem.name}`">
+      <VCardText>
+        <div
+          v-if="!(selectedItem.notes?.length)"
+          class="text-medium-emphasis"
+        >
+          No notes for this recipe.
+        </div>
+        <div
+          v-else
+          class="recipe-notes-view"
+        >
+          <div
+            v-for="(note, index) in selectedItem.notes"
+            :key="index"
+            class="recipe-notes-view__item"
+          >
+            <MarkdownContent
+              :content="note"
+              class="recipe-notes-view__content"
+            />
+          </div>
+        </div>
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="primary"
+          variant="outlined"
+          @click="closeNotes"
+        >
+          Close
+        </VBtn>
+      </VCardActions>
     </VCard>
   </VDialog>
 
@@ -546,5 +665,24 @@ async function archiveItemConfirm() {
 
 .entity-entries-archived-icon {
   opacity: 0.75;
+}
+
+.recipe-notes-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recipe-notes-view__item {
+  padding-block: 8px;
+
+  &:not(:last-child) {
+    border-block-end: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+}
+
+.recipe-notes-view__content {
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 </style>
