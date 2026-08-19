@@ -1,5 +1,21 @@
 import axios from 'axios'
+import type { Document } from '@/types/document'
 import type { Income } from '@/types/income'
+import type { RefData } from '@/types/refData'
+
+interface IncomeSearchParams {
+  transactionType?: RefData
+  keyWords?: string
+  startDateString?: string
+  endDateString?: string
+  metaDataChunk?: string
+}
+
+interface IncomeSearchResult {
+  incomes: Income[]
+  documents: Document[]
+  incomeGraphDto?: unknown
+}
 
 export const useIncomesStore = defineStore('incomes', () => {
   const deleteIncome = async (income: Income) => {
@@ -65,9 +81,25 @@ export const useIncomesStore = defineStore('incomes', () => {
     }
   }
 
+  const searchIncomes = async (searchParams: IncomeSearchParams) => {
+    const response = await axios.post<IncomeSearchResult>(
+      '/search/incomes',
+      searchParams,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      },
+    )
+
+    return response.data
+  }
+
   return {
     addIncome,
     updateIncome,
     deleteIncome,
+    searchIncomes,
   }
 })

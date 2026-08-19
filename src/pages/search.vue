@@ -8,9 +8,11 @@ import { getLatestBarChartConfig } from '@core/libs/chartjs/chartjsConfig'
 import { hexToRgb } from '@core/utils/colorConverter'
 import { useDocumentStore } from '@/stores/documentStore'
 import { useExpensesStore } from '@/stores/expensesStore'
+import { useIncomesStore } from '@/stores/incomesStore'
 import { useRefDataStore } from '@/stores/refDataStore'
 import { Document } from '@/types/document'
 import { Expense } from '@/types/expense'
+import { Income } from '@/types/income'
 import type { RefData } from '@/types/refData'
 
 definePage({
@@ -28,8 +30,11 @@ interface SearchParams {
   metaDataChunk: string
 }
 
+type SearchEntityType = 'expense' | 'income'
+
 const refDataStore = useRefDataStore()
 const expenseStore = useExpensesStore()
+const incomeStore = useIncomesStore()
 const documentStore = useDocumentStore()
 const vuetifyTheme = useTheme()
 
@@ -39,6 +44,10 @@ function extractGraphPayloadFromSearchResult(result: Record<string, unknown>): u
     'expense_graph_dto',
     'expenseGraphDTO',
     'expenseGraph',
+    'incomeGraphDto',
+    'income_graph_dto',
+    'incomeGraphDTO',
+    'incomeGraph',
     'chartData',
     'chart',
     'graph',
@@ -169,9 +178,9 @@ function toBarChartData(dto: unknown, defaultDatasetColor: string): ChartData<'b
   return null
 }
 
-/** Fallback when API omits graph DTO: aggregate search results by expense type. */
-function expensesToBarChartData(
-  list: Expense[],
+/** Fallback when API omits graph DTO: aggregate search results by transaction type. */
+function entriesToBarChartData(
+  list: Array<Expense | Income>,
   defaultDatasetColor: string,
 ): ChartData<'bar'> | null {
   if (!list.length)
@@ -204,26 +213,53 @@ function expensesToBarChartData(
   }
 }
 
+const searchEntityType = ref<SearchEntityType>('expense')
 const expenseTypes = ref<RefData[]>([])
+const incomeTypes = ref<RefData[]>([])
 const expenses = ref<Expense[]>([])
+const incomes = ref<Income[]>([])
 const documents = ref<Document[]>([])
 
 const loading = ref(false)
 const startDate = ref<Date | null>(null)
 const endDate = ref<Date | null>(null)
-const searchExpenseTypeId = ref<number | null>(null)
+const searchTransactionTypeId = ref<number | null>(null)
 const addEditDialog = ref(false)
+const addEditIncomeDialog = ref(false)
 const deleteDialog = ref(false)
+const deleteIncomeDialog = ref(false)
 const editedIndex = ref(-1)
 const selectedItem = ref<Expense>(new Expense())
+const selectedIncomeItem = ref<Income>(new Income())
 const dueDate = ref<Date | null>(null)
 const selectedExpenseTypeId = ref<number | null>(null)
+const selectedIncomeTypeId = ref<number | null>(null)
 const addEditDocumentDialog = ref(false)
 const deleteDocumentDialog = ref(false)
 const selectedDocument = ref<Document>(new Document())
 const documentEditedIndex = ref(-1)
 const documentDialogTitle = ref('Edit Document')
 const expenseGraphDto = ref<unknown>(null)
+
+const transactionTypes = computed(() =>
+  searchEntityType.value === 'expense' ? expenseTypes.value : incomeTypes.value,
+)
+
+const transactionTypeLabel = computed(() =>
+  searchEntityType.value === 'expense' ? 'Expense Type' : 'Income Type',
+)
+
+const entries = computed(() =>
+  searchEntityType.value === 'expense' ? expenses.value : incomes.value,
+)
+
+const entryCountLabel = computed(() =>
+  searchEntityType.value === 'expense' ? 'expense' : 'income',
+)
+
+const graphTitle = computed(() =>
+  searchEntityType.value === 'expense' ? 'Expense graph' : 'Income graph',
+)
 
 /** Bumps when search results change so vue-chartjs remounts with new data. */
 const chartUpdateKey = ref(0)
@@ -237,14 +273,23 @@ const searchParams = ref<SearchParams>({
   metaDataChunk: '',
 })
 
-const expenseHeaders = [
-  { title: 'NAME', key: 'transactionType.description' },
-  { title: 'AMOUNT', key: 'amount' },
-  { title: 'DUE DATE', key: 'dueDateString' },
-  { title: 'PAID', key: 'paid' },
-  { title: 'NOTES', key: 'notes' },
-  { title: 'ACTIONS', key: 'actions' },
-]
+const entryHeaders = computed(() => {
+  const headers = [
+    { title: 'NAME', key: 'transactionType.description' },
+    { title: 'AMOUNT', key: 'amount' },
+    { title: 'DUE DATE', key: 'dueDateString' },
+  ]
+
+  if (searchEntityType.value === 'expense')
+    headers.push({ title: 'PAID', key: 'paid' })
+
+  headers.push(
+    { title: 'NOTES', key: 'notes' },
+    { title: 'ACTIONS', key: 'actions' },
+  )
+
+  return headers
+})
 
 const documentHeaders = [
   { title: 'NAME', key: 'fileName' },
@@ -263,7 +308,7 @@ const chartData = computed(() => {
   if (fromApi)
     return fromApi
 
-  return expensesToBarChartData(expenses.value, primaryBarColor.value)
+  return entriesToBarChartData(entries.value, primaryBarColor.value)
 })
 
 const barChartOptions = computed(() => {
@@ -282,7 +327,7 @@ const barChartOptions = computed(() => {
   }
 })
 
-const expenseTypeFilter = (itemTitle: string, queryText: string) => {
+const transactionTypeFilter = (itemTitle: string, queryText: string) => {
   const normalizedItemTitle = itemTitle.toLowerCase()
   const normalizedQuery = queryText.toLowerCase()
 
@@ -291,7 +336,7 @@ const expenseTypeFilter = (itemTitle: string, queryText: string) => {
 
 const canSearch = computed(() => {
   return Boolean(
-    searchExpenseTypeId.value
+    searchTransactionTypeId.value
     || searchParams.value.keyWords.trim()
     || searchParams.value.metaDataChunk.trim()
     || startDate.value
@@ -310,8 +355,8 @@ const applyDateStrings = () => {
 
 const runSearch = async () => {
   applyDateStrings()
-  searchParams.value.transactionType = searchExpenseTypeId.value
-    ? expenseTypes.value.find(refData => refData.id === searchExpenseTypeId.value) ?? null
+  searchParams.value.transactionType = searchTransactionTypeId.value
+    ? transactionTypes.value.find(refData => refData.id === searchTransactionTypeId.value) ?? null
     : null
 
   if (!canSearch.value)
@@ -319,15 +364,30 @@ const runSearch = async () => {
 
   loading.value = true
   try {
-    const result = await expenseStore.searchExpenses(searchParams.value)
-    const raw = result as Record<string, unknown>
+    if (searchEntityType.value === 'expense') {
+      const result = await expenseStore.searchExpenses(searchParams.value)
+      const raw = result as Record<string, unknown>
 
-    expenses.value = result.expenses ?? []
-    documents.value = result.documents ?? []
-    expenseGraphDto.value
-      = extractGraphPayloadFromSearchResult(raw)
-      ?? result.expenseGraphDto
-      ?? null
+      expenses.value = result.expenses ?? []
+      incomes.value = []
+      documents.value = result.documents ?? []
+      expenseGraphDto.value
+        = extractGraphPayloadFromSearchResult(raw)
+        ?? result.expenseGraphDto
+        ?? null
+    }
+    else {
+      const result = await incomeStore.searchIncomes(searchParams.value)
+      const raw = result as Record<string, unknown>
+
+      incomes.value = result.incomes ?? []
+      expenses.value = []
+      documents.value = result.documents ?? []
+      expenseGraphDto.value
+        = extractGraphPayloadFromSearchResult(raw)
+        ?? result.incomeGraphDto
+        ?? null
+    }
     chartUpdateKey.value += 1
   }
   finally {
@@ -345,7 +405,7 @@ const findExpenseIndex = (id?: number) => {
 const editExpense = (item: Expense) => {
   editedIndex.value = findExpenseIndex(item.id)
   selectedItem.value = { ...item }
-  selectedExpenseTypeId.value = item.transactionType?.id
+  selectedExpenseTypeId.value = item.transactionType?.id ?? null
   dueDate.value = parseDate(item.dueDateString)
   addEditDialog.value = true
 }
@@ -397,6 +457,68 @@ const deleteExpense = async () => {
   closeDeleteExpense()
 }
 
+const findIncomeIndex = (id?: number) => {
+  if (id == null)
+    return -1
+
+  return incomes.value.findIndex(income => income.id === id)
+}
+
+const editIncome = (item: Income) => {
+  editedIndex.value = findIncomeIndex(item.id)
+  selectedIncomeItem.value = { ...item }
+  selectedIncomeTypeId.value = item.transactionType?.id ?? null
+  dueDate.value = parseDate(item.dueDateString)
+  addEditIncomeDialog.value = true
+}
+
+const closeEditIncome = () => {
+  addEditIncomeDialog.value = false
+  editedIndex.value = -1
+  selectedIncomeItem.value = new Income()
+  dueDate.value = null
+  selectedIncomeTypeId.value = null
+}
+
+const saveEditIncome = async () => {
+  if (selectedIncomeTypeId.value) {
+    selectedIncomeItem.value.transactionType = incomeTypes.value.find(
+      refData => refData.id === selectedIncomeTypeId.value,
+    )
+  }
+  if (dueDate.value)
+    selectedIncomeItem.value.dueDateString = format(dueDate.value, 'dd-MM-yyyy')
+
+  await incomeStore.updateIncome(selectedIncomeItem.value)
+
+  const idx = findIncomeIndex(selectedIncomeItem.value.id)
+  if (idx > -1)
+    incomes.value.splice(idx, 1, { ...selectedIncomeItem.value })
+
+  chartUpdateKey.value += 1
+  closeEditIncome()
+}
+
+const promptDeleteIncome = (item: Income) => {
+  editedIndex.value = findIncomeIndex(item.id)
+  selectedIncomeItem.value = { ...item }
+  deleteIncomeDialog.value = true
+}
+
+const closeDeleteIncome = () => {
+  deleteIncomeDialog.value = false
+  editedIndex.value = -1
+  selectedIncomeItem.value = new Income()
+}
+
+const deleteIncome = async () => {
+  await incomeStore.deleteIncome(selectedIncomeItem.value)
+  if (editedIndex.value > -1)
+    incomes.value.splice(editedIndex.value, 1)
+
+  closeDeleteIncome()
+}
+
 const clearSearch = () => {
   searchParams.value = {
     transactionType: null,
@@ -405,15 +527,25 @@ const clearSearch = () => {
     endDateString: '',
     metaDataChunk: '',
   }
-  searchExpenseTypeId.value = null
+  searchTransactionTypeId.value = null
   startDate.value = null
   endDate.value = null
   expenses.value = []
+  incomes.value = []
   documents.value = []
   expenseGraphDto.value = null
   chartUpdateKey.value += 1
   searchMetadataKey.value += 1
 }
+
+watch(searchEntityType, () => {
+  searchTransactionTypeId.value = null
+  expenses.value = []
+  incomes.value = []
+  documents.value = []
+  expenseGraphDto.value = null
+  chartUpdateKey.value += 1
+})
 
 const findDocumentIndex = (id?: number) => {
   if (id == null)
@@ -470,6 +602,7 @@ const deleteDocument = async () => {
 
 onMounted(async () => {
   expenseTypes.value = await refDataStore.getRefData('expenseType')
+  incomeTypes.value = await refDataStore.getRefData('incomeType')
 })
 </script>
 
@@ -480,19 +613,36 @@ onMounted(async () => {
   >
     <VCard class="mb-1">
       <VCardTitle>Search</VCardTitle>
-      <VCardText>
+      <VCardText class="pb-0">
+        <VRadioGroup
+          v-model="searchEntityType"
+          inline
+          hide-details
+          class="mb-4"
+        >
+          <VRadio
+            label="Expense"
+            value="expense"
+          />
+          <VRadio
+            label="Income"
+            value="income"
+          />
+        </VRadioGroup>
+      </VCardText>
+      <VCardText class="pt-0">
         <VRow>
           <VCol
             cols="12"
             md="4"
           >
             <VAutocomplete
-              v-model="searchExpenseTypeId"
-              :items="expenseTypes"
-              :custom-filter="expenseTypeFilter"
+              v-model="searchTransactionTypeId"
+              :items="transactionTypes"
+              :custom-filter="transactionTypeFilter"
               item-title="description"
               item-value="id"
-              label="Expense Type"
+              :label="transactionTypeLabel"
               clearable
             />
           </VCol>
@@ -567,7 +717,7 @@ onMounted(async () => {
 
     <VCard class="mb-1">
       <VCardText>
-        Displaying {{ expenses.length }} expense(s) and {{ documents.length }} document(s)
+        Displaying {{ entries.length }} {{ entryCountLabel }}(s) and {{ documents.length }} document(s)
       </VCardText>
     </VCard>
 
@@ -575,7 +725,7 @@ onMounted(async () => {
       v-if="chartData"
       class="mb-1"
     >
-      <VCardTitle>Expense graph</VCardTitle>
+      <VCardTitle>{{ graphTitle }}</VCardTitle>
       <VCardText class="pt-0">
         <div class="search-expense-chart">
           <BarChart
@@ -631,27 +781,27 @@ onMounted(async () => {
         md="7"
       >
         <VCard>
-          <VCardTitle>Expenses</VCardTitle>
+          <VCardTitle>Transactions</VCardTitle>
           <VDataTable
-            :headers="expenseHeaders"
-            :items="expenses"
+            :headers="entryHeaders"
+            :items="entries"
             :items-per-page="15"
           >
             <template #item.paid="{ item }">
-              <VIcon :icon="item.paid ? 'ri-checkbox-line' : 'ri-checkbox-blank-line'" />
+              <VIcon :icon="(item as Expense).paid ? 'ri-checkbox-line' : 'ri-checkbox-blank-line'" />
             </template>
             <template #item.actions="{ item }">
               <div class="d-flex gap-1">
                 <DocumentDownloadBtn :document="item.documentDto" />
                 <IconBtn
                   size="small"
-                  @click="editExpense(item)"
+                  @click="searchEntityType === 'expense' ? editExpense(item as Expense) : editIncome(item as Income)"
                 >
                   <VIcon icon="ri-pencil-line" />
                 </IconBtn>
                 <IconBtn
                   size="small"
-                  @click="promptDeleteExpense(item)"
+                  @click="searchEntityType === 'expense' ? promptDeleteExpense(item as Expense) : promptDeleteIncome(item as Income)"
                 >
                   <VIcon icon="ri-delete-bin-line" />
                 </IconBtn>
@@ -785,6 +935,113 @@ onMounted(async () => {
   </VDialog>
 
   <VDialog
+    v-model="addEditIncomeDialog"
+    max-width="1100px"
+  >
+    <VCard title="Edit Income">
+      <VCardText>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeTypeId">Income Type</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <VSelect
+              v-model="selectedIncomeTypeId"
+              :items="incomeTypes"
+              item-title="description"
+              item-value="id"
+              placeholder="Select..."
+            />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.amount">Amount</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextField v-model="selectedIncomeItem.amount" />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="dueDate">Due Date</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <DatePicker
+              v-model="dueDate"
+              date-format="dd-mm-yy"
+            />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.notes">Notes</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VTextField v-model="selectedIncomeItem.notes" />
+          </VCol>
+        </VRow>
+        <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedIncomeItem.metaDataChunk">Metadata</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <MetadataEditor v-model="selectedIncomeItem.metaDataChunk" />
+          </VCol>
+        </VRow>
+      </VCardText>
+      <VCardText>
+        <div class="self-align-end d-flex gap-4 justify-end">
+          <VBtn
+            color="error"
+            variant="outlined"
+            @click="closeEditIncome"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="success"
+            variant="elevated"
+            @click="saveEditIncome"
+          >
+            Save
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <VDialog
     v-model="deleteDialog"
     max-width="400px"
   >
@@ -804,6 +1061,33 @@ onMounted(async () => {
         <VBtn
           color="red darken-1"
           @click="deleteExpense"
+        >
+          Delete
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <VDialog
+    v-model="deleteIncomeDialog"
+    max-width="400px"
+  >
+    <VCard>
+      <VCardTitle>Confirm Deletion</VCardTitle>
+      <VCardText>
+        Are you sure you want to delete
+        <strong>{{ selectedIncomeItem.transactionType?.description }}</strong>?
+      </VCardText>
+      <VCardActions>
+        <VBtn
+          color="blue darken-1"
+          @click="closeDeleteIncome"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="red darken-1"
+          @click="deleteIncome"
         >
           Delete
         </VBtn>
