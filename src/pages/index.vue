@@ -110,7 +110,11 @@ const resetIncomeForm = () => {
   editedIndex.value = -1
   selectedIncomeItem.value = createEmptyIncome()
   transactionTypeId.value = undefined
+  recurringTypeId.value = undefined
   dueDate = null
+  startDate = null
+  endDate = null
+  recurring.value = false
   incomeFormKey.value += 1
 }
 
@@ -206,7 +210,11 @@ const editIncomeItem = (item: Income) => {
   selectedIncomeItem.value = { ...item, metaDataChunk: item.metaDataChunk ?? '' }
   incomeFormKey.value += 1
   transactionTypeId.value = selectedIncomeItem.value.transactionType?.id
+  recurringTypeId.value = selectedIncomeItem.value.recurringType?.id
   dueDate = parseDate(selectedIncomeItem.value.dueDateString)
+  startDate = parseDate(selectedIncomeItem.value.startDateString)
+  endDate = parseDate(selectedIncomeItem.value.endDateString)
+  recurring.value = startDate != null
   addEditIncomeDialog.value = true
   dialogTitle.value = 'Edit Income'
 }
@@ -273,9 +281,20 @@ const saveAddEditIncome = async () => {
   if (dueDate != null)
     selectedIncomeItem.value.dueDateString = format(dueDate, 'dd-MM-yyyy')
 
+  if (startDate != null)
+    selectedIncomeItem.value.startDateString = format(startDate, 'dd-MM-yyyy')
+
+  if (endDate != null)
+    selectedIncomeItem.value.endDateString = format(endDate, 'dd-MM-yyyy')
+
   selectedIncomeItem.value.transactionType = incomeTypes.value.find(
     refData => refData.id === transactionTypeId.value,
   )
+  if (recurringTypeId.value != null) {
+    selectedIncomeItem.value.recurringType = recurringTypes.value.find(
+      refData => refData.id === recurringTypeId.value,
+    )
+  }
   if (dialogTitle.value?.indexOf('Edit') !== -1)
     await incomeStore.updateIncome(selectedIncomeItem.value)
   else
@@ -286,6 +305,8 @@ const saveAddEditIncome = async () => {
     await expenseStore.getTransactionsForWeek(week)
   else if (dueDate)
     await expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
+  else if (startDate)
+    await expenseStore.getTransactionsForWeek(format(startDate, 'dd-MM-yyyy'))
   else
     await expenseStore.getTransactionsForWeek()
 
@@ -761,6 +782,74 @@ const deleteIncomesItemConfirm = () => {
           </VCol>
         </VRow>
         <VRow>
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="recurring">Recurring</label>
+          </VCol>
+          <VCol
+            cols="18"
+            sm="9"
+          >
+            <VCheckbox v-model="recurring" />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="recurringTypeId">Recurring Type</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <VSelect
+              v-model="recurringTypeId"
+              :items="recurringTypes"
+              item-title="description"
+              item-value="id"
+              placeholder="Select..."
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedDate">Start Date</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <DatePicker
+              v-model="startDate"
+              date-format="dd-mm-yy"
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="recurring">
+          <VCol
+            cols="6"
+            sm="3"
+          >
+            <label for="selectedDate">End Date</label>
+          </VCol>
+          <VCol
+            cols="12"
+            sm="6"
+          >
+            <DatePicker
+              v-model="endDate"
+              date-format="dd-mm-yy"
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="!recurring">
           <VCol
             cols="6"
             sm="3"
