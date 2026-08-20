@@ -1,10 +1,36 @@
 <script lang="ts" setup>
+import { useRoute } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import type { Notification } from '@/types/notification'
 
 const notificationStore = useNotificationsStore()
+const route = useRoute()
 
-notificationStore.getNotifications()
+const refreshNotifications = () => {
+  if (notificationStore.loading)
+    return
+
+  notificationStore.getNotifications()
+}
+
+refreshNotifications()
+
+watch(() => route.fullPath, () => {
+  refreshNotifications()
+})
+
+const onVisibilityChange = () => {
+  if (document.visibilityState === 'visible')
+    refreshNotifications()
+}
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', onVisibilityChange)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+})
 
 const removeNotification = (notificationId: number) => {
   notificationStore.notifications.forEach((item, index) => {
