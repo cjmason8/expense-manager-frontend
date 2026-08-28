@@ -252,6 +252,8 @@ export const useDocumentStore = defineStore('document', () => {
       mediaType = 'application/vnd.ms-excel'
     else if (fileName.endsWith('jpg') || fileName.endsWith('jpeg'))
       mediaType = 'image/jpeg'
+    else if (fileName.endsWith('png'))
+      mediaType = 'image/png'
 
     return mediaType
   }

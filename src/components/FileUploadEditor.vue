@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   uploadPath?: string
   accept?: string
 }>(), {
-  accept: '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg',
+  accept: '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png',
 })
 
 const emit = defineEmits<{
