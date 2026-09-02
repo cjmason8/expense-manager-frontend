@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 // eslint-disable-next-line no-restricted-imports
 import { VCardActions, VCardText } from 'vuetify/components'
 import { useRefDataStore } from '@/stores/refDataStore'
@@ -17,16 +17,12 @@ const defaultItem = ref<RefData>({
 const selectedItem = ref<RefData>(defaultItem.value)
 const dialogTitle = ref<string>()
 const editedIndex = ref(-1)
-const refData = ref<RefData[]>([])
+const allRefData = ref<RefData[]>([])
 
 const addEditDialog = ref(false)
 const deleteDialog = ref(false)
 
 const refDataStore = useRefDataStore()
-
-refDataStore.getRefData().then(res => {
-  refData.value = res
-})
 
 const headers = [
   { title: 'ID', key: 'id' },
@@ -35,7 +31,10 @@ const headers = [
   { title: 'ACTIONS', key: 'actions' },
 ]
 
-const filterTypeId = ref<string | null>()
+const filterTypeId = ref<string | null>(null)
+const appliedFilterTypeId = ref<string | null>(null)
+const searchFilter = ref('')
+const appliedSearchFilter = ref('')
 
 const types = [
   { id: 'CAUSE', value: 'Cause' },
@@ -44,29 +43,59 @@ const types = [
   { id: 'RECURRING_TYPE', value: 'Recurring Type' },
 ]
 
+const displayedRefData = computed(() => {
+  let filtered = allRefData.value
+
+  if (appliedFilterTypeId.value) {
+    filtered = filtered.filter(
+      refDataItem => refDataItem.type === appliedFilterTypeId.value,
+    )
+  }
+
+  const query = appliedSearchFilter.value.trim().toLowerCase()
+  if (query) {
+    filtered = filtered.filter(refDataItem =>
+      refDataItem.description?.toLowerCase().includes(query)
+      || refDataItem.value?.toLowerCase().includes(query)
+      || refDataItem.typeDescription?.toLowerCase().includes(query)
+      || refDataItem.type?.toLowerCase().includes(query)
+      || String(refDataItem.id ?? '').includes(query)
+      || refDataItem.metaDataChunk?.toLowerCase().includes(query),
+    )
+  }
+
+  return filtered
+})
+
+async function loadRefData() {
+  const res = await refDataStore.getRefData()
+
+  allRefData.value = res.filter((item: RefData) => !item.deleted)
+  refDataStore.refData = allRefData.value
+}
+
 const addRefData = () => {
   addEditDialog.value = true
   dialogTitle.value = 'Add Ref Data'
 }
 
-const filter = () => {
-  refData.value = refData.value.filter(
-    refDataItem => refDataItem.type === filterTypeId.value,
-  )
+function runFilter() {
+  appliedFilterTypeId.value = filterTypeId.value
+  appliedSearchFilter.value = searchFilter.value
 }
 
-const clear = () => {
-  refData.value = JSON.parse(
-    JSON.stringify(refDataStore.refData.filter(item => !item.deleted)),
-  )
+function clearFilters() {
   filterTypeId.value = null
+  appliedFilterTypeId.value = null
+  searchFilter.value = ''
+  appliedSearchFilter.value = ''
 }
 
 const findRefDataIndex = (id?: number) => {
   if (id == null)
     return -1
 
-  return refData.value.findIndex(refDataItem => refDataItem.id === id)
+  return allRefData.value.findIndex(refDataItem => refDataItem.id === id)
 }
 
 const editItem = (item: RefData) => {
@@ -104,27 +133,27 @@ const saveAddEdit = async () => {
 
     const idx = findRefDataIndex(selectedItem.value.id)
     if (idx > -1)
-      refData.value.splice(idx, 1, { ...selectedItem.value })
+      allRefData.value.splice(idx, 1, { ...selectedItem.value })
   }
   else {
     const res = await refDataStore.addRefData(selectedItem.value)
 
-    refData.value.push(res)
+    allRefData.value.push(res)
   }
 
+  refDataStore.refData = allRefData.value
   closeAddEdit()
 }
 
 const deleteItemConfirm = () => {
-  refData.value.splice(editedIndex.value, 1)
+  allRefData.value.splice(editedIndex.value, 1)
   refDataStore.deleteRefData(selectedItem.value)
+  refDataStore.refData = allRefData.value
   closeDelete()
 }
 
 onMounted(() => {
-  refData.value = JSON.parse(
-    JSON.stringify(refDataStore.refData.filter(item => !item.deleted)),
-  )
+  loadRefData()
 })
 </script>
 
@@ -151,6 +180,26 @@ onMounted(() => {
             item-title="value"
             item-value="id"
             placeholder="Select..."
+            clearable
+          />
+        </VCol>
+      </VRow>
+      <VRow>
+        <VCol
+          cols="6"
+          sm="3"
+        >
+          <label for="searchFilter">Search</label>
+        </VCol>
+        <VCol
+          cols="12"
+          sm="6"
+        >
+          <VTextField
+            v-model="searchFilter"
+            placeholder="Search name, type, value, metadata..."
+            clearable
+            @keyup.enter="runFilter"
           />
         </VCol>
       </VRow>
@@ -159,13 +208,13 @@ onMounted(() => {
         <VBtn
           color="primary"
           style="margin-right: 10px"
-          @click="filter"
+          @click="runFilter"
         >
           Filter
         </VBtn>
         <VBtn
           color="primary"
-          @click="clear"
+          @click="clearFilters"
         >
           Clear
         </VBtn>
@@ -183,7 +232,7 @@ onMounted(() => {
   </VCardTitle>
   <VDataTable
     :headers="headers"
-    :items="refData"
+    :items="displayedRefData"
     :items-per-page="15"
     class="text-no-wrap"
   >
