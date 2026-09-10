@@ -90,39 +90,35 @@ const closeAddEditFolder = () => {
 }
 
 const actionDirectory = () => {
-  if (directoryAction === 'Create') {
-    selectedFolderItem.value.folderPath = documentStore.currentFolderPath
-    selectedFolderItem.value.isFolder = true
-    documentStore.createDirectory(selectedFolderItem.value).then(() => {
-      const createdFolderPath = folderFullPath(selectedFolderItem.value)
+  const folderItem: Document = {
+    ...selectedFolderItem.value,
+    folderPath: documentStore.currentFolderPath,
+    isFolder: true,
+  }
 
-      documentStore.getDocuments(createdFolderPath, false).then(res2 => {
+  const targetFolderPath = folderFullPath(folderItem)
+
+  if (directoryAction === 'Create') {
+    documentStore.createDirectory(folderItem).then(() => {
+      documentStore.getDocuments(targetFolderPath, false).then(res2 => {
         documents.value = res2
         syncArchiveStatusFromDocuments(res2)
-        selectedFolderItem.value = { ...defaultFolderItem.value }
-        documentStore.currentFolderPath = createdFolderPath
+        documentStore.currentFolderPath = targetFolderPath
         displayedFolderPath.value = getDirectoryPath()
       })
     })
   }
   else {
-    selectedFolderItem.value.folderPath = documentStore.currentFolderPath
+    rememberFolderArchive(targetFolderPath, folderItem.isArchived ?? false)
 
-    const updatedFolderPath = folderFullPath(selectedFolderItem.value)
-    const updatedFolderIsArchived = selectedFolderItem.value.isArchived ?? false
-
-    rememberFolderArchive(updatedFolderPath, updatedFolderIsArchived)
-
-    documentStore.updateDirectory(selectedFolderItem.value).then(() => {
+    documentStore.updateDirectory(folderItem).then(() => {
       documentStore.getDocuments(
-        updatedFolderPath,
+        targetFolderPath,
         archiveButtonDescription.value === 'Hide Archived',
       ).then(res2 => {
         documents.value = res2
         syncArchiveStatusFromDocuments(res2)
-        selectedFolderItem.value = { ...defaultFolderItem.value }
-        documentStore.currentFolderPath = updatedFolderPath
-        directoryAction = 'Create'
+        documentStore.currentFolderPath = targetFolderPath
         displayedFolderPath.value = getDirectoryPath()
       })
     })
