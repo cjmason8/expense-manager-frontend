@@ -264,15 +264,13 @@ const saveAddEdit = async () => {
   else
     await expenseStore.addExpense(selectedItem.value)
 
-  const week = expenseStore.homeInfo?.thisWeek
-  if (week)
-    await expenseStore.getTransactionsForWeek(week)
-  else if (dueDate)
-    await expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
-  else if (startDate)
-    await expenseStore.getTransactionsForWeek(format(startDate, 'dd-MM-yyyy'))
-  else
-    await expenseStore.getTransactionsForWeek()
+  // Land on the week the expense falls in. Fall back to the week on screen only
+  // when the expense carries no date of its own.
+  const targetWeek = selectedItem.value.dueDateString
+    || selectedItem.value.startDateString
+    || expenseStore.homeInfo?.thisWeek
+
+  await expenseStore.getTransactionsForWeek(targetWeek || undefined)
 
   closeAddEdit()
 }
@@ -300,15 +298,13 @@ const saveAddEditIncome = async () => {
   else
     await incomeStore.addIncome(selectedIncomeItem.value)
 
-  const week = expenseStore.homeInfo?.thisWeek
-  if (week)
-    await expenseStore.getTransactionsForWeek(week)
-  else if (dueDate)
-    await expenseStore.getTransactionsForWeek(format(dueDate, 'dd-MM-yyyy'))
-  else if (startDate)
-    await expenseStore.getTransactionsForWeek(format(startDate, 'dd-MM-yyyy'))
-  else
-    await expenseStore.getTransactionsForWeek()
+  // Land on the week the income falls in. Fall back to the week on screen only
+  // when the income carries no date of its own.
+  const targetWeek = selectedIncomeItem.value.dueDateString
+    || selectedIncomeItem.value.startDateString
+    || expenseStore.homeInfo?.thisWeek
+
+  await expenseStore.getTransactionsForWeek(targetWeek || undefined)
 
   closeAddEditIncome()
 }
