@@ -21,9 +21,14 @@ export function createEmptyGrid(rows = DEFAULT_ROWS, cols = DEFAULT_COLS): strin
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => ''))
 }
 
+/** crypto.randomUUID is only available in secure contexts (HTTPS/localhost). */
+function createTableId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function createEmptyCalcTable(name = 'Table'): CalcTable {
   return {
-    id: crypto.randomUUID(),
+    id: createTableId(),
     name,
     cells: createEmptyGrid(),
     merges: [],
@@ -244,7 +249,7 @@ export function parseCalcTable(value: unknown): CalcTable | null {
 
   const id = typeof record.id === 'string' && record.id
     ? record.id
-    : crypto.randomUUID()
+    : createTableId()
 
   const cells = normalizeCells(record.cells)
 
