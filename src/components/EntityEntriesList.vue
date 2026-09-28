@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useEntityEntriesStore } from '@/stores/entityEntriesStore'
+import type { CalcTable } from '@/types/calcTable'
 import type { EntityEntry, EntityType } from '@/types/entityEntry'
 import { Document } from '@/types/document'
+import {
+  getCalcTablesFromChunk,
+  getLegacyCalcTablesFromMetadata,
+  removeLegacyCalcTablesFromMetadata,
+  setCalcTablesInChunk,
+} from '@/utils/calcTable'
 import { resolveExternalUrl } from '@/utils/renderMarkdown'
 
 const props = defineProps<{
@@ -22,6 +29,7 @@ const addEditDialog = ref(false)
 const deleteDialog = ref(false)
 const archiveDialog = ref(false)
 const notesDialog = ref(false)
+const viewDialog = ref(false)
 const dialogTitle = ref('')
 const editedIndex = ref(-1)
 const formKey = ref(0)
@@ -32,6 +40,8 @@ const searchFilter = ref('')
 const appliedSearchFilter = ref('')
 
 const entityLabelPlural = computed(() => `${props.entityLabel}s`)
+const showCalcTables = computed(() => props.entityType === 'NOTES')
+const showViewAction = computed(() => props.entityType === 'NOTES')
 
 const defaultItem = (): EntityEntry => ({
   name: '',
@@ -50,6 +60,9 @@ function entryLink(item: EntityEntry) {
 
 const selectedItem = ref<EntityEntry>(defaultItem())
 const editingNotes = ref<string[]>([])
+const editingCalcTables = ref<CalcTable[]>([])
+const viewedItem = ref<EntityEntry | null>(null)
+const viewedCalcTables = ref<CalcTable[]>([])
 const recipeNotesEditorRef = ref<{ flushPendingNote: () => string[], getNotes: () => string[] } | null>(null)
 
 function normalizeNotes(notes: string[]) {
@@ -121,7 +134,7 @@ const headers = computed(() => {
   if (props.supportsArchive)
     base.push({ title: '', key: 'archived', width: '48px', sortable: false })
 
-  base.push({ title: 'ACTIONS', key: 'actions', width: props.showNotesField ? '220px' : '180px', sortable: false })
+  base.push({ title: 'ACTIONS', key: 'actions', width: props.showNotesField || showViewAction.value ? '220px' : '180px', sortable: false })
 
   return base
 })
@@ -136,16 +149,23 @@ function findEntryIndex(id?: number) {
 function addEntry() {
   selectedItem.value = defaultItem()
   editingNotes.value = []
+  editingCalcTables.value = []
   formKey.value += 1
   addEditDialog.value = true
   dialogTitle.value = `Add ${props.entityLabel}`
+}
+
+function loadCalcTables(entry: EntityEntry) {
+  const tables = getCalcTablesFromChunk(entry.dataChunk)
+
+  return tables.length > 0 ? tables : getLegacyCalcTablesFromMetadata(entry.metaDataChunk)
 }
 
 async function editItem(item: EntityEntry) {
   editedIndex.value = findEntryIndex(item.id)
 
   let entry = item
-  if (props.showNotesField && item.id != null) {
+  if ((props.showNotesField || showCalcTables.value) && item.id != null) {
     try {
       entry = await entityEntriesStore.getEntityEntry(item.id)
     }
@@ -159,9 +179,37 @@ async function editItem(item: EntityEntry) {
     documentDto: entry.documentDto ? { ...entry.documentDto } : new Document(),
   }
   editingNotes.value = [...(entry.notes ?? [])]
+  editingCalcTables.value = showCalcTables.value ? loadCalcTables(entry) : []
   formKey.value += 1
   addEditDialog.value = true
   dialogTitle.value = `Edit ${props.entityLabel}`
+}
+
+async function viewItem(item: EntityEntry) {
+  let entry = item
+  if (item.id != null) {
+    try {
+      entry = await entityEntriesStore.getEntityEntry(item.id)
+    }
+    catch {
+      entry = item
+    }
+  }
+
+  viewedItem.value = entry
+  viewedCalcTables.value = showCalcTables.value ? loadCalcTables(entry) : []
+  viewDialog.value = true
+}
+
+function closeView() {
+  viewDialog.value = false
+}
+
+function editViewedItem() {
+  const entry = viewedItem.value
+  closeView()
+  if (entry)
+    editItem(entry)
 }
 
 function viewNotes(item: EntityEntry) {
@@ -191,6 +239,7 @@ function closeAddEdit() {
   editedIndex.value = -1
   selectedItem.value = defaultItem()
   editingNotes.value = []
+  editingCalcTables.value = []
   formKey.value += 1
 }
 
@@ -214,6 +263,11 @@ async function saveAddEdit() {
 
   if (props.showNotesField)
     payload.notes = collectNotesForSave()
+
+  if (showCalcTables.value) {
+    payload.dataChunk = setCalcTablesInChunk(payload.dataChunk, editingCalcTables.value)
+    payload.metaDataChunk = removeLegacyCalcTablesFromMetadata(payload.metaDataChunk)
+  }
 
   if (!payload.documentDto?.fileName && !payload.documentDto?.id)
     delete payload.documentDto
@@ -331,10 +385,13 @@ async function archiveItemConfirm() {
       </template>
 
       <template #item.description="{ item }">
-        <MarkdownContent
-          :content="item.description"
-          class="entity-entries-description-cell"
-        />
+        <div class="entity-entries-description-cell">
+          <MarkdownContent :content="item.description" />
+          <CalcTablesSummary
+            v-if="showCalcTables"
+            :chunk="item.dataChunk"
+          />
+        </div>
       </template>
 
       <template
@@ -364,6 +421,19 @@ async function archiveItemConfirm() {
               location="top"
             >
               View notes
+            </VTooltip>
+          </IconBtn>
+          <IconBtn
+            v-if="showViewAction"
+            size="small"
+            @click="viewItem(item)"
+          >
+            <VIcon icon="ri-eye-line" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              View
             </VTooltip>
           </IconBtn>
           <IconBtn
@@ -462,6 +532,20 @@ async function archiveItemConfirm() {
               placeholder="https://..."
               hide-details
             />
+          </VCol>
+        </VRow>
+        <VRow v-if="showCalcTables">
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <label>Calculation tables</label>
+          </VCol>
+          <VCol
+            cols="12"
+            md="9"
+          >
+            <CalcTablesEditor v-model="editingCalcTables" />
           </VCol>
         </VRow>
         <VRow v-if="showNotesField">
@@ -587,6 +671,59 @@ async function archiveItemConfirm() {
   </VDialog>
 
   <VDialog
+    v-model="viewDialog"
+    max-width="1100px"
+  >
+    <VCard
+      v-if="viewedItem"
+      :title="viewedItem.name"
+    >
+      <VCardText class="entity-view">
+        <MarkdownContent
+          v-if="viewedItem.description"
+          :content="viewedItem.description"
+        />
+        <div
+          v-else-if="!viewedCalcTables.length"
+          class="text-medium-emphasis"
+        >
+          No description.
+        </div>
+
+        <CalcTablesView
+          v-if="viewedCalcTables.length"
+          :tables="viewedCalcTables"
+        />
+
+        <div
+          v-if="viewedItem.documentDto?.fileName"
+          class="d-flex align-center gap-2"
+        >
+          <DocumentDownloadBtn :document="viewedItem.documentDto" />
+          <span>{{ viewedItem.documentDto.originalFileName || viewedItem.documentDto.fileName }}</span>
+        </div>
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          variant="outlined"
+          prepend-icon="ri-pencil-line"
+          @click="editViewedItem"
+        >
+          Edit
+        </VBtn>
+        <VBtn
+          color="primary"
+          variant="outlined"
+          @click="closeView"
+        >
+          Close
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <VDialog
     v-model="deleteDialog"
     max-width="400px"
   >
@@ -665,6 +802,12 @@ async function archiveItemConfirm() {
 
 .entity-entries-archived-icon {
   opacity: 0.75;
+}
+
+.entity-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .recipe-notes-view {

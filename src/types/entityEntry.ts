@@ -12,4 +12,5 @@ export interface EntityEntry {
   isArchived?: boolean
   documentDto?: Document
   metaDataChunk?: string
+  dataChunk?: string
 }

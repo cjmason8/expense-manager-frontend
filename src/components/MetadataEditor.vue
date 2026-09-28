@@ -8,6 +8,7 @@ const model = defineModel<string | undefined>({ default: '' })
 const metadataKeysStore = useMetadataKeysStore()
 
 const rows = ref<MetadataRow[]>([createEmptyRow()])
+const preservedEntries = ref<Record<string, unknown>>({})
 const syncingFromModel = ref(false)
 
 function createEmptyRow(): MetadataRow {
@@ -56,38 +57,73 @@ function normalizeValues(entryValue: unknown): string[] {
   return [String(entryValue)]
 }
 
+function isPreservedEntry(key: string, entryValue: unknown) {
+  if (key.startsWith('__'))
+    return true
+
+  return entryValue != null && typeof entryValue === 'object' && !Array.isArray(entryValue)
+}
+
+function splitChunkObject(value: unknown): {
+  rowSource: Record<string, unknown>
+  preserved: Record<string, unknown>
+} {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return { rowSource: {}, preserved: {} }
+
+  const rowSource: Record<string, unknown> = {}
+  const preserved: Record<string, unknown> = {}
+
+  for (const [key, entryValue] of Object.entries(value as Record<string, unknown>)) {
+    if (isPreservedEntry(key, entryValue))
+      preserved[key] = entryValue
+    else
+      rowSource[key] = entryValue
+  }
+
+  return { rowSource, preserved }
+}
+
 function objectToRows(value: unknown): MetadataRow[] {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     return [createEmptyRow()]
 
-  const list: MetadataRow[] = Object.entries(value as Record<string, unknown>)
-    .map(([key, entryValue]) => {
-      const values = normalizeValues(entryValue)
-      if (values.length === 0)
-        return null
+  const list: MetadataRow[] = []
 
-      return {
-        keyName: key,
-        values,
-        pendingValue: null,
-        confirmed: true,
-        addingValue: false,
-        editingValueIndex: null,
-      } satisfies MetadataRow
+  for (const [key, entryValue] of Object.entries(value as Record<string, unknown>)) {
+    const values = normalizeValues(entryValue)
+    if (values.length === 0)
+      continue
+
+    list.push({
+      keyName: key,
+      values,
+      pendingValue: null,
+      confirmed: true,
+      addingValue: false,
+      editingValueIndex: null,
     })
-    .filter((row): row is MetadataRow => row != null)
+  }
 
   ensureTrailingEmptyRow(list)
 
   return list.length > 0 ? list : [createEmptyRow()]
 }
 
+function buildChunkFromState() {
+  const built = {
+    ...preservedEntries.value,
+    ...rowsToObject(rows.value),
+  }
+
+  return Object.keys(built).length === 0 ? '' : JSON.stringify(built)
+}
+
 function syncModelFromRows() {
   if (syncingFromModel.value)
     return
 
-  const built = rowsToObject(rows.value)
-  const next = Object.keys(built).length === 0 ? '' : JSON.stringify(built)
+  const next = buildChunkFromState()
 
   if (next !== model.value)
     model.value = next
@@ -98,15 +134,19 @@ function loadFromModel(chunk: string | undefined) {
   try {
     if (!chunk?.trim()) {
       rows.value = [createEmptyRow()]
+      preservedEntries.value = {}
 
       return
     }
 
     try {
-      rows.value = objectToRows(JSON.parse(chunk))
+      const { rowSource, preserved } = splitChunkObject(JSON.parse(chunk))
+      preservedEntries.value = preserved
+      rows.value = objectToRows(rowSource)
     }
     catch {
       rows.value = [createEmptyRow()]
+      preservedEntries.value = {}
     }
   }
   finally {
@@ -122,8 +162,7 @@ onMounted(() => {
 })
 
 watch(model, chunk => {
-  const built = rowsToObject(rows.value)
-  const current = Object.keys(built).length === 0 ? '' : JSON.stringify(built)
+  const current = buildChunkFromState()
 
   if (chunk !== current)
     loadFromModel(chunk)

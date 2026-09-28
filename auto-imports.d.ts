@@ -9,6 +9,8 @@ declare global {
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']
   const EffectScope: typeof import('vue')['EffectScope']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
+  const addColumn: typeof import('./src/utils/calcTable')['addColumn']
+  const addRow: typeof import('./src/utils/calcTable')['addRow']
   const alphaDashValidator: typeof import('./src/@core/utils/validators')['alphaDashValidator']
   const alphaValidator: typeof import('./src/@core/utils/validators')['alphaValidator']
   const apiFetch: typeof import('./src/utils/apiFetch')['apiFetch']
@@ -16,7 +18,11 @@ declare global {
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const avatarText: typeof import('./src/@core/utils/formatters')['avatarText']
   const betweenValidator: typeof import('./src/@core/utils/validators')['betweenValidator']
+  const canMergeRight: typeof import('./src/utils/calcTable')['canMergeRight']
+  const canUnmerge: typeof import('./src/utils/calcTable')['canUnmerge']
+  const clipMergesToGrid: typeof import('./src/utils/calcTable')['clipMergesToGrid']
   const cognitoLoginErrorMessage: typeof import('./src/utils/cognitoErrors')['cognitoLoginErrorMessage']
+  const columnLabel: typeof import('./src/utils/calcTable')['columnLabel']
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
@@ -26,6 +32,8 @@ declare global {
   const controlledComputed: typeof import('@vueuse/core')['controlledComputed']
   const controlledRef: typeof import('@vueuse/core')['controlledRef']
   const createApp: typeof import('vue')['createApp']
+  const createEmptyCalcTable: typeof import('./src/utils/calcTable')['createEmptyCalcTable']
+  const createEmptyGrid: typeof import('./src/utils/calcTable')['createEmptyGrid']
   const createEventHook: typeof import('@vueuse/core')['createEventHook']
   const createGenericProjection: typeof import('@vueuse/math')['createGenericProjection']
   const createGlobalState: typeof import('@vueuse/core')['createGlobalState']
@@ -49,18 +57,25 @@ declare global {
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
   const effectScope: typeof import('vue')['effectScope']
   const emailValidator: typeof import('./src/@core/utils/validators')['emailValidator']
+  const evaluateGrid: typeof import('./src/utils/calcTable')['evaluateGrid']
   const extendRef: typeof import('@vueuse/core')['extendRef']
+  const findMergeAt: typeof import('./src/utils/calcTable')['findMergeAt']
+  const formatCellDisplay: typeof import('./src/utils/calcTable')['formatCellDisplay']
   const formatDate: typeof import('./src/@core/utils/formatters')['formatDate']
   const formatDateToMonthShort: typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']
   const getActivePinia: typeof import('pinia')['getActivePinia']
+  const getCalcTablesFromChunk: typeof import('./src/utils/calcTable')['getCalcTablesFromChunk']
+  const getCellMergeInfo: typeof import('./src/utils/calcTable')['getCellMergeInfo']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getLegacyCalcTablesFromMetadata: typeof import('./src/utils/calcTable')['getLegacyCalcTablesFromMetadata']
   const h: typeof import('vue')['h']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter')['hexToRgb']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
   const inject: typeof import('vue')['inject']
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
   const integerValidator: typeof import('./src/@core/utils/validators')['integerValidator']
+  const isCoveredCell: typeof import('./src/utils/calcTable')['isCoveredCell']
   const isDefined: typeof import('@vueuse/core')['isDefined']
   const isEmpty: typeof import('./src/@core/utils/helpers')['isEmpty']
   const isEmptyArray: typeof import('./src/@core/utils/helpers')['isEmptyArray']
@@ -83,7 +98,9 @@ declare global {
   const mapStores: typeof import('pinia')['mapStores']
   const mapWritableState: typeof import('pinia')['mapWritableState']
   const markRaw: typeof import('vue')['markRaw']
+  const mergeRight: typeof import('./src/utils/calcTable')['mergeRight']
   const nextTick: typeof import('vue')['nextTick']
+  const normalizeMerges: typeof import('./src/utils/calcTable')['normalizeMerges']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']
   const onBeforeRouteLeave: typeof import('vue-router/auto')['onBeforeRouteLeave']
@@ -105,6 +122,8 @@ declare global {
   const onUpdated: typeof import('vue')['onUpdated']
   const onWatcherCleanup: typeof import('vue')['onWatcherCleanup']
   const paginationMeta: typeof import('./src/utils/paginationMeta')['paginationMeta']
+  const parseCalcTable: typeof import('./src/utils/calcTable')['parseCalcTable']
+  const parseCalcTables: typeof import('./src/utils/calcTable')['parseCalcTables']
   const parseDate: typeof import('./src/utils/dates')['parseDate']
   const passwordValidator: typeof import('./src/@core/utils/validators')['passwordValidator']
   const pausableWatch: typeof import('@vueuse/core')['pausableWatch']
@@ -126,6 +145,9 @@ declare global {
   const refWithControl: typeof import('@vueuse/core')['refWithControl']
   const regexValidator: typeof import('./src/@core/utils/validators')['regexValidator']
   const registerPlugins: typeof import('./src/@core/utils/plugins')['registerPlugins']
+  const removeLastColumn: typeof import('./src/utils/calcTable')['removeLastColumn']
+  const removeLastRow: typeof import('./src/utils/calcTable')['removeLastRow']
+  const removeLegacyCalcTablesFromMetadata: typeof import('./src/utils/calcTable')['removeLegacyCalcTablesFromMetadata']
   const renderMarkdown: typeof import('./src/utils/renderMarkdown')['renderMarkdown']
   const requiredValidator: typeof import('./src/@core/utils/validators')['requiredValidator']
   const resolveApiBaseUrl: typeof import('./src/utils/resolveApiBaseUrl')['resolveApiBaseUrl']
@@ -136,6 +158,7 @@ declare global {
   const resolveVuetifyTheme: typeof import('./src/@core/utils/vuetify')['resolveVuetifyTheme']
   const rgbaToHex: typeof import('./src/@core/utils/colorConverter')['rgbaToHex']
   const setActivePinia: typeof import('pinia')['setActivePinia']
+  const setCalcTablesInChunk: typeof import('./src/utils/calcTable')['setCalcTablesInChunk']
   const setMapStoreSuffix: typeof import('pinia')['setMapStoreSuffix']
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
@@ -158,6 +181,7 @@ declare global {
   const tryOnMounted: typeof import('@vueuse/core')['tryOnMounted']
   const tryOnScopeDispose: typeof import('@vueuse/core')['tryOnScopeDispose']
   const tryOnUnmounted: typeof import('@vueuse/core')['tryOnUnmounted']
+  const unmerge: typeof import('./src/utils/calcTable')['unmerge']
   const unref: typeof import('vue')['unref']
   const unrefElement: typeof import('@vueuse/core')['unrefElement']
   const until: typeof import('@vueuse/core')['until']
@@ -377,6 +401,8 @@ declare module 'vue' {
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
+    readonly addColumn: UnwrapRef<typeof import('./src/utils/calcTable')['addColumn']>
+    readonly addRow: UnwrapRef<typeof import('./src/utils/calcTable')['addRow']>
     readonly alphaDashValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaDashValidator']>
     readonly alphaValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaValidator']>
     readonly apiFetch: UnwrapRef<typeof import('./src/utils/apiFetch')['apiFetch']>
@@ -384,7 +410,11 @@ declare module 'vue' {
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly avatarText: UnwrapRef<typeof import('./src/@core/utils/formatters')['avatarText']>
     readonly betweenValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['betweenValidator']>
+    readonly canMergeRight: UnwrapRef<typeof import('./src/utils/calcTable')['canMergeRight']>
+    readonly canUnmerge: UnwrapRef<typeof import('./src/utils/calcTable')['canUnmerge']>
+    readonly clipMergesToGrid: UnwrapRef<typeof import('./src/utils/calcTable')['clipMergesToGrid']>
     readonly cognitoLoginErrorMessage: UnwrapRef<typeof import('./src/utils/cognitoErrors')['cognitoLoginErrorMessage']>
+    readonly columnLabel: UnwrapRef<typeof import('./src/utils/calcTable')['columnLabel']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -394,6 +424,8 @@ declare module 'vue' {
     readonly controlledComputed: UnwrapRef<typeof import('@vueuse/core')['controlledComputed']>
     readonly controlledRef: UnwrapRef<typeof import('@vueuse/core')['controlledRef']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
+    readonly createEmptyCalcTable: UnwrapRef<typeof import('./src/utils/calcTable')['createEmptyCalcTable']>
+    readonly createEmptyGrid: UnwrapRef<typeof import('./src/utils/calcTable')['createEmptyGrid']>
     readonly createEventHook: UnwrapRef<typeof import('@vueuse/core')['createEventHook']>
     readonly createGenericProjection: UnwrapRef<typeof import('@vueuse/math')['createGenericProjection']>
     readonly createGlobalState: UnwrapRef<typeof import('@vueuse/core')['createGlobalState']>
@@ -416,18 +448,25 @@ declare module 'vue' {
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly emailValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['emailValidator']>
+    readonly evaluateGrid: UnwrapRef<typeof import('./src/utils/calcTable')['evaluateGrid']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
+    readonly findMergeAt: UnwrapRef<typeof import('./src/utils/calcTable')['findMergeAt']>
+    readonly formatCellDisplay: UnwrapRef<typeof import('./src/utils/calcTable')['formatCellDisplay']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
+    readonly getCalcTablesFromChunk: UnwrapRef<typeof import('./src/utils/calcTable')['getCalcTablesFromChunk']>
+    readonly getCellMergeInfo: UnwrapRef<typeof import('./src/utils/calcTable')['getCellMergeInfo']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly getLegacyCalcTablesFromMetadata: UnwrapRef<typeof import('./src/utils/calcTable')['getLegacyCalcTablesFromMetadata']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter')['hexToRgb']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly integerValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['integerValidator']>
+    readonly isCoveredCell: UnwrapRef<typeof import('./src/utils/calcTable')['isCoveredCell']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isEmpty: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmpty']>
     readonly isEmptyArray: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmptyArray']>
@@ -450,7 +489,9 @@ declare module 'vue' {
     readonly mapStores: UnwrapRef<typeof import('pinia')['mapStores']>
     readonly mapWritableState: UnwrapRef<typeof import('pinia')['mapWritableState']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
+    readonly mergeRight: UnwrapRef<typeof import('./src/utils/calcTable')['mergeRight']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
+    readonly normalizeMerges: UnwrapRef<typeof import('./src/utils/calcTable')['normalizeMerges']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
     readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router/auto')['onBeforeRouteLeave']>
@@ -472,6 +513,8 @@ declare module 'vue' {
     readonly onUpdated: UnwrapRef<typeof import('vue')['onUpdated']>
     readonly onWatcherCleanup: UnwrapRef<typeof import('vue')['onWatcherCleanup']>
     readonly paginationMeta: UnwrapRef<typeof import('./src/utils/paginationMeta')['paginationMeta']>
+    readonly parseCalcTable: UnwrapRef<typeof import('./src/utils/calcTable')['parseCalcTable']>
+    readonly parseCalcTables: UnwrapRef<typeof import('./src/utils/calcTable')['parseCalcTables']>
     readonly parseDate: UnwrapRef<typeof import('./src/utils/dates')['parseDate']>
     readonly passwordValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['passwordValidator']>
     readonly pausableWatch: UnwrapRef<typeof import('@vueuse/core')['pausableWatch']>
@@ -493,6 +536,9 @@ declare module 'vue' {
     readonly refWithControl: UnwrapRef<typeof import('@vueuse/core')['refWithControl']>
     readonly regexValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['regexValidator']>
     readonly registerPlugins: UnwrapRef<typeof import('./src/@core/utils/plugins')['registerPlugins']>
+    readonly removeLastColumn: UnwrapRef<typeof import('./src/utils/calcTable')['removeLastColumn']>
+    readonly removeLastRow: UnwrapRef<typeof import('./src/utils/calcTable')['removeLastRow']>
+    readonly removeLegacyCalcTablesFromMetadata: UnwrapRef<typeof import('./src/utils/calcTable')['removeLegacyCalcTablesFromMetadata']>
     readonly renderMarkdown: UnwrapRef<typeof import('./src/utils/renderMarkdown')['renderMarkdown']>
     readonly requiredValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['requiredValidator']>
     readonly resolveApiBaseUrl: UnwrapRef<typeof import('./src/utils/resolveApiBaseUrl')['resolveApiBaseUrl']>
@@ -503,6 +549,7 @@ declare module 'vue' {
     readonly resolveVuetifyTheme: UnwrapRef<typeof import('./src/@core/utils/vuetify')['resolveVuetifyTheme']>
     readonly rgbaToHex: UnwrapRef<typeof import('./src/@core/utils/colorConverter')['rgbaToHex']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
+    readonly setCalcTablesInChunk: UnwrapRef<typeof import('./src/utils/calcTable')['setCalcTablesInChunk']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
@@ -525,6 +572,7 @@ declare module 'vue' {
     readonly tryOnMounted: UnwrapRef<typeof import('@vueuse/core')['tryOnMounted']>
     readonly tryOnScopeDispose: UnwrapRef<typeof import('@vueuse/core')['tryOnScopeDispose']>
     readonly tryOnUnmounted: UnwrapRef<typeof import('@vueuse/core')['tryOnUnmounted']>
+    readonly unmerge: UnwrapRef<typeof import('./src/utils/calcTable')['unmerge']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>
