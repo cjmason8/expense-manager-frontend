@@ -28,6 +28,7 @@ function removeNote(index: number) {
 
 function updateNote(index: number, value: string) {
   const next = [...model.value]
+
   next[index] = value
   model.value = next
 }

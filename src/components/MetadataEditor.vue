@@ -141,6 +141,7 @@ function loadFromModel(chunk: string | undefined) {
 
     try {
       const { rowSource, preserved } = splitChunkObject(JSON.parse(chunk))
+
       preservedEntries.value = preserved
       rows.value = objectToRows(rowSource)
     }

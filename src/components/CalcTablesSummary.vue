@@ -7,6 +7,7 @@ const props = defineProps<{
 }>()
 
 const tables = computed(() => getCalcTablesFromChunk(props.chunk))
+
 const label = computed(() => {
   if (tables.value.length === 0)
     return ''

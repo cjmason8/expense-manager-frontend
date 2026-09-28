@@ -19,8 +19,8 @@ import {
 
 const model = defineModel<CalcTable[]>({ required: true })
 
-const selectedCell = ref<{ tableId: string, row: number, col: number } | null>(null)
-const editingCell = ref<{ tableId: string, row: number, col: number } | null>(null)
+const selectedCell = ref<{ tableId: string; row: number; col: number } | null>(null)
+const editingCell = ref<{ tableId: string; row: number; col: number } | null>(null)
 
 const computedByTable = computed(() => {
   const map = new Map<string, unknown[][]>()
@@ -41,6 +41,7 @@ function replaceTable(next: CalcTable) {
 
 function addTable() {
   const nextIndex = model.value.length + 1
+
   model.value = [...model.value, createEmptyCalcTable(`Table ${nextIndex}`)]
 }
 

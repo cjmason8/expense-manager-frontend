@@ -1,10 +1,14 @@
 export interface CalcTableMerge {
+
   /** Top-left cell row (0-based). */
   row: number
+
   /** Top-left cell column (0-based). */
   col: number
+
   /** Number of columns spanned (>= 2 for a merge). */
   colspan: number
+
   /** Number of rows spanned (>= 1). Defaults to 1. */
   rowspan?: number
 }
@@ -12,8 +16,10 @@ export interface CalcTableMerge {
 export interface CalcTable {
   id: string
   name: string
+
   /** Raw cell values; formulas start with `=` (Excel-style). */
   cells: string[][]
+
   /** Visual merges; value lives in the top-left (anchor) cell. */
   merges?: CalcTableMerge[]
 }

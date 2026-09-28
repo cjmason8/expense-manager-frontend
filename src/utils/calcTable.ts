@@ -103,8 +103,8 @@ export function normalizeMerges(
 }
 
 function rangesOverlap(
-  a: { row: number, col: number, rowspan: number, colspan: number },
-  b: { row: number, col: number, rowspan: number, colspan: number },
+  a: { row: number; col: number; rowspan: number; colspan: number },
+  b: { row: number; col: number; rowspan: number; colspan: number },
 ) {
   return a.row < b.row + b.rowspan
     && a.row + a.rowspan > b.row
@@ -115,7 +115,7 @@ function rangesOverlap(
 function mergesOverlap(existing: CalcTableMerge[], candidate: CalcTableMerge) {
   const next = { ...candidate, ...mergeSpan(candidate) }
 
-  return existing.some((merge) => {
+  return existing.some(merge => {
     const current = { ...merge, ...mergeSpan(merge) }
 
     return rangesOverlap(current, next)
@@ -127,7 +127,7 @@ export function findMergeAt(merges: CalcTableMerge[] | undefined, row: number, c
 }
 
 export function isCoveredCell(merges: CalcTableMerge[] | undefined, row: number, col: number) {
-  return (merges ?? []).some((merge) => {
+  return (merges ?? []).some(merge => {
     const { colspan, rowspan } = mergeSpan(merge)
     if (merge.row === row && merge.col === col)
       return false
@@ -168,6 +168,7 @@ export function canMergeRight(table: CalcTable, row: number, col: number) {
     colspan: colspan + 1,
     ...(rowspan > 1 ? { rowspan } : {}),
   }
+
   const others = (table.merges ?? []).filter(m => !(m.row === row && m.col === col))
 
   return !mergesOverlap(others, proposed)
@@ -179,6 +180,7 @@ export function mergeRight(table: CalcTable, row: number, col: number): CalcTabl
 
   const existing = findMergeAt(table.merges, row, col)
   const { colspan, rowspan } = existing ? mergeSpan(existing) : { colspan: 1, rowspan: 1 }
+
   const next: CalcTableMerge = {
     row,
     col,
@@ -196,6 +198,7 @@ export function mergeRight(table: CalcTable, row: number, col: number): CalcTabl
   }
 
   const merges = (table.merges ?? []).filter(m => !(m.row === row && m.col === col))
+
   merges.push(next)
 
   return { ...table, cells, merges }
@@ -234,12 +237,15 @@ export function parseCalcTable(value: unknown): CalcTable | null {
     return null
 
   const record = value as Record<string, unknown>
+
   const name = typeof record.name === 'string' && record.name.trim()
     ? record.name.trim()
     : 'Table'
+
   const id = typeof record.id === 'string' && record.id
     ? record.id
     : crypto.randomUUID()
+
   const cells = normalizeCells(record.cells)
 
   return {
@@ -310,6 +316,7 @@ function parseJavaToString(input: string): unknown {
 
   function parseList(): unknown[] {
     const result: unknown[] = []
+
     i++
     if (input[i] === ']') {
       i++
@@ -335,6 +342,7 @@ function parseJavaToString(input: string): unknown {
 
   function parseMap(): Record<string, unknown> {
     const result: Record<string, unknown> = {}
+
     i++
     if (input[i] === '}') {
       i++
@@ -348,6 +356,7 @@ function parseJavaToString(input: string): unknown {
         throw new Error('Malformed map')
 
       const key = input.slice(i, eq)
+
       i = eq + 1
       result[key] = parseValue('map')
       if (input.startsWith(', ', i)) {
@@ -405,9 +414,10 @@ export function setCalcTablesInChunk(
   tables: CalcTable[],
 ): string {
   const next = { ...parseChunkObject(chunk) }
+
   const meaningful = tables
     .filter(tableHasContent)
-    .map((table) => {
+    .map(table => {
       const merges = clipMergesToGrid(
         table.merges,
         table.cells.length,
@@ -457,15 +467,12 @@ export function formatCellDisplay(value: unknown): string {
     return Number.isInteger(value)
       ? String(value)
       : value.toLocaleString(undefined, {
-          maximumFractionDigits: 6,
-        })
+        maximumFractionDigits: 6,
+      })
   }
 
-  if (typeof value === 'object' && value !== null && 'type' in value) {
-    const error = value as { type: string, message?: string }
-
-    return error.message ? `#${error.type}!` : `#${error.type}!`
-  }
+  if (typeof value === 'object' && value !== null && 'type' in value)
+    return `#${(value as { type: string }).type}!`
 
   return String(value)
 }

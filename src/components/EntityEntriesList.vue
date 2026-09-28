@@ -63,7 +63,7 @@ const editingNotes = ref<string[]>([])
 const editingCalcTables = ref<CalcTable[]>([])
 const viewedItem = ref<EntityEntry | null>(null)
 const viewedCalcTables = ref<CalcTable[]>([])
-const recipeNotesEditorRef = ref<{ flushPendingNote: () => string[], getNotes: () => string[] } | null>(null)
+const recipeNotesEditorRef = ref<{ flushPendingNote: () => string[]; getNotes: () => string[] } | null>(null)
 
 function normalizeNotes(notes: string[]) {
   return notes
@@ -207,6 +207,7 @@ function closeView() {
 
 function editViewedItem() {
   const entry = viewedItem.value
+
   closeView()
   if (entry)
     editItem(entry)
