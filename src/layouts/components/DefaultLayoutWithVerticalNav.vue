@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 // Components
 import Footer from '@/layouts/components/Footer.vue'
 import EntityTopNav from '@/layouts/components/EntityTopNav.vue'
+import NavBarDateWeather from '@/layouts/components/NavBarDateWeather.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
@@ -48,6 +49,10 @@ const visibleNavItems = computed(() => {
         </IconBtn>
 
         <NavbarThemeSwitcher />
+
+        <VSpacer />
+
+        <NavBarDateWeather />
 
         <VSpacer />
 

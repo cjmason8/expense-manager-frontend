@@ -151,6 +151,7 @@ export default defineConfig({
       '/incomes': apiProxy(),
       '/donations': spaPageProxy(),
       '/entities': apiProxy(),
+      '/weather': apiProxy(),
     },
   },
 })
