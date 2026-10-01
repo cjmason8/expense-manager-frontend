@@ -1,9 +1,13 @@
 <script lang="ts" setup>
+import { useRoute } from 'vue-router'
 import type { WeatherForecast, WeatherForecastDay } from '@/types/weather'
 import { apiFetch } from '@/utils/apiFetch'
 
 const FORECAST_REFRESH_MS = 30 * 60 * 1000
 const CLOCK_REFRESH_MS = 60 * 1000
+const VISIBLE_DAYS = 5
+
+const route = useRoute()
 
 // BOM forecast_icon_code values.
 const iconByCode: Record<number, string> = {
@@ -35,6 +39,14 @@ const todayLabel = computed(() => now.value.toLocaleDateString('en-AU', {
   month: 'short',
   year: 'numeric',
 }))
+
+const visibleDays = computed(() => {
+  const today = new Date(now.value.getFullYear(), now.value.getMonth(), now.value.getDate())
+
+  return (forecast.value?.days ?? [])
+    .filter(day => parseLocalDate(day.date) >= today)
+    .slice(0, VISIBLE_DAYS)
+})
 
 const issuedLabel = computed(() => {
   if (!forecast.value?.issuedAt)
@@ -95,7 +107,13 @@ function tempLabel(day: WeatherForecastDay) {
   return day.minTemp == null ? `${day.maxTemp}°` : `${day.maxTemp}° / ${day.minTemp}°`
 }
 
+let loadingForecast = false
+
 async function loadForecast() {
+  if (loadingForecast)
+    return
+
+  loadingForecast = true
   try {
     const response = await apiFetch('/weather/forecast', { cache: 'no-store' })
     if (response.ok)
@@ -104,6 +122,21 @@ async function loadForecast() {
   catch {
     // The forecast is optional; keep the last result if a refresh fails.
   }
+  finally {
+    loadingForecast = false
+  }
+}
+
+function refresh() {
+  now.value = new Date()
+  loadForecast()
+}
+
+watch(() => route.fullPath, refresh)
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'visible')
+    refresh()
 }
 
 let clockTimer: ReturnType<typeof setInterval> | undefined
@@ -115,11 +148,13 @@ onMounted(() => {
     now.value = new Date()
   }, CLOCK_REFRESH_MS)
   forecastTimer = setInterval(loadForecast, FORECAST_REFRESH_MS)
+  document.addEventListener('visibilitychange', onVisibilityChange)
 })
 
 onUnmounted(() => {
   clearInterval(clockTimer)
   clearInterval(forecastTimer)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
 
@@ -133,16 +168,16 @@ onUnmounted(() => {
       <span>{{ todayLabel }}</span>
     </div>
     <VDivider
-      v-if="forecast?.days.length"
+      v-if="forecast && visibleDays.length"
       vertical
       class="d-none d-md-block navbar-date-weather__divider"
     />
     <div
-      v-if="forecast?.days.length"
+      v-if="forecast && visibleDays.length"
       class="d-none d-md-flex align-center gap-6"
     >
       <div
-        v-for="(day, index) in forecast.days"
+        v-for="(day, index) in visibleDays"
         :key="day.date"
         class="navbar-date-weather__day align-center gap-2"
         :class="index < 3 ? 'd-flex' : 'd-none d-lg-flex'"
