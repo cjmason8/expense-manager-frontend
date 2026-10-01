@@ -33,6 +33,22 @@ const iconByCode: Record<number, string> = {
 const now = ref(new Date())
 const forecast = ref<WeatherForecast | null>(null)
 
+// Vuetify's built-in hover handling leaves a tooltip open when another overlay opened after it.
+const hoveredDate = ref<string | null>(null)
+
+function onDayEnter(day: WeatherForecastDay) {
+  hoveredDate.value = day.date
+}
+
+function onDayLeave(day: WeatherForecastDay) {
+  if (hoveredDate.value === day.date)
+    hoveredDate.value = null
+}
+
+function closeTooltip() {
+  hoveredDate.value = null
+}
+
 const todayLabel = computed(() => now.value.toLocaleDateString('en-AU', {
   weekday: 'short',
   day: 'numeric',
@@ -132,11 +148,16 @@ function refresh() {
   loadForecast()
 }
 
-watch(() => route.fullPath, refresh)
+watch(() => route.fullPath, () => {
+  closeTooltip()
+  refresh()
+})
 
 function onVisibilityChange() {
   if (document.visibilityState === 'visible')
     refresh()
+  else
+    closeTooltip()
 }
 
 let clockTimer: ReturnType<typeof setInterval> | undefined
@@ -149,12 +170,14 @@ onMounted(() => {
   }, CLOCK_REFRESH_MS)
   forecastTimer = setInterval(loadForecast, FORECAST_REFRESH_MS)
   document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('scroll', closeTooltip, { capture: true, passive: true })
 })
 
 onUnmounted(() => {
   clearInterval(clockTimer)
   clearInterval(forecastTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
+  window.removeEventListener('scroll', closeTooltip, { capture: true })
 })
 </script>
 
@@ -181,6 +204,8 @@ onUnmounted(() => {
         :key="day.date"
         class="navbar-date-weather__day align-center gap-2"
         :class="index < 3 ? 'd-flex' : 'd-none d-lg-flex'"
+        @mouseenter="onDayEnter(day)"
+        @mouseleave="onDayLeave(day)"
       >
         <VIcon
           :icon="dayIcon(day)"
@@ -189,9 +214,12 @@ onUnmounted(() => {
         <span class="text-medium-emphasis">{{ dayLabel(day) }}</span>
         <span>{{ tempLabel(day) }}</span>
         <VTooltip
+          :model-value="hoveredDate === day.date"
           activator="parent"
+          :open-on-hover="false"
           location="bottom"
           max-width="380"
+          @update:model-value="value => !value && onDayLeave(day)"
         >
           <div class="navbar-date-weather__tooltip">
             <div class="d-flex align-center gap-2 font-weight-medium">
