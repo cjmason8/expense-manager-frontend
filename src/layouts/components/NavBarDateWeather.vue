@@ -116,13 +116,6 @@ function dayIcon(day: WeatherForecastDay) {
   return (day.iconCode != null && iconByCode[day.iconCode]) || 'ri-cloudy-2-line'
 }
 
-function tempLabel(day: WeatherForecastDay) {
-  if (day.maxTemp == null)
-    return day.minTemp == null ? '' : `${day.minTemp}°`
-
-  return day.minTemp == null ? `${day.maxTemp}°` : `${day.maxTemp}° / ${day.minTemp}°`
-}
-
 let loadingForecast = false
 
 async function loadForecast() {
@@ -200,10 +193,9 @@ onUnmounted(() => {
       class="d-none d-md-flex align-center gap-6"
     >
       <div
-        v-for="(day, index) in visibleDays"
+        v-for="day in visibleDays"
         :key="day.date"
-        class="navbar-date-weather__day align-center gap-2"
-        :class="index < 3 ? 'd-flex' : 'd-none d-lg-flex'"
+        class="navbar-date-weather__day d-flex align-center gap-2"
         @mouseenter="onDayEnter(day)"
         @mouseleave="onDayLeave(day)"
       >
@@ -212,7 +204,12 @@ onUnmounted(() => {
           size="20"
         />
         <span class="text-medium-emphasis">{{ dayLabel(day) }}</span>
-        <span>{{ tempLabel(day) }}</span>
+        <span>
+          <span v-if="day.maxTemp != null">{{ day.maxTemp }}°</span><span
+            v-if="day.minTemp != null"
+            class="text-medium-emphasis"
+          >{{ day.maxTemp != null ? '/' : '' }}{{ day.minTemp }}°</span>
+        </span>
         <VTooltip
           :model-value="hoveredDate === day.date"
           activator="parent"
