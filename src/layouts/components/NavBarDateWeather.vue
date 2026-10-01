@@ -62,6 +62,28 @@ function dayLabel(day: WeatherForecastDay) {
   return date.toLocaleDateString('en-AU', { weekday: 'short' })
 }
 
+function fullDateLabel(day: WeatherForecastDay) {
+  return parseLocalDate(day.date).toLocaleDateString('en-AU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
+function tempDetail(day: WeatherForecastDay) {
+  return [
+    day.maxTemp != null ? `Max ${day.maxTemp}°` : null,
+    day.minTemp != null ? `Min ${day.minTemp}°` : null,
+  ].filter(Boolean).join(' · ')
+}
+
+function rainDetail(day: WeatherForecastDay) {
+  return [
+    day.rainChance ? `Chance of rain ${day.rainChance}` : null,
+    day.rainRange,
+  ].filter(Boolean).join(' · ')
+}
+
 function dayIcon(day: WeatherForecastDay) {
   return (day.iconCode != null && iconByCode[day.iconCode]) || 'ri-cloudy-2-line'
 }
@@ -120,9 +142,10 @@ onUnmounted(() => {
       class="d-none d-md-flex align-center gap-6"
     >
       <div
-        v-for="day in forecast.days"
+        v-for="(day, index) in forecast.days"
         :key="day.date"
-        class="navbar-date-weather__day d-flex align-center gap-2"
+        class="navbar-date-weather__day align-center gap-2"
+        :class="index < 3 ? 'd-flex' : 'd-none d-lg-flex'"
       >
         <VIcon
           :icon="dayIcon(day)"
@@ -133,13 +156,40 @@ onUnmounted(() => {
         <VTooltip
           activator="parent"
           location="bottom"
+          max-width="380"
         >
-          <div>{{ day.precis }}</div>
-          <div v-if="day.rainChance">
-            Chance of rain: {{ day.rainChance }}<span v-if="day.rainRange"> ({{ day.rainRange }})</span>
-          </div>
-          <div class="text-caption mt-1">
-            Bureau of Meteorology — {{ forecast.location }}<span v-if="issuedLabel">, issued {{ issuedLabel }}</span>
+          <div class="navbar-date-weather__tooltip">
+            <div class="d-flex align-center gap-2 font-weight-medium">
+              <VIcon
+                :icon="dayIcon(day)"
+                size="18"
+              />
+              {{ fullDateLabel(day) }}
+            </div>
+            <div
+              v-if="day.precis"
+              class="font-weight-medium"
+            >
+              {{ day.precis }}
+            </div>
+            <div v-if="tempDetail(day)">
+              {{ tempDetail(day) }}
+            </div>
+            <div v-if="rainDetail(day)">
+              {{ rainDetail(day) }}
+            </div>
+            <div v-if="day.forecastText">
+              {{ day.forecastText }}
+            </div>
+            <div v-if="day.uvAlert">
+              <span class="font-weight-medium">UV:</span> {{ day.uvAlert }}
+            </div>
+            <div v-if="day.fireDanger">
+              <span class="font-weight-medium">Fire danger:</span> {{ day.fireDanger }}
+            </div>
+            <div class="text-caption navbar-date-weather__source">
+              Bureau of Meteorology · {{ forecast.location }}<span v-if="day.forecastText && forecast.detailArea"> (detail: {{ forecast.detailArea }})</span><span v-if="issuedLabel"> · issued {{ issuedLabel }}</span>
+            </div>
           </div>
         </VTooltip>
       </div>
@@ -160,5 +210,18 @@ onUnmounted(() => {
 .navbar-date-weather__day {
   cursor: default;
   white-space: nowrap;
+}
+
+.navbar-date-weather__tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 4px;
+  white-space: normal;
+}
+
+.navbar-date-weather__source {
+  opacity: 0.8;
+  margin-block-start: 4px;
 }
 </style>
