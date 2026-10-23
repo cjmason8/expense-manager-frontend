@@ -31,7 +31,9 @@ export async function apiFetch(
   if (!headers.has('Accept'))
     headers.set('Accept', 'application/json')
 
+  // Some API paths (/donations, /notifications) are also SPA page URLs; a cached index.html must never be reused.
   return fetch(input, {
+    cache: 'no-store',
     ...init,
     headers,
   })
