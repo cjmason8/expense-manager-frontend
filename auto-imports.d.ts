@@ -8,6 +8,8 @@ declare global {
   const $api: typeof import('./src/utils/api')['$api']
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']
   const EffectScope: typeof import('vue')['EffectScope']
+  const TOTAL_METADATA_KEY: typeof import('./src/utils/maintenanceTotal')['TOTAL_METADATA_KEY']
+  const UNKNOWN_TOTAL: typeof import('./src/utils/maintenanceTotal')['UNKNOWN_TOTAL']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
   const addColumn: typeof import('./src/utils/calcTable')['addColumn']
   const addRow: typeof import('./src/utils/calcTable')['addRow']
@@ -61,14 +63,17 @@ declare global {
   const extendRef: typeof import('@vueuse/core')['extendRef']
   const findMergeAt: typeof import('./src/utils/calcTable')['findMergeAt']
   const formatCellDisplay: typeof import('./src/utils/calcTable')['formatCellDisplay']
+  const formatCents: typeof import('./src/utils/maintenanceTotal')['formatCents']
   const formatDate: typeof import('./src/@core/utils/formatters')['formatDate']
   const formatDateToMonthShort: typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']
+  const formatTotal: typeof import('./src/utils/maintenanceTotal')['formatTotal']
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCalcTablesFromChunk: typeof import('./src/utils/calcTable')['getCalcTablesFromChunk']
   const getCellMergeInfo: typeof import('./src/utils/calcTable')['getCellMergeInfo']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const getLegacyCalcTablesFromMetadata: typeof import('./src/utils/calcTable')['getLegacyCalcTablesFromMetadata']
+  const getTotal: typeof import('./src/utils/maintenanceTotal')['getTotal']
   const h: typeof import('vue')['h']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter')['hexToRgb']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
@@ -79,6 +84,7 @@ declare global {
   const isDefined: typeof import('@vueuse/core')['isDefined']
   const isEmpty: typeof import('./src/@core/utils/helpers')['isEmpty']
   const isEmptyArray: typeof import('./src/@core/utils/helpers')['isEmptyArray']
+  const isMaintenanceFolder: typeof import('./src/utils/maintenanceTotal')['isMaintenanceFolder']
   const isNullOrUndefined: typeof import('./src/@core/utils/helpers')['isNullOrUndefined']
   const isObject: typeof import('./src/@core/utils/helpers')['isObject']
   const isProxy: typeof import('vue')['isProxy']
@@ -125,6 +131,7 @@ declare global {
   const parseCalcTable: typeof import('./src/utils/calcTable')['parseCalcTable']
   const parseCalcTables: typeof import('./src/utils/calcTable')['parseCalcTables']
   const parseDate: typeof import('./src/utils/dates')['parseDate']
+  const parseTotalInput: typeof import('./src/utils/maintenanceTotal')['parseTotalInput']
   const passwordValidator: typeof import('./src/@core/utils/validators')['passwordValidator']
   const pausableWatch: typeof import('@vueuse/core')['pausableWatch']
   const prefixWithPlus: typeof import('./src/@core/utils/formatters')['prefixWithPlus']
@@ -175,6 +182,7 @@ declare global {
   const toRef: typeof import('vue')['toRef']
   const toRefs: typeof import('vue')['toRefs']
   const toValue: typeof import('vue')['toValue']
+  const totalInCents: typeof import('./src/utils/maintenanceTotal')['totalInCents']
   const triggerRef: typeof import('vue')['triggerRef']
   const tryOnBeforeMount: typeof import('@vueuse/core')['tryOnBeforeMount']
   const tryOnBeforeUnmount: typeof import('@vueuse/core')['tryOnBeforeUnmount']
@@ -385,6 +393,7 @@ declare global {
   const watchTriggerable: typeof import('@vueuse/core')['watchTriggerable']
   const watchWithFilter: typeof import('@vueuse/core')['watchWithFilter']
   const whenever: typeof import('@vueuse/core')['whenever']
+  const withTotal: typeof import('./src/utils/maintenanceTotal')['withTotal']
 }
 // for type re-export
 declare global {
@@ -400,6 +409,8 @@ declare module 'vue' {
     readonly $api: UnwrapRef<typeof import('./src/utils/api')['$api']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly TOTAL_METADATA_KEY: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['TOTAL_METADATA_KEY']>
+    readonly UNKNOWN_TOTAL: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['UNKNOWN_TOTAL']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly addColumn: UnwrapRef<typeof import('./src/utils/calcTable')['addColumn']>
     readonly addRow: UnwrapRef<typeof import('./src/utils/calcTable')['addRow']>
@@ -452,14 +463,17 @@ declare module 'vue' {
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly findMergeAt: UnwrapRef<typeof import('./src/utils/calcTable')['findMergeAt']>
     readonly formatCellDisplay: UnwrapRef<typeof import('./src/utils/calcTable')['formatCellDisplay']>
+    readonly formatCents: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['formatCents']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters')['formatDateToMonthShort']>
+    readonly formatTotal: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['formatTotal']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCalcTablesFromChunk: UnwrapRef<typeof import('./src/utils/calcTable')['getCalcTablesFromChunk']>
     readonly getCellMergeInfo: UnwrapRef<typeof import('./src/utils/calcTable')['getCellMergeInfo']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getLegacyCalcTablesFromMetadata: UnwrapRef<typeof import('./src/utils/calcTable')['getLegacyCalcTablesFromMetadata']>
+    readonly getTotal: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['getTotal']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter')['hexToRgb']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
@@ -470,6 +484,7 @@ declare module 'vue' {
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isEmpty: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmpty']>
     readonly isEmptyArray: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmptyArray']>
+    readonly isMaintenanceFolder: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['isMaintenanceFolder']>
     readonly isNullOrUndefined: UnwrapRef<typeof import('./src/@core/utils/helpers')['isNullOrUndefined']>
     readonly isObject: UnwrapRef<typeof import('./src/@core/utils/helpers')['isObject']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
@@ -516,6 +531,7 @@ declare module 'vue' {
     readonly parseCalcTable: UnwrapRef<typeof import('./src/utils/calcTable')['parseCalcTable']>
     readonly parseCalcTables: UnwrapRef<typeof import('./src/utils/calcTable')['parseCalcTables']>
     readonly parseDate: UnwrapRef<typeof import('./src/utils/dates')['parseDate']>
+    readonly parseTotalInput: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['parseTotalInput']>
     readonly passwordValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['passwordValidator']>
     readonly pausableWatch: UnwrapRef<typeof import('@vueuse/core')['pausableWatch']>
     readonly prefixWithPlus: UnwrapRef<typeof import('./src/@core/utils/formatters')['prefixWithPlus']>
@@ -566,6 +582,7 @@ declare module 'vue' {
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
+    readonly totalInCents: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['totalInCents']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly tryOnBeforeMount: UnwrapRef<typeof import('@vueuse/core')['tryOnBeforeMount']>
     readonly tryOnBeforeUnmount: UnwrapRef<typeof import('@vueuse/core')['tryOnBeforeUnmount']>
@@ -775,5 +792,6 @@ declare module 'vue' {
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
+    readonly withTotal: UnwrapRef<typeof import('./src/utils/maintenanceTotal')['withTotal']>
   }
 }

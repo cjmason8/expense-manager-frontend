@@ -5,6 +5,16 @@ import { useRoute } from 'vue-router'
 import { VCardText, VCardTitle } from 'vuetify/components'
 import { Document } from '@/types/document'
 import { useDocumentStore } from '@/stores/documentStore'
+import {
+  UNKNOWN_TOTAL,
+  formatCents,
+  formatTotal,
+  getTotal,
+  isMaintenanceFolder,
+  parseTotalInput,
+  totalInCents,
+  withTotal,
+} from '@/utils/maintenanceTotal'
 
 const router = useRouter()
 const route = useRoute()
@@ -77,11 +87,73 @@ function syncArchiveStatusFromDocuments(items: Document[]) {
   archivedFoldersByPath.value = next
 }
 
-const headers = [
+const isMaintenanceFolderOpen = computed(() => isMaintenanceFolder(documentStore.currentFolderPath))
+
+const headers = computed(() => [
   { title: '', key: 'fileName' },
+  ...(isMaintenanceFolderOpen.value
+    ? [{ title: 'Total', key: 'total', width: '170px', align: 'end' as const, sortable: false }]
+    : []),
   { title: '', key: 'actions', width: '150px', sortable: false },
   { title: '', key: 'archived', width: '48px', sortable: false },
-]
+])
+
+const editingTotalId = ref<Document['id'] | null>(null)
+const totalDraft = ref('')
+const totalError = ref('')
+
+const folderTotal = computed(() => {
+  let cents = 0
+  let unknown = 0
+
+  for (const document of documents.value) {
+    if (document.isFolder)
+      continue
+
+    const value = totalInCents(getTotal(document.metaDataChunk))
+    if (value == null)
+      unknown += 1
+    else
+      cents += value
+  }
+
+  return { cents, unknown }
+})
+
+const startEditTotal = (document: Document) => {
+  const current = getTotal(document.metaDataChunk)
+
+  editingTotalId.value = document.id
+  totalDraft.value = current && current !== UNKNOWN_TOTAL ? current : ''
+  totalError.value = ''
+}
+
+const cancelEditTotal = () => {
+  editingTotalId.value = null
+  totalError.value = ''
+}
+
+const saveTotal = async (document: Document) => {
+  if (editingTotalId.value !== document.id)
+    return
+
+  const total = parseTotalInput(totalDraft.value)
+  if (total == null) {
+    totalError.value = 'Enter an amount, or leave blank for UNKNOWN'
+
+    return
+  }
+
+  editingTotalId.value = null
+  totalError.value = ''
+  if (total === getTotal(document.metaDataChunk))
+    return
+
+  const updated: Document = { ...document, metaDataChunk: withTotal(document.metaDataChunk, total) }
+  const result = await documentStore.updateDocument(updated)
+  if (result)
+    documents.value = documents.value.map(item => (item.id === document.id ? updated : item))
+}
 
 const closeAddEditFolder = () => {
   createDirectory.value = false
@@ -517,6 +589,63 @@ onMounted(() => {
                 title="Archived"
               />
             </template>
+
+            <template #item.total="{ item }">
+              <template v-if="!item.isFolder">
+                <VTextField
+                  v-if="editingTotalId === item.id"
+                  v-model="totalDraft"
+                  density="compact"
+                  prefix="$"
+                  placeholder="UNKNOWN"
+                  autofocus
+                  hide-details="auto"
+                  :error-messages="totalError"
+                  @keyup.enter="saveTotal(item)"
+                  @keyup.esc="cancelEditTotal"
+                  @blur="saveTotal(item)"
+                />
+                <span
+                  v-else
+                  class="documents-total"
+                  title="Click to edit total"
+                  @click="startEditTotal(item)"
+                >
+                  <VChip
+                    v-if="(getTotal(item.metaDataChunk) ?? UNKNOWN_TOTAL) === UNKNOWN_TOTAL"
+                    color="warning"
+                    size="small"
+                    label
+                  >
+                    {{ UNKNOWN_TOTAL }}
+                  </VChip>
+                  <template v-else>
+                    {{ formatTotal(getTotal(item.metaDataChunk) ?? '') }}
+                  </template>
+                </span>
+              </template>
+            </template>
+
+            <template
+              v-if="isMaintenanceFolderOpen"
+              #body.append
+            >
+              <tr class="documents-total-row">
+                <td class="font-weight-medium">
+                  Folder total
+                  <span
+                    v-if="folderTotal.unknown > 0"
+                    class="text-warning text-body-2"
+                  >
+                    ({{ folderTotal.unknown }} unknown)
+                  </span>
+                </td>
+                <td class="text-end font-weight-medium">
+                  {{ formatCents(folderTotal.cents) }}
+                </td>
+                <td colspan="2" />
+              </tr>
+            </template>
           </VDataTable>
         </VCard>
       </VCol>
@@ -716,5 +845,9 @@ onMounted(() => {
 
 .documents-archived-icon {
   color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+}
+
+.documents-total {
+  cursor: pointer;
 }
 </style>
