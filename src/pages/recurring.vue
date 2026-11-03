@@ -356,12 +356,13 @@ const deleteExpensesItemConfirm = () => {
             cols="12"
             sm="6"
           >
-            <VSelect
+            <VAutocomplete
               v-model="transactionTypeId"
               :items="expenseTypes"
               item-title="description"
               item-value="id"
               placeholder="Select..."
+              clearable
             />
           </VCol>
         </VRow>
@@ -534,12 +535,13 @@ const deleteExpensesItemConfirm = () => {
             cols="12"
             sm="6"
           >
-            <VSelect
+            <VAutocomplete
               v-model="transactionTypeId"
               :items="incomeTypes"
               item-title="description"
               item-value="id"
               placeholder="Select..."
+              clearable
             />
           </VCol>
         </VRow>

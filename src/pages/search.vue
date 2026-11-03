@@ -830,12 +830,13 @@ onMounted(async () => {
             cols="12"
             sm="6"
           >
-            <VSelect
+            <VAutocomplete
               v-model="selectedExpenseTypeId"
               :items="expenseTypes"
               item-title="description"
               item-value="id"
               placeholder="Select..."
+              clearable
             />
           </VCol>
         </VRow>
@@ -951,12 +952,13 @@ onMounted(async () => {
             cols="12"
             sm="6"
           >
-            <VSelect
+            <VAutocomplete
               v-model="selectedIncomeTypeId"
               :items="incomeTypes"
               item-title="description"
               item-value="id"
               placeholder="Select..."
+              clearable
             />
           </VCol>
         </VRow>
