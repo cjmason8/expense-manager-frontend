@@ -67,7 +67,7 @@ const visibleNavItems = computed(() => {
           v-if="auth.isAdmin"
           class="me-2"
         />
-        <UserProfile />
+        <UserProfile class="me-1" />
       </div>
     </template>
 

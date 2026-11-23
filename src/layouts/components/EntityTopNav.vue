@@ -15,7 +15,7 @@ import { HorizontalNav } from '@layouts/components'
   background: rgb(var(--v-theme-surface));
   inline-size: 100%;
   padding-block: 0.25rem;
-  padding-inline: 1rem;
+  padding-inline: 1.25rem;
 
   :deep(.nav-items) {
     display: flex;

@@ -1010,7 +1010,6 @@ i {
   max-inline-size: 100%;
   min-inline-size: 0;
   overflow-x: clip;
-  padding-inline-end: 0.75rem;
 }
 
 .home-toolbar {

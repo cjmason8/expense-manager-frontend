@@ -19,8 +19,8 @@ $layout-horizontal-nav-layout-navbar-z-index: 11 !default;
 // 👉 Main content
 // Shared cap for navbar + main so header actions align with page content (not the full column past narrow pages)
 $layout-boxed-content-width: 1440px !default;
-// Optional horizontal inset inside that cap (navbar + page use the same boxed-content rules)
-$layout-boxed-content-padding-inline: 0 !default;
+// Horizontal inset inside the content column (navbar + page share this so the user icon isn't flush to the screen edge)
+$layout-boxed-content-padding-inline: 1.25rem !default;
 
 //  👉Footer
 $layout-vertical-nav-footer-height: 56px !default;
