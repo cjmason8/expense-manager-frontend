@@ -14,8 +14,9 @@ import { HorizontalNav } from '@layouts/components'
   border-block-end: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   background: rgb(var(--v-theme-surface));
   inline-size: 100%;
+  // Horizontal inset comes from `.layout-entity-nav` (same token as navbar / page)
   padding-block: 0.25rem;
-  padding-inline: 1.25rem;
+  padding-inline: 0;
 
   :deep(.nav-items) {
     display: flex;

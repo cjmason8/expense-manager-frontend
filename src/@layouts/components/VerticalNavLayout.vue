@@ -215,6 +215,8 @@ const verticalNavAttrs = computed(() => {
     inline-size: 100%;
     max-inline-size: 100%;
     min-inline-size: 0;
+    // Match navbar / page horizontal inset so Recipes/Notes doesn't run to the screen edge
+    padding-inline: variables.$layout-boxed-content-padding-inline;
   }
 
   .layout-navbar {
