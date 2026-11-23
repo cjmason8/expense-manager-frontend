@@ -323,74 +323,57 @@ const deleteIncomesItemConfirm = () => {
 </script>
 
 <template>
-  <table
-    style="border-spacing: 30px"
-    max-width="900px"
-  >
-    <tr>
-      <td>
-        <VCard>
-          <VCardTitle>
-            Week Beginning: {{ expenseStore.homeInfo?.thisWeek }}
-          </VCardTitle>
-        </VCard>
-      </td>
-      <td style="float: right">
-        <table>
-          <tr>
-            <td width="300px">
-              <table width="100%">
-                <tr>
-                  <td>
-                    <VBtn
-                      color="primary"
-                      @click="addIncome"
-                    >
-                      Add Income
-                    </VBtn>
-                  </td>
-                  <td>
-                    <VBtn
-                      color="primary"
-                      @click="addExpense"
-                    >
-                      Add Expense
-                    </VBtn>
-                  </td>
-                </tr>
-              </table>
-            </td>
-            <td>
-              <div class="d-flex align-center gap-2">
-                <VBtn
-                  variant="tonal"
-                  prepend-icon="ri-arrow-left-s-line"
-                  @click="prevWeek"
-                >
-                  Previous
-                </VBtn>
-                <VBtn
-                  variant="tonal"
-                  append-icon="ri-arrow-right-s-line"
-                  @click="nextWeek"
-                >
-                  Next
-                </VBtn>
-                <DatePicker
-                  v-model="selectedDate"
-                  date-format="dd-mm-yy"
-                  @date-select="gotoWeek"
-                />
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td valign="top">
-        <VCard>
-          <VCardTitle>Incomes</VCardTitle>
+  <div class="home-page">
+    <div class="home-toolbar">
+      <VCard class="home-week-card">
+        <VCardTitle>
+          Week Beginning: {{ expenseStore.homeInfo?.thisWeek }}
+        </VCardTitle>
+      </VCard>
+
+      <div class="home-toolbar-actions">
+        <div class="d-flex align-center gap-2 flex-wrap">
+          <VBtn
+            color="primary"
+            @click="addIncome"
+          >
+            Add Income
+          </VBtn>
+          <VBtn
+            color="primary"
+            @click="addExpense"
+          >
+            Add Expense
+          </VBtn>
+        </div>
+        <div class="d-flex align-center gap-2 flex-wrap">
+          <VBtn
+            variant="tonal"
+            prepend-icon="ri-arrow-left-s-line"
+            @click="prevWeek"
+          >
+            Previous
+          </VBtn>
+          <VBtn
+            variant="tonal"
+            append-icon="ri-arrow-right-s-line"
+            @click="nextWeek"
+          >
+            Next
+          </VBtn>
+          <DatePicker
+            v-model="selectedDate"
+            date-format="dd-mm-yy"
+            @date-select="gotoWeek"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="home-tables">
+      <VCard class="home-table-card">
+        <VCardTitle>Incomes</VCardTitle>
+        <div class="home-table-scroll">
           <VDataTable
             :headers="incomeHeaders"
             :items="expenseStore.homeInfo?.incomes"
@@ -430,11 +413,12 @@ const deleteIncomesItemConfirm = () => {
               </div>
             </template>
           </VDataTable>
-        </VCard>
-      </td>
-      <td>
-        <VCard>
-          <VCardTitle>Expenses</VCardTitle>
+        </div>
+      </VCard>
+
+      <VCard class="home-table-card">
+        <VCardTitle>Expenses</VCardTitle>
+        <div class="home-table-scroll">
           <VDataTable
             :headers="headers"
             :items="expenseStore.homeInfo?.expenses"
@@ -477,66 +461,65 @@ const deleteIncomesItemConfirm = () => {
               </div>
             </template>
           </VDataTable>
-        </VCard>
-      </td>
-    </tr>
-    <tr>
-      <td />
-      <td>
-        <VCard
-          v-if="
-            expenseStore.homeInfo
-              && expenseStore.homeInfo.unpaidExpenses
-              && expenseStore.homeInfo.unpaidExpenses.length > 0
-          "
-        >
-          <VCardTitle>Unpaid Expenses</VCardTitle>
-          <VDataTable
-            :headers="headers"
-            :items="expenseStore.homeInfo?.unpaidExpenses"
-            :items-per-page="15"
-            class="text-no-wrap"
-          >
-            <template #item.paid="{ item }">
-              <VCheckbox
-                v-model="item.paid"
-                @change="setPaid(item)"
-              />
-            </template>
+        </div>
+      </VCard>
+    </div>
 
-            <!-- Actions -->
-            <template #item.actions="{ item }">
-              <div class="d-flex gap-1">
-                <table>
-                  <tr>
-                    <td style="min-width: 35px">
-                      <DocumentDownloadBtn :document="item.documentDto" />
-                    </td>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="editExpensesItem(item, true)"
-                      >
-                        <VIcon icon="ri-pencil-line" />
-                      </IconBtn>
-                    </td>
-                    <td style="min-width: 35px">
-                      <IconBtn
-                        size="small"
-                        @click="deleteExpensesItem(item, true)"
-                      >
-                        <VIcon icon="ri-delete-bin-line" />
-                      </IconBtn>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </template>
-          </VDataTable>
-        </VCard>
-      </td>
-    </tr>
-  </table>
+    <VCard
+      v-if="
+        expenseStore.homeInfo
+          && expenseStore.homeInfo.unpaidExpenses
+          && expenseStore.homeInfo.unpaidExpenses.length > 0
+      "
+      class="home-table-card home-unpaid-card"
+    >
+      <VCardTitle>Unpaid Expenses</VCardTitle>
+      <div class="home-table-scroll">
+        <VDataTable
+          :headers="headers"
+          :items="expenseStore.homeInfo?.unpaidExpenses"
+          :items-per-page="15"
+          class="text-no-wrap"
+        >
+          <template #item.paid="{ item }">
+            <VCheckbox
+              v-model="item.paid"
+              @change="setPaid(item)"
+            />
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="d-flex gap-1">
+              <table>
+                <tr>
+                  <td style="min-width: 35px">
+                    <DocumentDownloadBtn :document="item.documentDto" />
+                  </td>
+                  <td style="min-width: 35px">
+                    <IconBtn
+                      size="small"
+                      @click="editExpensesItem(item, true)"
+                    >
+                      <VIcon icon="ri-pencil-line" />
+                    </IconBtn>
+                  </td>
+                  <td style="min-width: 35px">
+                    <IconBtn
+                      size="small"
+                      @click="deleteExpensesItem(item, true)"
+                    >
+                      <VIcon icon="ri-delete-bin-line" />
+                    </IconBtn>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </template>
+        </VDataTable>
+      </div>
+    </VCard>
+  </div>
 
   <!-- 👉 Add/Edit Dialog  -->
   <VDialog
@@ -1009,5 +992,78 @@ i {
 
 .file-v-card {
   width: 300px;
+}
+
+.home-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.home-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.home-week-card {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+
+.home-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  min-inline-size: 0;
+}
+
+.home-tables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.home-table-card {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+}
+
+.home-unpaid-card {
+  margin-inline-start: auto;
+  inline-size: 100%;
+  max-inline-size: calc((100% - 1.5rem) / 2);
+}
+
+.home-table-scroll {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow-x: auto;
+}
+
+@media (max-width: 960px) {
+  .home-tables {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-unpaid-card {
+    max-inline-size: 100%;
+    margin-inline-start: 0;
+  }
 }
 </style>
