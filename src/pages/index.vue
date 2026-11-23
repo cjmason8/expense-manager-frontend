@@ -1009,8 +1009,8 @@ i {
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
-  /* Keep a small edge margin; scroll only when table content reaches it */
-  padding-inline-end: 1rem;
+  overflow-x: clip;
+  padding-inline-end: 0.75rem;
 }
 
 .home-toolbar {
@@ -1025,7 +1025,7 @@ i {
 }
 
 .home-week-card {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-inline-size: 0;
 }
 
@@ -1039,9 +1039,8 @@ i {
 }
 
 .home-tables {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 1.5rem;
   inline-size: 100%;
   max-inline-size: 100%;
@@ -1054,33 +1053,18 @@ i {
   overflow: hidden;
 }
 
-.home-table-card--incomes {
-  flex: 1 1 0;
-  min-inline-size: 0;
-  max-inline-size: 42%;
-}
-
-.home-table-card--expenses {
-  flex: 1 1 0;
-  min-inline-size: 0;
-}
-
 .home-unpaid-card {
   margin-inline-start: auto;
   inline-size: 100%;
-  max-inline-size: calc(58% - 0.75rem);
+  max-inline-size: calc(52.4% - 0.75rem);
 }
 
 @media (max-width: 960px) {
   .home-tables {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .home-table-card--incomes,
-  .home-table-card--expenses,
   .home-unpaid-card {
-    flex: 1 1 auto;
-    inline-size: 100%;
     max-inline-size: 100%;
     margin-inline-start: 0;
   }

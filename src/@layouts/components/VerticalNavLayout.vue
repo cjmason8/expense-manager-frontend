@@ -145,13 +145,12 @@ const verticalNavAttrs = computed(() => {
 
   .layout-content-wrapper {
     display: flex;
-    flex: 1 1 auto;
+    // flex-basis 0: width comes from the viewport column, not from wide page/table content
+    flex: 1 1 0%;
     flex-direction: column;
     min-inline-size: 0;
-    max-inline-size: 100%;
     min-block-size: 100dvh;
-    // Never let page content widen the column past the viewport (keeps navbar / entity nav on-screen)
-    overflow-x: clip;
+    box-sizing: border-box;
     transition: padding-inline-start 0.2s ease-in-out;
     will-change: padding-inline-start;
 
@@ -169,7 +168,6 @@ const verticalNavAttrs = computed(() => {
     inline-size: 100%;
     max-inline-size: 100%;
     box-sizing: border-box;
-    overflow-x: clip;
   }
 
   &.layout-content-width-boxed .layout-content-capped {
@@ -180,32 +178,36 @@ const verticalNavAttrs = computed(() => {
     .layout-content-capped {
       flex: 1 1 auto;
       inline-size: 100%;
-      // Fill the content column, but never grow past the viewport (unlike `none`)
       max-inline-size: 100%;
     }
-
-    .layout-page-content,
-    .page-content-container {
-      inline-size: 100%;
-      max-inline-size: 100% !important;
-      min-inline-size: 0;
-    }
   }
 
-  // Undo per-section max-width from `boxed-content` mixins — the cap wrapper owns the limit
+  // Cap wrapper owns width — children must stay within it (never `max-inline-size: none`,
+  // which let wide tables expand the page and clip the navbar / entity nav).
   .layout-content-capped .layout-navbar,
+  .layout-content-capped .layout-entity-nav,
   .layout-content-capped .layout-page-content,
   .layout-content-capped .layout-footer {
-    max-inline-size: none !important;
-    margin-inline: 0 !important;
-    inline-size: 100%;
+    flex-shrink: 0;
     box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: 100% !important;
+    min-inline-size: 0;
+    margin-inline: 0 !important;
   }
 
-  // Tighter space under the top bar (`_default-layout.scss` uses padding-block: 1.5rem on `.layout-page-content`)
   .layout-content-capped .layout-page-content {
+    flex: 1 1 auto;
+    min-inline-size: 0;
     padding-block-start: 0.5rem;
     padding-block-end: 1rem;
+
+    .page-content-container {
+      box-sizing: border-box;
+      inline-size: 100%;
+      max-inline-size: 100%;
+      min-inline-size: 0;
+    }
   }
 
   .layout-entity-nav {
@@ -218,7 +220,7 @@ const verticalNavAttrs = computed(() => {
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
     box-sizing: border-box;
-    // Width cap comes from `boxed-content` + `%boxed-content` (same as `.layout-page-content`)
+    overflow-x: clip;
 
     .navbar-content-container {
       box-sizing: border-box;
@@ -226,6 +228,7 @@ const verticalNavAttrs = computed(() => {
       align-items: center;
       inline-size: 100%;
       min-inline-size: 0;
+      max-inline-size: 100%;
       block-size: variables.$layout-vertical-nav-navbar-height;
 
       // One slot root (e.g. `.d-flex`); default flex item shrink-to-content — breaks `VSpacer` / right alignment
