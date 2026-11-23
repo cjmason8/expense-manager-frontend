@@ -148,7 +148,10 @@ const verticalNavAttrs = computed(() => {
     flex: 1 1 auto;
     flex-direction: column;
     min-inline-size: 0;
+    max-inline-size: 100%;
     min-block-size: 100dvh;
+    // Never let page content widen the column past the viewport (keeps navbar / entity nav on-screen)
+    overflow-x: clip;
     transition: padding-inline-start 0.2s ease-in-out;
     will-change: padding-inline-start;
 
@@ -166,6 +169,7 @@ const verticalNavAttrs = computed(() => {
     inline-size: 100%;
     max-inline-size: 100%;
     box-sizing: border-box;
+    overflow-x: clip;
   }
 
   &.layout-content-width-boxed .layout-content-capped {
@@ -176,13 +180,15 @@ const verticalNavAttrs = computed(() => {
     .layout-content-capped {
       flex: 1 1 auto;
       inline-size: 100%;
-      max-inline-size: none;
+      // Fill the content column, but never grow past the viewport (unlike `none`)
+      max-inline-size: 100%;
     }
 
     .layout-page-content,
     .page-content-container {
       inline-size: 100%;
-      max-inline-size: none !important;
+      max-inline-size: 100% !important;
+      min-inline-size: 0;
     }
   }
 
@@ -205,6 +211,8 @@ const verticalNavAttrs = computed(() => {
   .layout-entity-nav {
     box-sizing: border-box;
     inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
   }
 
   .layout-navbar {

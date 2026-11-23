@@ -380,7 +380,7 @@ const deleteIncomesItemConfirm = () => {
     <div class="home-tables">
       <VCard class="home-table-card home-table-card--incomes">
         <VCardTitle>Incomes</VCardTitle>
-        <div class="home-table-scroll">
+        <TableScrollArea>
           <VDataTable
             :headers="incomeHeaders"
             :items="expenseStore.homeInfo?.incomes"
@@ -420,12 +420,12 @@ const deleteIncomesItemConfirm = () => {
               </div>
             </template>
           </VDataTable>
-        </div>
+        </TableScrollArea>
       </VCard>
 
       <VCard class="home-table-card home-table-card--expenses">
         <VCardTitle>Expenses</VCardTitle>
-        <div class="home-table-scroll">
+        <TableScrollArea>
           <VDataTable
             :headers="headers"
             :items="expenseStore.homeInfo?.expenses"
@@ -468,7 +468,7 @@ const deleteIncomesItemConfirm = () => {
               </div>
             </template>
           </VDataTable>
-        </div>
+        </TableScrollArea>
       </VCard>
     </div>
 
@@ -481,7 +481,7 @@ const deleteIncomesItemConfirm = () => {
       class="home-table-card home-unpaid-card"
     >
       <VCardTitle>Unpaid Expenses</VCardTitle>
-      <div class="home-table-scroll">
+      <TableScrollArea>
         <VDataTable
           :headers="headers"
           :items="expenseStore.homeInfo?.unpaidExpenses"
@@ -524,7 +524,7 @@ const deleteIncomesItemConfirm = () => {
             </div>
           </template>
         </VDataTable>
-      </div>
+      </TableScrollArea>
     </VCard>
   </div>
 
@@ -1055,8 +1055,8 @@ i {
 }
 
 .home-table-card--incomes {
-  flex: 0 1 auto;
-  inline-size: max-content;
+  flex: 1 1 0;
+  min-inline-size: 0;
   max-inline-size: 42%;
 }
 
@@ -1069,12 +1069,6 @@ i {
   margin-inline-start: auto;
   inline-size: 100%;
   max-inline-size: calc(58% - 0.75rem);
-}
-
-.home-table-scroll {
-  max-inline-size: 100%;
-  min-inline-size: 0;
-  overflow-x: auto;
 }
 
 @media (max-width: 960px) {
