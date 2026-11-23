@@ -11,6 +11,13 @@ import type { Expense } from '@/types/expense'
 import type { Income } from '@/types/income'
 import type { RefData } from '@/types/refData'
 
+definePage({
+  meta: {
+    // Use full content column (past boxed max-width) so tables aren't squeezed into half the viewport
+    layoutWrapperClasses: 'search-layout-full-width',
+  },
+})
+
 const route = useRoute()
 const gotoDate: string | null = route.params.date as string
 
@@ -371,7 +378,7 @@ const deleteIncomesItemConfirm = () => {
     </div>
 
     <div class="home-tables">
-      <VCard class="home-table-card">
+      <VCard class="home-table-card home-table-card--incomes">
         <VCardTitle>Incomes</VCardTitle>
         <div class="home-table-scroll">
           <VDataTable
@@ -416,7 +423,7 @@ const deleteIncomesItemConfirm = () => {
         </div>
       </VCard>
 
-      <VCard class="home-table-card">
+      <VCard class="home-table-card home-table-card--expenses">
         <VCardTitle>Expenses</VCardTitle>
         <div class="home-table-scroll">
           <VDataTable
@@ -1002,6 +1009,8 @@ i {
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
+  /* Keep a small edge margin; scroll only when table content reaches it */
+  padding-inline-end: 1rem;
 }
 
 .home-toolbar {
@@ -1030,8 +1039,9 @@ i {
 }
 
 .home-tables {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
   gap: 1.5rem;
   inline-size: 100%;
   max-inline-size: 100%;
@@ -1044,10 +1054,21 @@ i {
   overflow: hidden;
 }
 
+.home-table-card--incomes {
+  flex: 0 1 auto;
+  inline-size: max-content;
+  max-inline-size: 42%;
+}
+
+.home-table-card--expenses {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
 .home-unpaid-card {
   margin-inline-start: auto;
   inline-size: 100%;
-  max-inline-size: calc((100% - 1.5rem) / 2);
+  max-inline-size: calc(58% - 0.75rem);
 }
 
 .home-table-scroll {
@@ -1058,10 +1079,14 @@ i {
 
 @media (max-width: 960px) {
   .home-tables {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
   }
 
+  .home-table-card--incomes,
+  .home-table-card--expenses,
   .home-unpaid-card {
+    flex: 1 1 auto;
+    inline-size: 100%;
     max-inline-size: 100%;
     margin-inline-start: 0;
   }
